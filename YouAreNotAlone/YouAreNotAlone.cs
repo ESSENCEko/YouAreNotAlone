@@ -105,6 +105,7 @@ namespace YouAreNotAlone
                 "dubsta",
                 "emperor",
                 "glendale",
+                "granger",
                 "minivan",
                 "patriot",
                 "rancherxl",
