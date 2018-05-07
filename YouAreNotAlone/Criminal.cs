@@ -20,7 +20,7 @@
             {
                 dispatchCooldown = 0;
 
-                if (!Util.AnyEmergencyIsNear(spawnedPed.Position, YouAreNotAlone.EmergencyType.Cop)) YouAreNotAlone.Dispatch(spawnedPed, type);
+                if (!Util.AnyEmergencyIsNear(spawnedPed.Position, YouAreNotAlone.EmergencyType.Cop)) YouAreNotAlone.DispatchAgainst(spawnedPed, type);
             }
         }
     }

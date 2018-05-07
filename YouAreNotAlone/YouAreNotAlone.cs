@@ -636,7 +636,7 @@ namespace YouAreNotAlone
             }
         }
 
-        public static void Dispatch(Entity target, CrimeType type)
+        public static void DispatchAgainst(Entity target, CrimeType type)
         {
             Vector3 safePosition = Util.GetSafePositionNear(target);
 
@@ -906,7 +906,7 @@ namespace YouAreNotAlone
                                     }
 
                                     Util.AddBlipOn(explosiveVehicle, 0.7f, BlipSprite.PersonalVehicleCar, BlipColor.Red, "Vehicle Explosion");
-                                    Dispatch(explosiveVehicle, CrimeType.Fire);
+                                    DispatchAgainst(explosiveVehicle, CrimeType.Fire);
                                     explosiveVehicle.Explode();
                                     Function.Call(Hash.FLASH_MINIMAP_DISPLAY);
 
@@ -942,7 +942,7 @@ namespace YouAreNotAlone
                                     }
 
                                     Util.AddBlipOn(undriveableVehicle, 0.7f, BlipSprite.PersonalVehicleCar, BlipColor.Yellow, "Vehicle on Fire");
-                                    Dispatch(undriveableVehicle, CrimeType.Fire);
+                                    DispatchAgainst(undriveableVehicle, CrimeType.Fire);
                                     undriveableVehicle.EngineHealth = -900.0f;
                                     Function.Call(Hash.FLASH_MINIMAP_DISPLAY);
 

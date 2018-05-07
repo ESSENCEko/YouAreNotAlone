@@ -82,7 +82,7 @@ namespace YouAreNotAlone
             {
                 dispatchCooldown = 0;
 
-                if (!Util.AnyEmergencyIsNear(spawnedPed.Position, YouAreNotAlone.EmergencyType.Army)) YouAreNotAlone.Dispatch(spawnedPed, type);
+                if (!Util.AnyEmergencyIsNear(spawnedPed.Position, YouAreNotAlone.EmergencyType.Army)) YouAreNotAlone.DispatchAgainst(spawnedPed, type);
             }
         }
 

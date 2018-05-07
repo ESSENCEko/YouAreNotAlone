@@ -78,6 +78,7 @@ namespace YouAreNotAlone
                 p.FiringPattern = FiringPattern.FullAuto;
                 p.ShootRate = 1000;
                 p.CanRagdoll = false;
+                p.CanSwitchWeapons = true;
 
                 if (!Util.BlipIsOn(p))
                 {

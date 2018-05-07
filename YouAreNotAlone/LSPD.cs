@@ -65,7 +65,7 @@ namespace YouAreNotAlone
                     Function.Call(Hash.SET_DRIVER_ABILITY, p, 1.0f);
                     Function.Call(Hash.SET_DRIVER_AGGRESSIVENESS, p, 1.0f);
 
-                    if (((Ped)target).IsInVehicle()) Function.Call(Hash.TASK_VEHICLE_CHASE, p, target);
+                    if (((Ped)target).IsInVehicle()) Function.Call(Hash.TASK_VEHICLE_ESCORT, p, spawnedVehicle, ((Ped)target).CurrentVehicle, -1, 100.0f, (int)DrivingStyle.AvoidTrafficExtremely, 0.0f, -1, 100.0f);
                     else p.Task.DriveTo(spawnedVehicle, target.Position, 30.0f, 100.0f, (int)DrivingStyle.AvoidTrafficExtremely);
                 }
                 else p.Task.FightAgainstHatedTargets(100.0f);
