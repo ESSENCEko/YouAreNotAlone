@@ -87,22 +87,16 @@ namespace YouAreNotAlone
                 {
                     if (!p.IsInVehicle(spawnedVehicle))
                     {
-                        if (!Function.Call<bool>(Hash.GET_IS_TASK_ACTIVE, p, 160))
+                        for (int i = -1; i < spawnedVehicle.PassengerSeats; i++)
                         {
-                            for (int i = -1; i < spawnedVehicle.PassengerSeats; i++)
+                            if (spawnedVehicle.IsSeatFree((VehicleSeat)i) || spawnedVehicle.GetPedOnSeat((VehicleSeat)i).IsDead)
                             {
-                                if (spawnedVehicle.IsSeatFree((VehicleSeat)i) || spawnedVehicle.GetPedOnSeat((VehicleSeat)i).IsDead)
+                                if (!Function.Call<bool>(Hash.GET_IS_TASK_ACTIVE, p, 160))
                                 {
                                     p.Task.EnterVehicle(spawnedVehicle, (VehicleSeat)i, -1, 2.0f, 1);
                                     break;
                                 }
-                            }
-                        }
-                        else if (p.IsStopped && !p.IsGettingIntoAVehicle)
-                        {
-                            for (int i = -1; i < spawnedVehicle.PassengerSeats; i++)
-                            {
-                                if (spawnedVehicle.IsSeatFree((VehicleSeat)i) || spawnedVehicle.GetPedOnSeat((VehicleSeat)i).IsDead)
+                                else if (p.IsStopped && !p.IsGettingIntoAVehicle)
                                 {
                                     p.SetIntoVehicle(spawnedVehicle, (VehicleSeat)i);
                                     break;
