@@ -74,7 +74,7 @@ namespace YouAreNotAlone
             else nitroAmount++;
 
             if (nitroAmount > 600) nitroAmount = 600;
-            if (nitroAmount > 300) nitroCooldown = false;
+            if (nitroAmount > 200) nitroCooldown = false;
             else if (nitroAmount <= 0)
             {
                 nitroAmount = 0;

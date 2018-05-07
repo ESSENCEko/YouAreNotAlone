@@ -53,7 +53,7 @@ namespace YouAreNotAlone
             spawnedPed.AlwaysKeepTask = true;
             spawnedPed.BlockPermanentEvents = true;
 
-            spawnedPed.ShootRate = 500;
+            spawnedPed.ShootRate = 100;
             spawnedPed.Task.FightAgainstHatedTargets(400.0f);
 
             if (!Util.BlipIsOn(spawnedPed))

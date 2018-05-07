@@ -110,7 +110,7 @@ namespace YouAreNotAlone
                     continue;
                 }
 
-                if (members[i].IsRagdoll) members[i].Task.PerformSequence(ts);
+                if (!members[i].IsInCombat && members[i].IsRagdoll) members[i].Task.PerformSequence(ts);
                 if (!members[i].IsInRangeOf(Game.Player.Character.Position, 500.0f))
                 {
                     if (Util.BlipIsOn(members[i])) members[i].CurrentBlip.Remove();

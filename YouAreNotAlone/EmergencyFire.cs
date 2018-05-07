@@ -66,9 +66,9 @@ namespace YouAreNotAlone
 
         protected void SetPedsOffDuty()
         {
-            if (spawnedVehicle.HasSiren && spawnedVehicle.SirenActive) spawnedVehicle.SirenActive = false;
             if (EveryoneIsSitting())
             {
+                if (spawnedVehicle.HasSiren && spawnedVehicle.SirenActive) spawnedVehicle.SirenActive = false;
                 foreach (Ped p in members)
                 {
                     if (p.IsPersistent)
@@ -85,14 +85,28 @@ namespace YouAreNotAlone
             {
                 foreach (Ped p in members)
                 {
-                    if (!p.IsSittingInVehicle(spawnedVehicle) && !Function.Call<bool>(Hash.GET_IS_TASK_ACTIVE, p, 160))
+                    if (!p.IsInVehicle(spawnedVehicle))
                     {
-                        for (int i = -1; i < spawnedVehicle.PassengerSeats; i++)
+                        if (!Function.Call<bool>(Hash.GET_IS_TASK_ACTIVE, p, 160))
                         {
-                            if (spawnedVehicle.IsSeatFree((VehicleSeat)i) || spawnedVehicle.GetPedOnSeat((VehicleSeat)i).IsDead)
+                            for (int i = -1; i < spawnedVehicle.PassengerSeats; i++)
                             {
-                                p.Task.EnterVehicle(spawnedVehicle, (VehicleSeat)i, -1, 2.0f, 1);
-                                break;
+                                if (spawnedVehicle.IsSeatFree((VehicleSeat)i) || spawnedVehicle.GetPedOnSeat((VehicleSeat)i).IsDead)
+                                {
+                                    p.Task.EnterVehicle(spawnedVehicle, (VehicleSeat)i, -1, 2.0f, 1);
+                                    break;
+                                }
+                            }
+                        }
+                        else if (p.IsStopped && !p.IsGettingIntoAVehicle)
+                        {
+                            for (int i = -1; i < spawnedVehicle.PassengerSeats; i++)
+                            {
+                                if (spawnedVehicle.IsSeatFree((VehicleSeat)i) || spawnedVehicle.GetPedOnSeat((VehicleSeat)i).IsDead)
+                                {
+                                    p.SetIntoVehicle(spawnedVehicle, (VehicleSeat)i);
+                                    break;
+                                }
                             }
                         }
                     }

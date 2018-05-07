@@ -48,12 +48,14 @@ namespace YouAreNotAlone
                 p.Armor = 70;
                 p.CanSwitchWeapons = true;
                 Function.Call(Hash.SET_PED_ID_RANGE, p, 1000.0f);
+                Function.Call(Hash.SET_PED_SEEING_RANGE, p, 1000.0f);
+                Function.Call(Hash.SET_PED_HEARING_RANGE, p, 1000.0f);
                 Function.Call(Hash.SET_PED_COMBAT_RANGE, p, 2);
 
+                p.RelationshipGroup = Function.Call<int>(Hash.GET_HASH_KEY, "COP");
                 Function.Call(Hash.SET_PED_AS_COP, p, false);
                 p.AlwaysKeepTask = true;
                 p.BlockPermanentEvents = true;
-                p.RelationshipGroup = Function.Call<int>(Hash.GET_HASH_KEY, "COP");
             }
 
             if (spawnedVehicle.HasSiren) spawnedVehicle.SirenActive = true;
