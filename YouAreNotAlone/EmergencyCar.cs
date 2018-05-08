@@ -19,7 +19,9 @@ namespace YouAreNotAlone
 
             if (!Util.ThereIs(spawnedVehicle)) return false;
 
-            for (int i = -1; i < spawnedVehicle.PassengerSeats; i++)
+            int max = emergencyType.Equals("LSPD") ? 1 : spawnedVehicle.PassengerSeats;
+
+            for (int i = -1; i < max; i++)
             {
                 if (spawnedVehicle.IsSeatFree((VehicleSeat)i))
                 {
