@@ -611,7 +611,7 @@ namespace YouAreNotAlone
             {
                 string spawnName = e.GetAttribute("name");
 
-                if (((Model)spawnName).IsValid) addOnCarNames.Add(spawnName);
+                if (((Model)spawnName).IsValid && (((Model)spawnName).IsVehicle)) addOnCarNames.Add(spawnName);
             }
 
             foreach (XmlElement e in element.SelectNodes("//RaceCar/spawn"))
@@ -632,7 +632,7 @@ namespace YouAreNotAlone
             {
                 string spawnName = e.GetAttribute("name");
 
-                if (((Model)spawnName).IsValid) drivebyCarNames.Add(spawnName);
+                if (((Model)spawnName).IsValid && (((Model)spawnName).IsVehicle)) drivebyCarNames.Add(spawnName);
             }
         }
 

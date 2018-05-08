@@ -8,10 +8,7 @@ namespace YouAreNotAlone
     {
         private string name;
 
-        public AggressiveDriver(string name) : base(YouAreNotAlone.CrimeType.AggressiveDriver)
-        {
-            this.name = name;
-        }
+        public AggressiveDriver(string name) : base(YouAreNotAlone.CrimeType.AggressiveDriver) { this.name = name; }
 
         public bool IsCreatedIn(float radius)
         {

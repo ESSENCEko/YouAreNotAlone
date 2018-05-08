@@ -8,10 +8,7 @@ namespace YouAreNotAlone
     {
         private string name;
 
-        public Terrorist(string name) : base(YouAreNotAlone.CrimeType.Terrorist)
-        {
-            this.name = name;
-        }
+        public Terrorist(string name) : base(YouAreNotAlone.CrimeType.Terrorist) { this.name = name; }
 
         public bool IsCreatedIn(float radius)
         {
@@ -52,8 +49,6 @@ namespace YouAreNotAlone
 
             spawnedPed.AlwaysKeepTask = true;
             spawnedPed.BlockPermanentEvents = true;
-
-            spawnedPed.ShootRate = 100;
             spawnedPed.Task.FightAgainstHatedTargets(400.0f);
 
             if (!Util.BlipIsOn(spawnedPed))

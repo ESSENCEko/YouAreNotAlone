@@ -52,6 +52,7 @@
     <Compile Include="Criminal.cs" />
     <Compile Include="Driveby.cs" />
     <Compile Include="Emergency.cs" />
+    <Compile Include="EmergencyCar.cs" />
     <Compile Include="EmergencyFire.cs" />
     <Compile Include="EmergencyHeli.cs" />
     <Compile Include="EntitySet.cs" />
