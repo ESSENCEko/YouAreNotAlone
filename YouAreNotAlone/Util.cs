@@ -44,7 +44,9 @@ namespace YouAreNotAlone
             Function.Call<int>(Hash.GET_HASH_KEY, "FIREMAN"),
             Function.Call<int>(Hash.GET_HASH_KEY, "MEDIC")
         };
-        private static List<int> newRelationships = new List<int>();
+        private static List<int> criminalRelationships = new List<int>();
+        private static List<int> copRelationships = new List<int>();
+        private static List<int> armyRelationships = new List<int>();
         private static int copID = Function.Call<int>(Hash.GET_HASH_KEY, "COP");
         private static int playerID = Function.Call<int>(Hash.GET_HASH_KEY, "PLAYER");
         private static int count = 0;
@@ -75,6 +77,18 @@ namespace YouAreNotAlone
             }
         }
 
+        public static bool SomethingIsBetween(Vector3 position)
+        {
+            if (Game.Player.Character.IsInRangeOf(position, 50.0f)) return false;
+            else if (!Game.Player.Character.IsInRangeOf(position, 100.0f)) return true;
+            else
+            {
+                RaycastResult r = World.Raycast(GameplayCamera.Position, position, IntersectOptions.Map);
+
+                return r.DitHitAnything && r.HitCoords.DistanceTo(GameplayCamera.Position) > 30.0f;
+            }
+        }
+
         public static Vector3 GetSafePositionIn(float radius)
         {
             Entity[] nearbyEntities = World.GetNearbyEntities(Game.Player.Character.Position, radius);
@@ -90,9 +104,9 @@ namespace YouAreNotAlone
             return Vector3.Zero;
         }
 
-        public static Vector3 GetSafePositionNear(Entity entity)
+        public static Vector3 GetSafePositionNear(Vector3 position)
         {
-            Entity[] nearbyEntities = World.GetNearbyEntities(entity.Position, 100.0f);
+            Entity[] nearbyEntities = World.GetNearbyEntities(position, 100.0f);
 
             if (nearbyEntities.Length > 0)
             {
@@ -139,7 +153,7 @@ namespace YouAreNotAlone
             return null;
         }
 
-        public static Vehicle Create(Model m, Vector3 v3, float h, bool colorNeeded)
+        public static Vehicle Create(Model m, Vector3 v3, float h, bool withColors)
         {
             if (m.IsValid && !v3.Equals(Vector3.Zero))
             {
@@ -149,7 +163,7 @@ namespace YouAreNotAlone
 
                 if (ThereIs(v))
                 {
-                    if (colorNeeded)
+                    if (withColors)
                     {
                         v.PrimaryColor = (VehicleColor)vehicleColors.GetValue(dice.Next(vehicleColors.Length));
                         v.SecondaryColor = (VehicleColor)vehicleColors.GetValue(dice.Next(vehicleColors.Length));
@@ -162,7 +176,7 @@ namespace YouAreNotAlone
             return null;
         }
 
-        public static void Tune(Vehicle v, bool neonsAreNeeded, bool wheelsAreNeeded)
+        public static void Tune(Vehicle v, bool withNeons, bool withWheels)
         {
             if (ThereIs(v))
             {
@@ -176,7 +190,7 @@ namespace YouAreNotAlone
                     if (m != VehicleMod.Horns && m != VehicleMod.FrontWheels && m != VehicleMod.BackWheels && v.GetModCount(m) > 0) v.SetMod(m, dice.Next(-1, v.GetModCount(m)), false);
                 }
 
-                if (wheelsAreNeeded)
+                if (withWheels)
                 {
                     if (v.Model.IsCar)
                     {
@@ -195,7 +209,7 @@ namespace YouAreNotAlone
                     v.RimColor = (VehicleColor)wheelColors[dice.Next(wheelColors.Length)];
                 }
 
-                if (neonsAreNeeded)
+                if (withNeons)
                 {
                     v.NeonLightsColor = Color.FromKnownColor((KnownColor)neonColors.GetValue(dice.Next(neonColors.Length)));
 
@@ -204,43 +218,82 @@ namespace YouAreNotAlone
             }
         }
 
-        public static int NewRelationship(YouAreNotAlone.CrimeType type)
+        public static int NewRelationship(ListManager.EventType type)
         {
             int newRel = World.AddRelationshipGroup((count++).ToString());
 
-            newRelationships.Add(newRel);
-            World.SetRelationshipBetweenGroups(Relationship.Hate, newRel, copID);
-
             switch (type)
             {
-                case YouAreNotAlone.CrimeType.AggressiveDriver:
-                case YouAreNotAlone.CrimeType.Carjacker:
-                case YouAreNotAlone.CrimeType.Racer:
+                case ListManager.EventType.AggressiveDriver:
+                case ListManager.EventType.Carjacker:
+                case ListManager.EventType.Racer:
                     {
-                        foreach (int i in newRelationships) World.SetRelationshipBetweenGroups(Relationship.Hate, newRel, i);
+                        foreach (int i in criminalRelationships) World.SetRelationshipBetweenGroups(Relationship.Hate, newRel, i);
+
+                        criminalRelationships.Add(newRel);
+                        World.SetRelationshipBetweenGroups(Relationship.Hate, newRel, copID);
 
                         break;
                     }
 
-                case YouAreNotAlone.CrimeType.Driveby:
-                case YouAreNotAlone.CrimeType.Massacre:
-                case YouAreNotAlone.CrimeType.Terrorist:
+                case ListManager.EventType.Army:
+                    {
+                        foreach (int i in criminalRelationships) World.SetRelationshipBetweenGroups(Relationship.Hate, newRel, i);
+                        foreach (int i in armyRelationships) World.SetRelationshipBetweenGroups(Relationship.Respect, newRel, i);
+                        foreach (int i in copRelationships) World.SetRelationshipBetweenGroups(Relationship.Respect, newRel, i);
+
+                        armyRelationships.Add(newRel);
+                        World.SetRelationshipBetweenGroups(Relationship.Respect, newRel, copID);
+                        World.SetRelationshipBetweenGroups(Relationship.Respect, newRel, Function.Call<int>(Hash.GET_HASH_KEY, "ARMY"));
+                        World.SetRelationshipBetweenGroups(Relationship.Respect, newRel, newRel);
+
+                        if (!YouAreNotAlone.DispatchesCanFightWithPlayer) World.SetRelationshipBetweenGroups(Relationship.Respect, newRel, playerID);
+
+                        break;
+                    }
+
+                case ListManager.EventType.Cop:
+                    {
+                        foreach (int i in criminalRelationships) World.SetRelationshipBetweenGroups(Relationship.Hate, newRel, i);
+                        foreach (int i in armyRelationships) World.SetRelationshipBetweenGroups(Relationship.Respect, newRel, i);
+                        foreach (int i in copRelationships) World.SetRelationshipBetweenGroups(Relationship.Respect, newRel, i);
+
+                        copRelationships.Add(newRel);
+                        World.SetRelationshipBetweenGroups(Relationship.Respect, newRel, copID);
+                        World.SetRelationshipBetweenGroups(Relationship.Respect, newRel, Function.Call<int>(Hash.GET_HASH_KEY, "ARMY"));
+                        World.SetRelationshipBetweenGroups(Relationship.Respect, newRel, newRel);
+
+                        if (!YouAreNotAlone.DispatchesCanFightWithPlayer) World.SetRelationshipBetweenGroups(Relationship.Respect, newRel, playerID);
+
+                        break;
+                    }
+
+                case ListManager.EventType.Driveby:
+                case ListManager.EventType.Massacre:
+                case ListManager.EventType.Terrorist:
                     {
                         foreach (int i in oldRelationships) World.SetRelationshipBetweenGroups(Relationship.Hate, newRel, i);
-                        foreach (int i in newRelationships) World.SetRelationshipBetweenGroups(Relationship.Hate, newRel, i);
+                        foreach (int i in criminalRelationships) World.SetRelationshipBetweenGroups(Relationship.Hate, newRel, i);
 
+                        criminalRelationships.Add(newRel);
+                        World.SetRelationshipBetweenGroups(Relationship.Hate, newRel, copID);
                         World.SetRelationshipBetweenGroups(Relationship.Respect, newRel, newRel);
-                        World.SetRelationshipBetweenGroups(Relationship.Respect, newRel, playerID);
+
+                        if (!YouAreNotAlone.CriminalsCanFightWithPlayer) World.SetRelationshipBetweenGroups(Relationship.Respect, newRel, playerID);
+
                         break;
                     }
 
-                case YouAreNotAlone.CrimeType.GangTeam:
+                case ListManager.EventType.GangTeam:
                     {
-                        foreach (int i in newRelationships) World.SetRelationshipBetweenGroups(Relationship.Hate, newRel, i);
+                        foreach (int i in criminalRelationships) World.SetRelationshipBetweenGroups(Relationship.Hate, newRel, i);
 
+                        criminalRelationships.Add(newRel);
+                        World.SetRelationshipBetweenGroups(Relationship.Hate, newRel, copID);
                         World.SetRelationshipBetweenGroups(Relationship.Respect, newRel, newRel);
-                        World.SetRelationshipBetweenGroups(Relationship.Respect, newRel, newRel);
-                        World.SetRelationshipBetweenGroups(Relationship.Respect, newRel, playerID);
+
+                        if (!YouAreNotAlone.CriminalsCanFightWithPlayer) World.SetRelationshipBetweenGroups(Relationship.Respect, newRel, playerID);
+
                         break;
                     }
             }
@@ -248,46 +301,87 @@ namespace YouAreNotAlone
             return newRel;
         }
 
-        public static void CleanUpRelationship(int relationship)
+        public static void CleanUpRelationship(int relationship, ListManager.EventType type)
         {
             World.RemoveRelationshipGroup(relationship);
 
-            if (newRelationships.Contains(relationship)) newRelationships.Remove(relationship);
+            switch (type)
+            {
+                case ListManager.EventType.Army:
+                    {
+                        if (armyRelationships.Contains(relationship)) armyRelationships.Remove(relationship);
+                        break;
+                    }
+
+                case ListManager.EventType.Cop:
+                    {
+                        if (copRelationships.Contains(relationship)) copRelationships.Remove(relationship);
+                        break;
+                    }
+
+                default:
+                    {
+                        if (criminalRelationships.Contains(relationship)) criminalRelationships.Remove(relationship);
+                        break;
+                    }
+            }
         }
 
-        public static bool AnyEmergencyIsNear(Vector3 position, YouAreNotAlone.EmergencyType type)
+        public static bool AnyEmergencyIsNear(Vector3 position, ListManager.EventType type)
         {
             Ped[] nearbyPeds = World.GetNearbyPeds(position, 100.0f);
 
             if (nearbyPeds.Length < 1) return false;
 
-            int id = 0;
-
-            switch (type)
-            {
-                case YouAreNotAlone.EmergencyType.Army:
-                    id = Function.Call<int>(Hash.GET_HASH_KEY, "ARMY");
-                    break;
-
-                case YouAreNotAlone.EmergencyType.Cop:
-                    id = Function.Call<int>(Hash.GET_HASH_KEY, "COP");
-                    break;
-
-                case YouAreNotAlone.EmergencyType.Firefighter:
-                    id = Function.Call<int>(Hash.GET_HASH_KEY, "FIREMAN");
-                    break;
-
-                case YouAreNotAlone.EmergencyType.Paramedic:
-                    id = Function.Call<int>(Hash.GET_HASH_KEY, "MEDIC");
-                    break;
-            }
-
             foreach (Ped p in nearbyPeds)
             {
-                if (p.RelationshipGroup == id && !p.Equals(Game.Player.Character) && !p.IsDead) return true;
+                if (!p.Equals(Game.Player.Character) && !p.IsDead)
+                {
+                    switch (type)
+                    {
+                        case ListManager.EventType.Army:
+                            {
+                                foreach (int i in armyRelationships)
+                                {
+                                    if (p.RelationshipGroup == i) return true;
+                                }
+
+                                break;
+                            }
+
+                        case ListManager.EventType.Cop:
+                            {
+                                foreach (int i in copRelationships)
+                                {
+                                    if (p.RelationshipGroup == i) return true;
+                                }
+
+                                break;
+                            }
+                    }
+                }
             }
 
             return false;
+        }
+
+        public static Road GetNextPositionOnStreetWithHeading(Vector3 position)
+        {
+            OutputArgument outPos = new OutputArgument();
+            OutputArgument roadHeading = new OutputArgument();
+
+            for (int i = 1; i < 100; i++)
+            {
+                if (Function.Call<bool>(Hash.GET_NTH_CLOSEST_VEHICLE_NODE_WITH_HEADING, position.X, position.Y, position.Z, i, outPos, roadHeading, new OutputArgument(), 9, 3.0f, 2.5f))
+                {
+                    Vector3 roadPos = outPos.GetResult<Vector3>();
+
+                    if (SomethingIsBetween(roadPos) && !Function.Call<bool>(Hash.IS_POINT_OBSCURED_BY_A_MISSION_ENTITY, roadPos.X, roadPos.Y, roadPos.Z, 5.0f, 5.0f, 5.0f, 0))
+                        return new Road(roadPos, roadHeading.GetResult<float>());
+                }
+            }
+
+            return new Road(Vector3.Zero, 0.0f);
         }
     }
 }

@@ -8,17 +8,11 @@ namespace YouAreNotAlone
     public class Massacre : Criminal
     {
         private List<Ped> members;
-        private float radius;
 
-        public Massacre() : base(YouAreNotAlone.CrimeType.Massacre)
-        {
-            this.members = new List<Ped>();
-            this.radius = 0.0f;
-        }
+        public Massacre() : base(ListManager.EventType.Massacre) { this.members = new List<Ped>(); }
 
-        public bool IsCreatedIn(float radius, Vector3 safePosition, int teamID)
+        public bool IsCreatedIn(float radius, Vector3 safePosition)
         {
-            this.radius = radius;
             Vector3 position = World.GetNextPositionOnSidewalk(safePosition);
             int trycount = 0;
 
@@ -32,8 +26,7 @@ namespace YouAreNotAlone
                 Script.Wait(50);
 
                 if (++trycount > 5) return false;
-            }
-            while (!Function.Call<bool>(Hash.HAS_ANIM_SET_LOADED, "anim_group_move_ballistic")
+            } while (!Function.Call<bool>(Hash.HAS_ANIM_SET_LOADED, "anim_group_move_ballistic")
             || !Function.Call<bool>(Hash.HAS_ANIM_SET_LOADED, "move_strafe_ballistic")
             || !Function.Call<bool>(Hash.HAS_CLIP_SET_LOADED, "move_ballistic_minigun"));
 
@@ -47,37 +40,57 @@ namespace YouAreNotAlone
 
                 p.Weapons.Give(WeaponHash.Pistol, 100, false, false);
                 p.Weapons.Current.InfiniteAmmo = true;
-                p.Health = p.MaxHealth = 2000;
+                p.Health = p.MaxHealth = 500;
                 p.Armor = 100;
 
                 Function.Call(Hash.RESET_PED_MOVEMENT_CLIPSET, p, 1.0f);
                 Function.Call(Hash.RESET_PED_STRAFE_CLIPSET, p);
-                Function.Call(Hash.SET_PED_USING_ACTION_MODE, p, true, -1, 0);
 
                 Function.Call(Hash.SET_PED_MOVEMENT_CLIPSET, p, "anim_group_move_ballistic", 1.0f);
                 Function.Call(Hash.SET_PED_STRAFE_CLIPSET, p, "move_strafe_ballistic");
                 Function.Call(Hash.SET_WEAPON_ANIMATION_OVERRIDE, p, Function.Call<int>(Hash.GET_HASH_KEY, "Ballistic"));
 
-                Function.Call(Hash.SET_PED_COMPONENT_VARIATION, p, 0, 6, 0, 0);
+                Function.Call(Hash.SET_PED_COMPONENT_VARIATION, p, 0, Util.GetRandomInt(7), 0, 0);
                 Function.Call(Hash.SET_PED_COMPONENT_VARIATION, p, 1, 1, 0, 0);
-                Function.Call(Hash.SET_PED_COMPONENT_VARIATION, p, 2, 1, 0, 0);
+                Function.Call(Hash.SET_PED_COMPONENT_VARIATION, p, 2, 0, 0, 0);
                 Function.Call(Hash.SET_PED_COMPONENT_VARIATION, p, 3, 1, 0, 0);
                 Function.Call(Hash.SET_PED_COMPONENT_VARIATION, p, 4, 1, 0, 0);
                 Function.Call(Hash.SET_PED_COMPONENT_VARIATION, p, 6, 1, 0, 0);
-                Function.Call(Hash.SET_PED_COMPONENT_VARIATION, p, 8, 2, 1, 0);
+                Function.Call(Hash.SET_PED_COMPONENT_VARIATION, p, 8, 7, 0, 0);
                 Function.Call(Hash.SET_PED_COMPONENT_VARIATION, p, 9, 1, 0, 0);
-                Function.Call(Hash.SET_PED_COMPONENT_VARIATION, p, 10, 9, 0, 0);
-                Function.Call(Hash.SET_PED_PROP_INDEX, p, 0, 5, 0, false);
 
+                switch (Util.GetRandomInt(4))
+                {
+                    case 0:
+                        Function.Call(Hash.SET_PED_PROP_INDEX, p, 0, 5, 0, true);
+                        break;
+
+                    case 1:
+                        Function.Call(Hash.SET_PED_PROP_INDEX, p, 1, 1, 0, true);
+                        break;
+
+                    case 2:
+                        Function.Call(Hash.SET_PED_PROP_INDEX, p, 1, 2, 0, true);
+                        break;
+
+                    case 3:
+                        Function.Call(Hash.SET_PED_PROP_INDEX, p, 1, 3, 0, true);
+                        break;
+                }
+
+                Function.Call(Hash.SET_PED_FLEE_ATTRIBUTES, p, 0, false);
+                Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, p, 0, false);
                 Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, p, 46, true);
                 Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, p, 5, true);
 
-                p.RelationshipGroup = teamID;
+                p.RelationshipGroup = relationship;
                 p.AlwaysKeepTask = true;
 
                 p.FiringPattern = FiringPattern.FullAuto;
                 p.ShootRate = 1000;
                 p.CanRagdoll = false;
+                p.CanWrithe = false;
+                p.IsFireProof = true;
                 p.CanSwitchWeapons = true;
 
                 if (!Util.BlipIsOn(p))
@@ -92,33 +105,39 @@ namespace YouAreNotAlone
             {
                 if (!Util.ThereIs(p))
                 {
-                    Restore();
+                    Restore(true);
                     return false;
                 }
+
+                p.Task.FightAgainstHatedTargets(400.0f);
             }
 
-            PerformTask();
             return true;
         }
 
-        private void PerformTask()
+        public override void Restore(bool instantly)
         {
-            foreach (Ped p in members) p.Task.FightAgainstHatedTargets(radius);
-        }
-
-        public override void Restore()
-        {
-            foreach (Ped p in members)
+            if (instantly)
             {
-                if (Util.ThereIs(p))
+                foreach (Ped p in members)
                 {
-                    if (Util.BlipIsOn(p)) p.CurrentBlip.Remove();
+                    if (Util.ThereIs(p)) p.Delete();
+                }
+            }
+            else
+            {
+                foreach (Ped p in members)
+                {
+                    if (Util.ThereIs(p))
+                    {
+                        p.MarkAsNoLongerNeeded();
 
-                    p.Delete();
+                        if (Util.BlipIsOn(p)) p.CurrentBlip.Remove();
+                    }
                 }
             }
 
-            if (relationship != 0) Util.CleanUpRelationship(relationship);
+            if (relationship != 0) Util.CleanUpRelationship(relationship, ListManager.EventType.Massacre);
 
             members.Clear();
         }
@@ -156,10 +175,11 @@ namespace YouAreNotAlone
 
             if (members.Count < 1)
             {
-                if (relationship != 0) Util.CleanUpRelationship(relationship);
+                if (relationship != 0) Util.CleanUpRelationship(relationship, ListManager.EventType.Massacre);
 
                 return true;
             }
+
             if (Util.ThereIs(spawnedPed)) CheckDispatch();
 
             return false;

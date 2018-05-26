@@ -12,11 +12,12 @@ namespace YouAreNotAlone
         private List<WeaponHash> standoffWeapons;
         private TaskSequence ts;
 
-        public GangTeam() : base(YouAreNotAlone.CrimeType.GangTeam)
+        public GangTeam() : base(ListManager.EventType.GangTeam)
         {
             this.members = new List<Ped>();
             this.closeWeapons = new List<WeaponHash> { WeaponHash.Bat, WeaponHash.Hatchet, WeaponHash.Hammer, WeaponHash.Knife, WeaponHash.KnuckleDuster, WeaponHash.Machete, WeaponHash.Wrench, WeaponHash.BattleAxe, WeaponHash.Unarmed };
             this.standoffWeapons = new List<WeaponHash> { WeaponHash.MachinePistol, WeaponHash.SawnOffShotgun, WeaponHash.Pistol, WeaponHash.APPistol, WeaponHash.PumpShotgun, WeaponHash.Revolver };
+            Util.CleanUpRelationship(this.relationship, ListManager.EventType.GangTeam);
 
             ts = new TaskSequence();
             ts.AddTask.FightAgainstHatedTargets(200.0f);
@@ -44,6 +45,7 @@ namespace YouAreNotAlone
 
                 p.RelationshipGroup = relationship;
                 p.AlwaysKeepTask = true;
+                p.BlockPermanentEvents = true;
                 p.Armor = Util.GetRandomInt(100);
 
                 if (!Util.BlipIsOn(p))
@@ -58,7 +60,7 @@ namespace YouAreNotAlone
             {
                 if (!Util.ThereIs(p))
                 {
-                    Restore();
+                    Restore(true);
                     return false;
                 }
             }
@@ -66,19 +68,29 @@ namespace YouAreNotAlone
             return true;
         }
 
-        public override void Restore()
+        public override void Restore(bool instantly)
         {
-            foreach (Ped p in members)
+            if (instantly)
             {
-                if (Util.ThereIs(p))
+                foreach (Ped p in members)
                 {
-                    if (Util.BlipIsOn(p)) p.CurrentBlip.Remove();
+                    if (Util.ThereIs(p)) p.Delete();
+                }
+            }
+            else
+            {
+                foreach (Ped p in members)
+                {
+                    if (Util.ThereIs(p))
+                    {
+                        p.MarkAsNoLongerNeeded();
 
-                    p.Delete();
+                        if (Util.BlipIsOn(p)) p.CurrentBlip.Remove();
+                    }
                 }
             }
 
-            if (relationship != 0) Util.CleanUpRelationship(relationship);
+            if (relationship != 0) Util.CleanUpRelationship(relationship, ListManager.EventType.GangTeam);
 
             members.Clear();
         }
@@ -110,7 +122,7 @@ namespace YouAreNotAlone
                     continue;
                 }
 
-                if (!members[i].IsInCombat && members[i].IsRagdoll) members[i].Task.PerformSequence(ts);
+                if (!members[i].IsInCombat && Util.AnyEmergencyIsNear(members[i].Position, ListManager.EventType.Cop)) members[i].Task.PerformSequence(ts);
                 if (!members[i].IsInRangeOf(Game.Player.Character.Position, 500.0f))
                 {
                     if (Util.BlipIsOn(members[i])) members[i].CurrentBlip.Remove();
@@ -122,7 +134,7 @@ namespace YouAreNotAlone
 
             if (members.Count < 1)
             {
-                if (relationship != 0) Util.CleanUpRelationship(relationship);
+                if (relationship != 0) Util.CleanUpRelationship(relationship, ListManager.EventType.GangTeam);
 
                 ts.Dispose();
                 return true;

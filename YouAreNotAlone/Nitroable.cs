@@ -11,7 +11,7 @@ namespace YouAreNotAlone
         private int nitroAmount;
         private bool nitroCooldown;
 
-        public Nitroable(YouAreNotAlone.CrimeType type) : base(type)
+        public Nitroable(ListManager.EventType type) : base(type)
         {
             exhausts = new List<string>
             {
@@ -38,15 +38,13 @@ namespace YouAreNotAlone
 
         private bool CanSafelyUseNitroBetween(Vector3 v1, Vector3 v2)
         {
-            RaycastResult r = World.Raycast(v1, v2, IntersectOptions.Everything);
-
-            return !r.DitHitAnything || r.HitCoords.DistanceTo(v1) > 1.5f;
+            return !World.Raycast(v1, v1 + v2, IntersectOptions.Everything, spawnedVehicle).DitHitAnything;
         }
 
         public void CheckNitroable()
         {
             if (!nitroCooldown && nitroAmount > 0 && spawnedVehicle.Speed > 20.0f && spawnedVehicle.Acceleration > 0
-                && CanSafelyUseNitroBetween(spawnedVehicle.Position, spawnedVehicle.ForwardVector * 2.0f))
+                && CanSafelyUseNitroBetween(spawnedVehicle.Position, spawnedVehicle.ForwardVector * 10.0f))
             {
                 spawnedVehicle.EnginePowerMultiplier = 7.0f;
                 spawnedVehicle.EngineTorqueMultiplier = 7.0f;

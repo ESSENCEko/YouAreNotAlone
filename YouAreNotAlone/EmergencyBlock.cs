@@ -5,9 +5,9 @@ using System.Collections.Generic;
 
 namespace YouAreNotAlone
 {
-    public class EmergencyCar : Emergency
+    public class EmergencyBlock : Emergency
     {
-        public EmergencyCar(string name, Entity target, string emergencyType) : base(name, target, emergencyType) { }
+        public EmergencyBlock(string name, Entity target, string emergencyType) : base(name, target, emergencyType) { onVehicleDuty = false; }
 
         public override bool IsCreatedIn(Vector3 safePosition, List<string> models)
         {
@@ -15,19 +15,18 @@ namespace YouAreNotAlone
 
             if (road.Position.Equals(Vector3.Zero)) return false;
 
-            spawnedVehicle = Util.Create(name, road.Position, road.Heading, false);
+            spawnedVehicle = Util.Create(name, road.Position, road.Heading + 90, false);
 
             if (!Util.ThereIs(spawnedVehicle)) return false;
+
+            Stinger s = new Stinger(spawnedVehicle);
+
+            if (s.IsCreatedIn(spawnedVehicle.Position - spawnedVehicle.ForwardVector * spawnedVehicle.Model.GetDimensions().Y)) ListManager.Add(s, ListManager.EventType.RoadBlock);
+            else s.Restore(true);
+
             if (emergencyType == "LSPD")
             {
-                for (int i = -1; i < spawnedVehicle.PassengerSeats && i < 1; i++)
-                {
-                    if (spawnedVehicle.IsSeatFree((VehicleSeat)i))
-                    {
-                        members.Add(spawnedVehicle.CreatePedOnSeat((VehicleSeat)i, models[Util.GetRandomInt(models.Count)]));
-                        Script.Wait(50);
-                    }
-                }
+                for (int i = 0; i < 2; i++) members.Add(Util.Create(models[Util.GetRandomInt(models.Count)], World.GetNextPositionOnSidewalk(spawnedVehicle.Position.Around(5.0f))));
             }
             else
             {
@@ -39,14 +38,7 @@ namespace YouAreNotAlone
                     return false;
                 }
 
-                for (int i = -1; i < spawnedVehicle.PassengerSeats && i < 5; i++)
-                {
-                    if (spawnedVehicle.IsSeatFree((VehicleSeat)i))
-                    {
-                        members.Add(spawnedVehicle.CreatePedOnSeat((VehicleSeat)i, selectedModel));
-                        Script.Wait(50);
-                    }
-                }
+                for (int i = 0; i < 2; i++) members.Add(Util.Create(selectedModel, World.GetNextPositionOnSidewalk(spawnedVehicle.Position.Around(5.0f))));
             }
 
             foreach (Ped p in members)
@@ -69,16 +61,6 @@ namespace YouAreNotAlone
                             break;
                         }
 
-                    case "FIB":
-                        {
-                            p.Weapons.Give(WeaponHash.MachinePistol, 300, true, true);
-                            p.Weapons.Give(WeaponHash.CarbineRifle, 300, false, false);
-                            p.ShootRate = 900;
-                            p.Armor = 50;
-
-                            break;
-                        }
-
                     case "LSPD":
                         {
                             p.Weapons.Give(WeaponHash.Pistol, 100, true, true);
@@ -91,24 +73,8 @@ namespace YouAreNotAlone
 
                     case "SWAT":
                         {
-                            if (Util.GetRandomInt(3) == 1)
-                            {
-                                Shield s = new Shield(p);
-
-                                if (s.IsCreatedIn(p.Position.Around(5.0f)))
-                                {
-                                    ListManager.Add(s, ListManager.EventType.Shield);
-                                    p.Weapons.Give(WeaponHash.Pistol, 100, true, true);
-                                }
-                                else s.Restore(true);
-                            }
-
-                            if (!p.Weapons.HasWeapon(WeaponHash.Pistol))
-                            {
-                                p.Weapons.Give(WeaponHash.SMG, 300, true, true);
-                                p.Weapons.Give(WeaponHash.Pistol, 100, false, false);
-                            }
-
+                            p.Weapons.Give(WeaponHash.SMG, 300, true, true);
+                            p.Weapons.Give(WeaponHash.Pistol, 100, false, false);
                             p.ShootRate = 700;
                             p.Armor = 70;
 
@@ -121,16 +87,15 @@ namespace YouAreNotAlone
                 AddVarietyTo(p);
 
                 Function.Call(Hash.SET_PED_FLEE_ATTRIBUTES, p, 0, false);
+                Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, p, 1, true);
                 Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, p, 52, true);
                 Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, p, 46, true);
                 Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, p, 5, true);
 
-                Function.Call(Hash.SET_DRIVER_ABILITY, p, 1.0f);
-                Function.Call(Hash.SET_DRIVER_AGGRESSIVENESS, p, 1.0f);
-
                 Function.Call(Hash.SET_PED_AS_COP, p, false);
                 p.AlwaysKeepTask = true;
                 p.BlockPermanentEvents = true;
+                p.Task.FightAgainstHatedTargets(200.0f);
 
                 p.RelationshipGroup = relationship;
                 p.NeverLeavesGroup = true;
@@ -139,8 +104,6 @@ namespace YouAreNotAlone
             if (spawnedVehicle.HasSiren) spawnedVehicle.SirenActive = true;
 
             spawnedVehicle.EngineRunning = true;
-            SetPedsOnDuty();
-
             return true;
         }
     }

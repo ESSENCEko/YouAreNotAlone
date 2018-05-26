@@ -47,6 +47,7 @@ namespace YouAreNotAlone
                             spawnedVehicle.Speed = selectedSpeed;
                             spawnedPed.RelationshipGroup = Function.Call<int>(Hash.GET_HASH_KEY, "CIV" + spawnedPed.Gender.ToString().ToUpper());
                             spawnedPed.Task.CruiseWithVehicle(spawnedVehicle, 20.0f, (int)DrivingStyle.Normal);
+                            spawnedPed.MarkAsNoLongerNeeded();
                         }
                     }
 
@@ -62,7 +63,7 @@ namespace YouAreNotAlone
                         selectedBlipColor = BlipColor.White;
                     }
 
-                    if (spawnedVehicle.FriendlyName.Equals("NULL")) selectedBlipName += spawnedVehicle.DisplayName.ToUpper();
+                    if (spawnedVehicle.FriendlyName == "NULL") selectedBlipName += spawnedVehicle.DisplayName.ToUpper();
                     else selectedBlipName += spawnedVehicle.FriendlyName;
 
                     if (!Util.BlipIsOn(spawnedVehicle))
@@ -70,7 +71,7 @@ namespace YouAreNotAlone
                         Util.AddBlipOn(spawnedVehicle, 0.7f, BlipSprite.PersonalVehicleCar, selectedBlipColor, selectedBlipName);
                         return true;
                     }
-                    else Restore();
+                    else Restore(true);
                 }
                 else selectedVehicle = null;
             }
@@ -78,21 +79,30 @@ namespace YouAreNotAlone
             return false;
         }
 
-        public override void Restore()
+        public override void Restore(bool instantly)
         {
-            if (Util.ThereIs(spawnedPed)) spawnedPed.MarkAsNoLongerNeeded();
-            if (Util.ThereIs(spawnedVehicle)) spawnedVehicle.MarkAsNoLongerNeeded();
+            if (instantly)
+            {
+                if (Util.ThereIs(spawnedPed)) spawnedPed.Delete();
+                if (Util.ThereIs(spawnedVehicle)) spawnedVehicle.Delete();
+            }
+            else
+            {
+                if (Util.ThereIs(spawnedPed)) spawnedPed.MarkAsNoLongerNeeded();
+                if (Util.ThereIs(spawnedVehicle))
+                {
+                    spawnedVehicle.MarkAsNoLongerNeeded();
+
+                    if (Util.BlipIsOn(spawnedVehicle)) spawnedVehicle.CurrentBlip.Remove();
+                }
+            }
         }
 
         public override bool ShouldBeRemoved()
         {
-            if (!Util.ThereIs(spawnedVehicle)) return true;
-            if ((!spawnedVehicle.IsDriveable && !Game.Player.Character.IsInVehicle(spawnedVehicle)) || !spawnedVehicle.IsInRangeOf(Game.Player.Character.Position, 200.0f))
+            if (!Util.ThereIs(spawnedVehicle) || !spawnedVehicle.IsDriveable || !spawnedVehicle.IsInRangeOf(Game.Player.Character.Position, 200.0f))
             {
-                if (Util.BlipIsOn(spawnedVehicle)) spawnedVehicle.CurrentBlip.Remove();
-                if (spawnedVehicle.IsPersistent) spawnedVehicle.MarkAsNoLongerNeeded();
-                if (Util.ThereIs(spawnedPed) && spawnedPed.IsPersistent) spawnedPed.MarkAsNoLongerNeeded();
-
+                Restore(false);
                 return true;
             }
 

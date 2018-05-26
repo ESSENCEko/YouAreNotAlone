@@ -20,6 +20,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -45,29 +46,29 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AdvancedEntity.cs" />
     <Compile Include="AggressiveDriver.cs" />
-    <Compile Include="Army.cs" />
-    <Compile Include="ArmyHeli.cs" />
     <Compile Include="Carjacker.cs" />
     <Compile Include="Criminal.cs" />
     <Compile Include="Driveby.cs" />
     <Compile Include="Emergency.cs" />
+    <Compile Include="EmergencyBlock.cs" />
     <Compile Include="EmergencyCar.cs" />
     <Compile Include="EmergencyFire.cs" />
     <Compile Include="EmergencyHeli.cs" />
     <Compile Include="EntitySet.cs" />
-    <Compile Include="FIB.cs" />
     <Compile Include="Firefighter.cs" />
     <Compile Include="GangTeam.cs" />
-    <Compile Include="LSPD.cs" />
-    <Compile Include="LSPDHeli.cs" />
+    <Compile Include="ListManager.cs" />
     <Compile Include="Massacre.cs" />
     <Compile Include="Nitroable.cs" />
     <Compile Include="Paramedic.cs" />
     <Compile Include="Racer.cs" />
+    <Compile Include="Racers.cs" />
     <Compile Include="ReplacedVehicle.cs" />
-    <Compile Include="SWAT.cs" />
-    <Compile Include="SWATHeli.cs" />
+    <Compile Include="Road.cs" />
+    <Compile Include="Shield.cs" />
+    <Compile Include="Stinger.cs" />
     <Compile Include="Terrorist.cs" />
     <Compile Include="Util.cs" />
     <Compile Include="YouAreNotAlone.cs" />

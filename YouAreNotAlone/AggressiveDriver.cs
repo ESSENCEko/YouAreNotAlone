@@ -8,7 +8,7 @@ namespace YouAreNotAlone
     {
         private string name;
 
-        public AggressiveDriver(string name) : base(YouAreNotAlone.CrimeType.AggressiveDriver) { this.name = name; }
+        public AggressiveDriver(string name) : base(ListManager.EventType.AggressiveDriver) { this.name = name; }
 
         public bool IsCreatedIn(float radius)
         {
@@ -16,11 +16,11 @@ namespace YouAreNotAlone
 
             if (safePosition.Equals(Vector3.Zero)) return false;
 
-            Vector3 position = World.GetNextPositionOnStreet(safePosition, true);
+            Road road = Util.GetNextPositionOnStreetWithHeading(safePosition);
 
-            if (position.Equals(Vector3.Zero)) return false;
+            if (road.Position.Equals(Vector3.Zero)) return false;
 
-            spawnedVehicle = Util.Create(name, position, Util.GetRandomInt(360), true);
+            spawnedVehicle = Util.Create(name, road.Position, road.Heading, true);
 
             if (!Util.ThereIs(spawnedVehicle)) return false;
 
@@ -36,13 +36,6 @@ namespace YouAreNotAlone
             Function.Call(Hash.SET_DRIVER_ABILITY, spawnedPed, 1.0f);
             Function.Call(Hash.SET_DRIVER_AGGRESSIVENESS, spawnedPed, 1.0f);
             Util.Tune(spawnedVehicle, true, true);
-            relationship = Util.NewRelationship(YouAreNotAlone.CrimeType.AggressiveDriver);
-
-            if (relationship == 0)
-            {
-                Restore();
-                return false;
-            }
 
             spawnedPed.RelationshipGroup = relationship;
             spawnedPed.AlwaysKeepTask = true;
@@ -56,49 +49,46 @@ namespace YouAreNotAlone
             }
             else
             {
-                Restore();
+                Restore(true);
                 return false;
             }
         }
 
-        public override void Restore()
+        public override void Restore(bool instantly)
         {
-            if (Util.ThereIs(spawnedPed)) spawnedPed.Delete();
-            if (Util.ThereIs(spawnedVehicle)) spawnedVehicle.Delete();
-            if (relationship != 0) Util.CleanUpRelationship(spawnedPed.RelationshipGroup);
+            if (instantly)
+            {
+                if (Util.ThereIs(spawnedPed)) spawnedPed.Delete();
+                if (Util.ThereIs(spawnedVehicle)) spawnedVehicle.Delete();
+            }
+            else
+            {
+                if (Util.ThereIs(spawnedPed))
+                {
+                    spawnedPed.MarkAsNoLongerNeeded();
+
+                    if (Util.BlipIsOn(spawnedPed)) spawnedPed.CurrentBlip.Remove();
+                }
+                if (Util.ThereIs(spawnedVehicle)) spawnedVehicle.MarkAsNoLongerNeeded();
+            }
+
+            if (relationship != 0) Util.CleanUpRelationship(relationship, ListManager.EventType.AggressiveDriver);
         }
 
         public override bool ShouldBeRemoved()
         {
-            if (!Util.ThereIs(spawnedPed))
+            if (!Util.ThereIs(spawnedPed) || !Util.ThereIs(spawnedVehicle) || spawnedPed.IsDead || !spawnedPed.IsInRangeOf(Game.Player.Character.Position, 500.0f))
             {
-                if (Util.ThereIs(spawnedVehicle) && spawnedVehicle.IsPersistent) spawnedVehicle.MarkAsNoLongerNeeded();
-                if (relationship != 0) Util.CleanUpRelationship(relationship);
-
-                return true;
-            }
-
-            if (!Util.ThereIs(spawnedVehicle))
-            {
-                if (Util.BlipIsOn(spawnedPed)) spawnedPed.CurrentBlip.Remove();
-                if (spawnedPed.IsPersistent) spawnedPed.MarkAsNoLongerNeeded();
-                if (relationship != 0) Util.CleanUpRelationship(relationship);
-
-                return true;
-            }
-
-            if (spawnedPed.IsDead || !spawnedVehicle.IsDriveable || !spawnedPed.IsInRangeOf(Game.Player.Character.Position, 500.0f))
-            {
-                if (Util.BlipIsOn(spawnedPed)) spawnedPed.CurrentBlip.Remove();
-                if (spawnedPed.IsPersistent) spawnedPed.MarkAsNoLongerNeeded();
-                if (spawnedVehicle.IsPersistent) spawnedVehicle.MarkAsNoLongerNeeded();
-                if (relationship != 0) Util.CleanUpRelationship(relationship);
-
+                Restore(false);
                 return true;
             }
 
             if (spawnedVehicle.IsUpsideDown && spawnedVehicle.IsStopped) spawnedVehicle.PlaceOnGround();
-            if (Util.ThereIs(spawnedPed)) CheckDispatch();
+            if (Util.ThereIs(spawnedPed))
+            {
+                CheckDispatch();
+                CheckBlockable();
+            }
 
             return false;
         }
