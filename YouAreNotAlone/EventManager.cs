@@ -110,12 +110,6 @@ namespace YouAreNotAlone
 
                 case EventType.ReplacedVehicle:
                     {
-                        if (replacedList.Count > 4)
-                        {
-                            replacedList[0].Restore(false);
-                            replacedList.RemoveAt(0);
-                        }
-
                         replacedList.Add(en);
                         break;
                     }
