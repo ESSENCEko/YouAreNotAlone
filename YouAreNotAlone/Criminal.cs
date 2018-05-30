@@ -5,14 +5,14 @@
         protected int relationship;
         protected int dispatchCooldown;
         protected int blockCooldown;
-        protected ListManager.EventType type;
+        protected EventManager.EventType type;
 
-        public Criminal(ListManager.EventType type) : base()
+        public Criminal(EventManager.EventType type) : base()
         {
             this.dispatchCooldown = 7;
             this.blockCooldown = 0;
             this.type = type;
-            this.relationship = Util.NewRelationship(type);
+            this.relationship = Util.NewRelationshipOf(type);
         }
 
         protected void CheckDispatch()
@@ -22,7 +22,7 @@
             {
                 dispatchCooldown = 0;
 
-                if (!Util.AnyEmergencyIsNear(spawnedPed.Position, ListManager.EventType.Cop)) YouAreNotAlone.DispatchAgainst(spawnedPed, type);
+                if (!Util.AnyEmergencyIsNear(spawnedPed.Position, DispatchManager.DispatchType.Cop)) Main.DispatchAgainst(spawnedPed, type);
             }
         }
 
@@ -32,7 +32,7 @@
             else
             {
                 blockCooldown = 0;
-                YouAreNotAlone.BlockRoadAgainst(spawnedPed, type);
+                Main.BlockRoadAgainst(spawnedPed, type);
             }
         }
     }

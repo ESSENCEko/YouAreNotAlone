@@ -5,13 +5,20 @@ using System.Collections.Generic;
 
 namespace YouAreNotAlone
 {
-    public class EmergencyCar : Emergency
+    public class EmergencyGround : Emergency
     {
-        public EmergencyCar(string name, Entity target, string emergencyType) : base(name, target, emergencyType) { }
+        public EmergencyGround(string name, Entity target, string emergencyType) : base(name, target, emergencyType) { this.blipName += emergencyType + " Ground"; }
 
         public override bool IsCreatedIn(Vector3 safePosition, List<string> models)
         {
-            Road road = Util.GetNextPositionOnStreetWithHeading(safePosition);
+            Road road = new Road(Vector3.Zero, 0.0f);
+
+            for (int cnt = 0; cnt < 5; cnt++)
+            {
+                road = Util.GetNextPositionOnStreetWithHeading(safePosition.Around(50.0f));
+
+                if (!road.Position.Equals(Vector3.Zero)) break;
+            }
 
             if (road.Position.Equals(Vector3.Zero)) return false;
 
@@ -24,14 +31,14 @@ namespace YouAreNotAlone
                 {
                     if (spawnedVehicle.IsSeatFree((VehicleSeat)i))
                     {
-                        members.Add(spawnedVehicle.CreatePedOnSeat((VehicleSeat)i, models[Util.GetRandomInt(models.Count)]));
+                        members.Add(spawnedVehicle.CreatePedOnSeat((VehicleSeat)i, models[Util.GetRandomIntBelow(models.Count)]));
                         Script.Wait(50);
                     }
                 }
             }
             else
             {
-                string selectedModel = models[Util.GetRandomInt(models.Count)];
+                string selectedModel = models[Util.GetRandomIntBelow(models.Count)];
 
                 if (selectedModel == null)
                 {
@@ -91,13 +98,13 @@ namespace YouAreNotAlone
 
                     case "SWAT":
                         {
-                            if (Util.GetRandomInt(3) == 1)
+                            if (Util.GetRandomIntBelow(3) == 1)
                             {
                                 Shield s = new Shield(p);
 
                                 if (s.IsCreatedIn(p.Position.Around(5.0f)))
                                 {
-                                    ListManager.Add(s, ListManager.EventType.Shield);
+                                    DispatchManager.Add(s, DispatchManager.DispatchType.Shield);
                                     p.Weapons.Give(WeaponHash.Pistol, 100, true, true);
                                 }
                                 else s.Restore(true);
@@ -121,6 +128,7 @@ namespace YouAreNotAlone
                 AddVarietyTo(p);
 
                 Function.Call(Hash.SET_PED_FLEE_ATTRIBUTES, p, 0, false);
+                Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, p, 17, true);
                 Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, p, 52, true);
                 Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, p, 46, true);
                 Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, p, 5, true);
@@ -135,8 +143,6 @@ namespace YouAreNotAlone
                 p.RelationshipGroup = relationship;
                 p.NeverLeavesGroup = true;
             }
-
-            if (spawnedVehicle.HasSiren) spawnedVehicle.SirenActive = true;
 
             spawnedVehicle.EngineRunning = true;
             SetPedsOnDuty();

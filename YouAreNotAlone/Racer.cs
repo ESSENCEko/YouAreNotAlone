@@ -9,7 +9,7 @@ namespace YouAreNotAlone
         private string name;
         private Vector3 goal;
 
-        public Racer(string name, Vector3 goal) : base(ListManager.EventType.Racer)
+        public Racer(string name, Vector3 goal) : base(EventManager.EventType.Racer)
         {
             this.name = name;
             this.goal = goal;
@@ -34,18 +34,18 @@ namespace YouAreNotAlone
             Function.Call(Hash.SET_DRIVER_AGGRESSIVENESS, spawnedPed, 1.0f);
             Util.Tune(spawnedVehicle, true, true);
 
+            spawnedPed.RelationshipGroup = relationship;
+            spawnedPed.IsPriorityTargetForEnemies = true;
             spawnedPed.AlwaysKeepTask = true;
             spawnedPed.BlockPermanentEvents = true;
-            spawnedPed.RelationshipGroup = relationship;
 
+            if (!spawnedPed.IsWearingHelmet) spawnedPed.GiveHelmet(false, HelmetType.RegularMotorcycleHelmet, 4096);
             if (!Util.BlipIsOn(spawnedPed))
             {
-                if (spawnedVehicle.Model.IsCar) Util.AddBlipOn(spawnedPed, 0.7f, BlipSprite.PersonalVehicleCar, (BlipColor)17, "Racer " + spawnedVehicle.FriendlyName);
-                else
+                if (!Main.NoBlipOnCriminal)
                 {
-                    if (!spawnedPed.IsWearingHelmet) spawnedPed.GiveHelmet(false, HelmetType.RegularMotorcycleHelmet, 4096);
-
-                    Util.AddBlipOn(spawnedPed, 1.0f, BlipSprite.PersonalVehicleBike, (BlipColor)17, "Racer " + spawnedVehicle.FriendlyName);
+                    if (spawnedVehicle.Model.IsCar) Util.AddBlipOn(spawnedPed, 0.7f, BlipSprite.PersonalVehicleCar, (BlipColor)17, "Racer " + spawnedVehicle.FriendlyName);
+                    else Util.AddBlipOn(spawnedPed, 1.0f, BlipSprite.PersonalVehicleBike, (BlipColor)17, "Racer " + spawnedVehicle.FriendlyName);
                 }
 
                 TaskSequence ts = new TaskSequence();
@@ -74,16 +74,11 @@ namespace YouAreNotAlone
             }
             else
             {
-                if (Util.ThereIs(spawnedPed))
-                {
-                    spawnedPed.MarkAsNoLongerNeeded();
-
-                    if (Util.BlipIsOn(spawnedPed)) spawnedPed.CurrentBlip.Remove();
-                }
-                if (Util.ThereIs(spawnedVehicle)) spawnedVehicle.MarkAsNoLongerNeeded();
+                Util.NaturallyRemove(spawnedPed);
+                Util.NaturallyRemove(spawnedVehicle);
             }
 
-            if (relationship != 0) Util.CleanUpRelationship(relationship, ListManager.EventType.Racer);
+            if (relationship != 0) Util.CleanUp(relationship);
         }
 
         public override bool ShouldBeRemoved()
@@ -94,7 +89,7 @@ namespace YouAreNotAlone
                 return true;
             }
 
-            if (spawnedVehicle.IsUpsideDown && spawnedVehicle.IsStopped) spawnedVehicle.PlaceOnGround();
+            if (spawnedVehicle.IsUpsideDown && spawnedVehicle.IsStopped && !spawnedVehicle.PlaceOnGround()) spawnedVehicle.PlaceOnNextStreet();
 
             return false;
         }

@@ -7,11 +7,22 @@ namespace YouAreNotAlone
 {
     public class EmergencyBlock : Emergency
     {
-        public EmergencyBlock(string name, Entity target, string emergencyType) : base(name, target, emergencyType) { onVehicleDuty = false; }
+        public EmergencyBlock(string name, Entity target, string emergencyType) : base(name, target, emergencyType)
+        {
+            this.blipName += emergencyType + " Road Block";
+            this.onVehicleDuty = false;
+        }
 
         public override bool IsCreatedIn(Vector3 safePosition, List<string> models)
         {
-            Road road = Util.GetNextPositionOnStreetWithHeading(safePosition);
+            Road road = new Road(Vector3.Zero, 0.0f);
+
+            for (int cnt = 0; cnt < 5; cnt++)
+            {
+                road = Util.GetNextPositionOnStreetWithHeading(safePosition.Around(50.0f));
+
+                if (!road.Position.Equals(Vector3.Zero)) break;
+            }
 
             if (road.Position.Equals(Vector3.Zero)) return false;
 
@@ -21,16 +32,23 @@ namespace YouAreNotAlone
 
             Stinger s = new Stinger(spawnedVehicle);
 
-            if (s.IsCreatedIn(spawnedVehicle.Position - spawnedVehicle.ForwardVector * spawnedVehicle.Model.GetDimensions().Y)) ListManager.Add(s, ListManager.EventType.RoadBlock);
+            if (s.IsCreatedIn(spawnedVehicle.Position - spawnedVehicle.ForwardVector * spawnedVehicle.Model.GetDimensions().Y)) DispatchManager.Add(s, DispatchManager.DispatchType.Stinger);
             else s.Restore(true);
 
             if (emergencyType == "LSPD")
             {
-                for (int i = 0; i < 2; i++) members.Add(Util.Create(models[Util.GetRandomInt(models.Count)], World.GetNextPositionOnSidewalk(spawnedVehicle.Position.Around(5.0f))));
+                for (int i = -1; i < spawnedVehicle.PassengerSeats && i < 1; i++)
+                {
+                    if (spawnedVehicle.IsSeatFree((VehicleSeat)i))
+                    {
+                        members.Add(spawnedVehicle.CreatePedOnSeat((VehicleSeat)i, models[Util.GetRandomIntBelow(models.Count)]));
+                        Script.Wait(50);
+                    }
+                }
             }
             else
             {
-                string selectedModel = models[Util.GetRandomInt(models.Count)];
+                string selectedModel = models[Util.GetRandomIntBelow(models.Count)];
 
                 if (selectedModel == null)
                 {
@@ -38,7 +56,14 @@ namespace YouAreNotAlone
                     return false;
                 }
 
-                for (int i = 0; i < 2; i++) members.Add(Util.Create(selectedModel, World.GetNextPositionOnSidewalk(spawnedVehicle.Position.Around(5.0f))));
+                for (int i = -1; i < spawnedVehicle.PassengerSeats && i < 1; i++)
+                {
+                    if (spawnedVehicle.IsSeatFree((VehicleSeat)i))
+                    {
+                        members.Add(spawnedVehicle.CreatePedOnSeat((VehicleSeat)i, selectedModel));
+                        Script.Wait(50);
+                    }
+                }
             }
 
             foreach (Ped p in members)
@@ -82,12 +107,14 @@ namespace YouAreNotAlone
                         }
                 }
 
+                if (p.IsInVehicle(spawnedVehicle)) p.Task.LeaveVehicle(spawnedVehicle, true);
+
                 p.Weapons.Current.InfiniteAmmo = true;
                 p.CanSwitchWeapons = true;
                 AddVarietyTo(p);
 
                 Function.Call(Hash.SET_PED_FLEE_ATTRIBUTES, p, 0, false);
-                Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, p, 1, true);
+                Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, p, 17, true);
                 Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, p, 52, true);
                 Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, p, 46, true);
                 Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, p, 5, true);
@@ -95,15 +122,15 @@ namespace YouAreNotAlone
                 Function.Call(Hash.SET_PED_AS_COP, p, false);
                 p.AlwaysKeepTask = true;
                 p.BlockPermanentEvents = true;
-                p.Task.FightAgainstHatedTargets(200.0f);
 
                 p.RelationshipGroup = relationship;
                 p.NeverLeavesGroup = true;
             }
 
-            if (spawnedVehicle.HasSiren) spawnedVehicle.SirenActive = true;
-
             spawnedVehicle.EngineRunning = true;
+            onVehicleDuty = false;
+            SetPedsOnDuty();
+
             return true;
         }
     }

@@ -8,7 +8,7 @@ namespace YouAreNotAlone
     {
         private string name;
 
-        public Terrorist(string name) : base(ListManager.EventType.Terrorist) { this.name = name; }
+        public Terrorist(string name) : base(EventManager.EventType.Terrorist) { this.name = name; }
 
         public bool IsCreatedIn(float radius)
         {
@@ -16,7 +16,14 @@ namespace YouAreNotAlone
 
             if (safePosition.Equals(Vector3.Zero)) return false;
 
-            Road road = Util.GetNextPositionOnStreetWithHeading(safePosition);
+            Road road = new Road(Vector3.Zero, 0.0f);
+
+            for (int cnt = 0; cnt < 5; cnt++)
+            {
+                road = Util.GetNextPositionOnStreetWithHeading(safePosition.Around(50.0f));
+
+                if (!road.Position.Equals(Vector3.Zero)) break;
+            }
 
             if (road.Position.Equals(Vector3.Zero)) return false;
 
@@ -35,9 +42,14 @@ namespace YouAreNotAlone
             Script.Wait(50);
             Util.Tune(spawnedVehicle, false, false);
 
-            spawnedPed.RelationshipGroup = relationship;
+            Function.Call(Hash.SET_PED_FLEE_ATTRIBUTES, spawnedPed, 0, false);
+            Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, spawnedPed, 17, true);
             Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, spawnedPed, 46, true);
             Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, spawnedPed, 5, true);
+
+            spawnedPed.RelationshipGroup = relationship;
+            spawnedPed.IsPriorityTargetForEnemies = true;
+            spawnedPed.CanBeShotInVehicle = false;
 
             spawnedPed.AlwaysKeepTask = true;
             spawnedPed.BlockPermanentEvents = true;
@@ -45,7 +57,8 @@ namespace YouAreNotAlone
 
             if (!Util.BlipIsOn(spawnedPed))
             {
-                Util.AddBlipOn(spawnedPed, 0.7f, BlipSprite.Tank, BlipColor.Red, "Terrorist " + spawnedVehicle.FriendlyName);
+                if (!Main.NoBlipOnCriminal) Util.AddBlipOn(spawnedPed, 0.7f, BlipSprite.Tank, BlipColor.Red, "Terrorist " + spawnedVehicle.FriendlyName);
+
                 return true;
             }
             else
@@ -64,16 +77,11 @@ namespace YouAreNotAlone
             }
             else
             {
-                if (Util.ThereIs(spawnedPed))
-                {
-                    spawnedPed.MarkAsNoLongerNeeded();
-
-                    if (Util.BlipIsOn(spawnedPed)) spawnedPed.CurrentBlip.Remove();
-                }
-                if (Util.ThereIs(spawnedVehicle)) spawnedVehicle.MarkAsNoLongerNeeded();
+                Util.NaturallyRemove(spawnedPed);
+                Util.NaturallyRemove(spawnedVehicle);
             }
 
-            if (relationship != 0) Util.CleanUpRelationship(relationship, ListManager.EventType.Terrorist);
+            if (relationship != 0) Util.CleanUp(relationship);
         }
 
         public override bool ShouldBeRemoved()
@@ -100,7 +108,7 @@ namespace YouAreNotAlone
             {
                 dispatchCooldown = 0;
 
-                if (!Util.AnyEmergencyIsNear(spawnedPed.Position, ListManager.EventType.Army)) YouAreNotAlone.DispatchAgainst(spawnedPed, type);
+                if (!Util.AnyEmergencyIsNear(spawnedPed.Position, DispatchManager.DispatchType.Army)) Main.DispatchAgainst(spawnedPed, type);
             }
         }
     }

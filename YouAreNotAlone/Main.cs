@@ -7,7 +7,7 @@ using System.Collections.Generic;
 
 namespace YouAreNotAlone
 {
-    public class YouAreNotAlone : Script
+    public class Main : Script
     {
         private static List<string> addOnCarNames;
         private static List<string> racerCarNames;
@@ -36,11 +36,14 @@ namespace YouAreNotAlone
         public static bool NoDispatch;
         public static bool CriminalsCanFightWithPlayer;
         public static bool DispatchesCanFightWithPlayer;
+        public static bool NoMinimapFlash;
+        public static bool NoBlipOnCriminal;
+        public static bool NoBlipOnDispatch;
 
         private float radius;
         private int eventTimeChecker;
 
-        static YouAreNotAlone()
+        static Main()
         {
             addOnCarNames = new List<string>();
             racerCarNames = new List<string>
@@ -221,6 +224,9 @@ namespace YouAreNotAlone
             NoDispatch = false;
             CriminalsCanFightWithPlayer = false;
             DispatchesCanFightWithPlayer = false;
+            NoMinimapFlash = false;
+            NoBlipOnCriminal = false;
+            NoBlipOnDispatch = false;
 
             CheckDLCs();
             SetUp();
@@ -242,8 +248,8 @@ namespace YouAreNotAlone
                 racerCarNames.Add("entity2");
                 racerCarNames.Add("flashgt");
                 racerCarNames.Add("gb200");
-                racerCarNames.Add("jester3");
                 racerCarNames.Add("hotring");
+                racerCarNames.Add("jester3");
                 racerCarNames.Add("taipan");
                 racerCarNames.Add("tezeract");
                 racerCarNames.Add("tyrant");
@@ -497,11 +503,9 @@ namespace YouAreNotAlone
                 copCarNames[0].Add("police13");
                 copCarNames[0].Add("police15");
                 copCarNames[0].Add("police16");
-                copCarNames[0].Add("police17");
                 copCarNames[0].Add("police24");
                 copCarNames[0].Add("policet2");
                 copCarNames[0].Add("policet3");
-                copCarNames[0].Add("polizia1");
                 copCarNames[1].Add("pranger3");
                 copCarNames[0].Add("rpdcar1");
                 copCarNames[2].Add("rpdcar2");
@@ -581,12 +585,15 @@ namespace YouAreNotAlone
             NoDispatch = ((XmlElement)element.SelectSingleNode("//Settings/NoDispatch")).GetAttribute("value") == "True";
             CriminalsCanFightWithPlayer = ((XmlElement)element.SelectSingleNode("//Settings/CriminalsCanFightWithPlayer")).GetAttribute("value") == "True";
             DispatchesCanFightWithPlayer = ((XmlElement)element.SelectSingleNode("//Settings/DispatchesCanFightWithPlayer")).GetAttribute("value") == "True";
+            NoMinimapFlash = ((XmlElement)element.SelectSingleNode("//Settings/NoMinimapFlash")).GetAttribute("value") == "True";
+            NoBlipOnCriminal = ((XmlElement)element.SelectSingleNode("//Settings/NoBlipOnCriminal")).GetAttribute("value") == "True";
+            NoBlipOnDispatch = ((XmlElement)element.SelectSingleNode("//Settings/NoBlipOnDispatch")).GetAttribute("value") == "True";
 
             foreach (XmlElement e in element.SelectNodes("//AddOn/spawn"))
             {
                 string spawnName = e.GetAttribute("name");
 
-                if (((Model)spawnName).IsValid && (((Model)spawnName).IsCar || ((Model)spawnName).IsBike || ((Model)spawnName).IsQuadbike)) addOnCarNames.Add(spawnName);
+                if (((Model)spawnName).IsValid && (((Model)spawnName).IsCar || ((Model)spawnName).IsBicycle || ((Model)spawnName).IsBike || ((Model)spawnName).IsQuadbike)) addOnCarNames.Add(spawnName);
             }
 
             foreach (XmlElement e in element.SelectNodes("//RaceCar/spawn"))
@@ -611,9 +618,9 @@ namespace YouAreNotAlone
             }
         }
 
-        public static void DispatchAgainst(Entity target, ListManager.EventType type)
+        public static void DispatchAgainst(Entity target, EventManager.EventType type)
         {
-            if (NoDispatch) return;
+            if (NoDispatch) return; 
 
             Vector3 safePosition = Util.GetSafePositionNear(target.Position);
 
@@ -621,149 +628,137 @@ namespace YouAreNotAlone
 
             switch (type)
             {
-                case ListManager.EventType.AggressiveDriver:
-                case ListManager.EventType.Racer:
+                case EventManager.EventType.AggressiveDriver:
+                case EventManager.EventType.Racer:
                     {
                         for (int i = 0; i < 2; i++)
                         {
-                            int selectedType = Util.GetRandomInt(copCarNames.Count);
-                            EmergencyCar lspd = new EmergencyCar(copCarNames[selectedType][Util.GetRandomInt(copCarNames[selectedType].Count)], target, "LSPD");
+                            int selectedType = Util.GetRandomIntBelow(copCarNames.Count);
+                            EmergencyGround lspd = new EmergencyGround(copCarNames[selectedType][Util.GetRandomIntBelow(copCarNames[selectedType].Count)], target, "LSPD");
 
-                            if (lspd.IsCreatedIn(safePosition, copModels[selectedType])) ListManager.Add(lspd, ListManager.EventType.Cop);
+                            if (lspd.IsCreatedIn(safePosition, copModels[selectedType])) DispatchManager.Add(lspd, DispatchManager.DispatchType.Cop);
                             else lspd.Restore(true);
                         }
 
                         if (target.Model.IsPed && ((Ped)target).IsSittingInVehicle() && ((Ped)target).CurrentVehicle.Model.IsCar)
                         {
-                            EmergencyHeli lspdheli = new EmergencyHeli(copHeliNames[Util.GetRandomInt(copHeliNames.Count)], target, "LSPD");
+                            EmergencyHeli lspdheli = new EmergencyHeli(copHeliNames[Util.GetRandomIntBelow(copHeliNames.Count)], target, "LSPD");
 
-                            if (lspdheli.IsCreatedIn(safePosition, copModels[Util.GetRandomInt(copModels.Count)])) ListManager.Add(lspdheli, ListManager.EventType.Cop);
+                            if (lspdheli.IsCreatedIn(safePosition, copModels[Util.GetRandomIntBelow(copModels.Count)])) DispatchManager.Add(lspdheli, DispatchManager.DispatchType.CopHeli);
                             else lspdheli.Restore(true);
                         }
 
                         break;
                     }
 
-                case ListManager.EventType.Carjacker:
+                case EventManager.EventType.Carjacker:
                     {
-                        int selectedType = Util.GetRandomInt(copCarNames.Count);
-                        EmergencyCar lspd = new EmergencyCar(copCarNames[selectedType][Util.GetRandomInt(copCarNames[selectedType].Count)], target, "LSPD");
+                        int selectedType = Util.GetRandomIntBelow(copCarNames.Count);
+                        EmergencyGround lspd = new EmergencyGround(copCarNames[selectedType][Util.GetRandomIntBelow(copCarNames[selectedType].Count)], target, "LSPD");
 
-                        if (lspd.IsCreatedIn(safePosition, copModels[selectedType])) ListManager.Add(lspd, ListManager.EventType.Cop);
+                        if (lspd.IsCreatedIn(safePosition, copModels[selectedType])) DispatchManager.Add(lspd, DispatchManager.DispatchType.Cop);
                         else lspd.Restore(true);
 
                         break;
                     }
 
-                case ListManager.EventType.Driveby:
+                case EventManager.EventType.Driveby:
                     {
                         for (int i = 0; i < 2; i++)
                         {
-                            int selectedType = Util.GetRandomInt(copCarNames.Count);
-                            EmergencyCar lspd = new EmergencyCar(copCarNames[selectedType][Util.GetRandomInt(copCarNames[selectedType].Count)], target, "LSPD");
+                            int selectedType = Util.GetRandomIntBelow(copCarNames.Count);
+                            EmergencyGround lspd = new EmergencyGround(copCarNames[selectedType][Util.GetRandomIntBelow(copCarNames[selectedType].Count)], target, "LSPD");
 
-                            if (lspd.IsCreatedIn(safePosition, copModels[selectedType])) ListManager.Add(lspd, ListManager.EventType.Cop);
+                            if (lspd.IsCreatedIn(safePosition, copModels[selectedType])) DispatchManager.Add(lspd, DispatchManager.DispatchType.Cop);
                             else lspd.Restore(true);
                         }
 
-                        EmergencyCar swat = new EmergencyCar(swatCarNames[Util.GetRandomInt(swatCarNames.Count)], target, "SWAT");
+                        EmergencyGround swat = new EmergencyGround(swatCarNames[Util.GetRandomIntBelow(swatCarNames.Count)], target, "SWAT");
 
-                        if (swat.IsCreatedIn(safePosition, swatModels)) ListManager.Add(swat, ListManager.EventType.Cop);
+                        if (swat.IsCreatedIn(safePosition, swatModels)) DispatchManager.Add(swat, DispatchManager.DispatchType.Cop);
                         else swat.Restore(true);
 
                         if (target.Model.IsPed && ((Ped)target).IsSittingInVehicle() && ((Ped)target).CurrentVehicle.Model.IsCar)
                         {
-                            EmergencyHeli swatheli = new EmergencyHeli(swatHeliNames[Util.GetRandomInt(swatHeliNames.Count)], target, "SWAT");
+                            EmergencyHeli swatheli = new EmergencyHeli(swatHeliNames[Util.GetRandomIntBelow(swatHeliNames.Count)], target, "SWAT");
 
-                            if (swatheli.IsCreatedIn(safePosition, swatModels)) ListManager.Add(swatheli, ListManager.EventType.Cop);
+                            if (swatheli.IsCreatedIn(safePosition, swatModels)) DispatchManager.Add(swatheli, DispatchManager.DispatchType.CopHeli);
                             else swatheli.Restore(true);
-                        }
-                        else
-                        {
-                            EmergencyHeli lspdheli = new EmergencyHeli(copHeliNames[Util.GetRandomInt(copHeliNames.Count)], target, "LSPD");
-
-                            if (lspdheli.IsCreatedIn(safePosition, copModels[Util.GetRandomInt(copModels.Count)])) ListManager.Add(lspdheli, ListManager.EventType.Cop);
-                            else lspdheli.Restore(true);
                         }
 
                         break;
                     }
 
-                case ListManager.EventType.Fire:
+                case EventManager.EventType.Fire:
                     {
                         for (int i = 0; i < 2; i++)
                         {
-                            Firefighter ff = new Firefighter(fireCarNames[Util.GetRandomInt(fireCarNames.Count)], target);
+                            Firefighter ff = new Firefighter(fireCarNames[Util.GetRandomIntBelow(fireCarNames.Count)], target);
 
-                            if (ff.IsCreatedIn(safePosition, fireModels)) ListManager.Add(ff, ListManager.EventType.Fire);
+                            if (ff.IsCreatedIn(safePosition, fireModels)) DispatchManager.Add(ff, DispatchManager.DispatchType.Emergency);
                             else ff.Restore(true);
                         }
 
-                        Paramedic pm = new Paramedic(emCarNames[Util.GetRandomInt(emCarNames.Count)], target);
+                        Paramedic pm = new Paramedic(emCarNames[Util.GetRandomIntBelow(emCarNames.Count)], target);
 
-                        if (pm.IsCreatedIn(safePosition, emModels)) ListManager.Add(pm, ListManager.EventType.Fire);
+                        if (pm.IsCreatedIn(safePosition, emModels)) DispatchManager.Add(pm, DispatchManager.DispatchType.Emergency);
                         else pm.Restore(true);
 
                         break;
                     }
 
-                case ListManager.EventType.GangTeam:
+                case EventManager.EventType.GangTeam:
                     {
-                        for (int i = 0; i < 2; i++)
+                        for (int i = 0; i < 3; i++)
                         {
-                            int selectedType = Util.GetRandomInt(copCarNames.Count);
-                            EmergencyCar lspd = new EmergencyCar(copCarNames[selectedType][Util.GetRandomInt(copCarNames[selectedType].Count)], target, "LSPD");
+                            int selectedType = Util.GetRandomIntBelow(copCarNames.Count);
+                            EmergencyGround lspd = new EmergencyGround(copCarNames[selectedType][Util.GetRandomIntBelow(copCarNames[selectedType].Count)], target, "LSPD");
 
-                            if (lspd.IsCreatedIn(safePosition, copModels[selectedType])) ListManager.Add(lspd, ListManager.EventType.Cop);
+                            if (lspd.IsCreatedIn(safePosition, copModels[selectedType])) DispatchManager.Add(lspd, DispatchManager.DispatchType.Cop);
                             else lspd.Restore(true);
                         }
-
-                        EmergencyHeli lspdheli = new EmergencyHeli(copHeliNames[Util.GetRandomInt(copHeliNames.Count)], target, "LSPD");
-
-                        if (lspdheli.IsCreatedIn(safePosition, copModels[Util.GetRandomInt(copModels.Count)])) ListManager.Add(lspdheli, ListManager.EventType.Cop);
-                        else lspdheli.Restore(true);
 
                         break;
                     }
 
-                case ListManager.EventType.Massacre:
+                case EventManager.EventType.Massacre:
                     {
                         for (int i = 0; i < 2; i++)
                         {
-                            EmergencyCar fib = new EmergencyCar(fibCarNames[Util.GetRandomInt(fibCarNames.Count)], target, "FIB");
+                            EmergencyGround fib = new EmergencyGround(fibCarNames[Util.GetRandomIntBelow(fibCarNames.Count)], target, "FIB");
 
-                            if (fib.IsCreatedIn(safePosition, fibModels)) ListManager.Add(fib, ListManager.EventType.Cop);
+                            if (fib.IsCreatedIn(safePosition, fibModels)) DispatchManager.Add(fib, DispatchManager.DispatchType.Cop);
                             else fib.Restore(true);
 
-                            EmergencyCar swat = new EmergencyCar(swatCarNames[Util.GetRandomInt(swatCarNames.Count)], target, "SWAT");
+                            EmergencyGround swat = new EmergencyGround(swatCarNames[Util.GetRandomIntBelow(swatCarNames.Count)], target, "SWAT");
 
-                            if (swat.IsCreatedIn(safePosition, swatModels)) ListManager.Add(swat, ListManager.EventType.Cop);
+                            if (swat.IsCreatedIn(safePosition, swatModels)) DispatchManager.Add(swat, DispatchManager.DispatchType.Cop);
                             else swat.Restore(true);
 
-                            EmergencyHeli swatheli = new EmergencyHeli(swatHeliNames[Util.GetRandomInt(swatHeliNames.Count)], target, "SWAT");
+                            EmergencyHeli swatheli = new EmergencyHeli(swatHeliNames[Util.GetRandomIntBelow(swatHeliNames.Count)], target, "SWAT");
 
-                            if (swatheli.IsCreatedIn(safePosition, swatModels)) ListManager.Add(swatheli, ListManager.EventType.Cop);
+                            if (swatheli.IsCreatedIn(safePosition, swatModels)) DispatchManager.Add(swatheli, DispatchManager.DispatchType.CopHeli);
                             else swatheli.Restore(true);
                         }
 
                         break;
                     }
 
-                case ListManager.EventType.Terrorist:
+                case EventManager.EventType.Terrorist:
                     {
                         for (int i = 0; i < 4; i++)
                         {
-                            EmergencyCar army = new EmergencyCar(armyCarNames[Util.GetRandomInt(armyCarNames.Count)], target, "ARMY");
+                            EmergencyGround army = new EmergencyGround(armyCarNames[Util.GetRandomIntBelow(armyCarNames.Count)], target, "ARMY");
 
-                            if (army.IsCreatedIn(safePosition, armyModels)) ListManager.Add(army, ListManager.EventType.Army);
+                            if (army.IsCreatedIn(safePosition, armyModels)) DispatchManager.Add(army, DispatchManager.DispatchType.Army);
                             else army.Restore(true);
                         }
 
                         for (int i = 0; i < 2; i++)
                         {
-                            EmergencyHeli armyheli = new EmergencyHeli(armyHeliNames[Util.GetRandomInt(armyHeliNames.Count)], target, "ARMY");
+                            EmergencyHeli armyheli = new EmergencyHeli(armyHeliNames[Util.GetRandomIntBelow(armyHeliNames.Count)], target, "ARMY");
 
-                            if (armyheli.IsCreatedIn(safePosition, armyModels)) ListManager.Add(armyheli, ListManager.EventType.Army);
+                            if (armyheli.IsCreatedIn(safePosition, armyModels)) DispatchManager.Add(armyheli, DispatchManager.DispatchType.ArmyHeli);
                             else armyheli.Restore(true);
                         }
 
@@ -772,7 +767,7 @@ namespace YouAreNotAlone
             }
         }
 
-        public static void BlockRoadAgainst(Entity target, ListManager.EventType type)
+        public static void BlockRoadAgainst(Entity target, EventManager.EventType type)
         {
             if (NoDispatch) return;
 
@@ -782,33 +777,33 @@ namespace YouAreNotAlone
 
             switch (type)
             {
-                case ListManager.EventType.AggressiveDriver:
-                case ListManager.EventType.Racer:
+                case EventManager.EventType.AggressiveDriver:
+                case EventManager.EventType.Racer:
                     {
-                        int selectedType = Util.GetRandomInt(copCarNames.Count - 1);
-                        EmergencyBlock lspdblock = new EmergencyBlock(copCarNames[selectedType][Util.GetRandomInt(copCarNames[selectedType].Count)], target, "LSPD");
+                        int selectedType = Util.GetRandomIntBelow(copCarNames.Count - 1);
+                        EmergencyBlock lspdblock = new EmergencyBlock(copCarNames[selectedType][Util.GetRandomIntBelow(copCarNames[selectedType].Count)], target, "LSPD");
 
-                        if (lspdblock.IsCreatedIn(safePosition, copModels[selectedType])) ListManager.Add(lspdblock, ListManager.EventType.Cop);
+                        if (lspdblock.IsCreatedIn(safePosition, copModels[selectedType])) DispatchManager.Add(lspdblock, DispatchManager.DispatchType.CopRoadBlock);
                         else lspdblock.Restore(true);
 
                         break;
                     }
 
-                case ListManager.EventType.Driveby:
+                case EventManager.EventType.Driveby:
                     {
-                        EmergencyBlock swatblock = new EmergencyBlock(swatCarNames[Util.GetRandomInt(swatCarNames.Count)], target, "SWAT");
+                        EmergencyBlock swatblock = new EmergencyBlock(swatCarNames[Util.GetRandomIntBelow(swatCarNames.Count)], target, "SWAT");
 
-                        if (swatblock.IsCreatedIn(safePosition, swatModels)) ListManager.Add(swatblock, ListManager.EventType.Cop);
+                        if (swatblock.IsCreatedIn(safePosition, swatModels)) DispatchManager.Add(swatblock, DispatchManager.DispatchType.CopRoadBlock);
                         else swatblock.Restore(true);
 
                         break;
                     }
 
-                case ListManager.EventType.Terrorist:
+                case EventManager.EventType.Terrorist:
                     {
-                        EmergencyBlock armyblock = new EmergencyBlock(armyCarNames[Util.GetRandomInt(armyCarNames.Count)], target, "ARMY");
+                        EmergencyBlock armyblock = new EmergencyBlock(armyCarNames[Util.GetRandomIntBelow(armyCarNames.Count)], target, "ARMY");
 
-                        if (armyblock.IsCreatedIn(safePosition, armyModels)) ListManager.Add(armyblock, ListManager.EventType.Army);
+                        if (armyblock.IsCreatedIn(safePosition, armyModels)) DispatchManager.Add(armyblock, DispatchManager.DispatchType.ArmyRoadBlock);
                         else armyblock.Restore(true);
 
                         break;
@@ -816,7 +811,7 @@ namespace YouAreNotAlone
             }
         }
 
-        public YouAreNotAlone()
+        public Main()
         {
             radius = 100.0f;
             eventTimeChecker = 0;
@@ -828,14 +823,15 @@ namespace YouAreNotAlone
         {
             if (eventTimeChecker == 1 || eventTimeChecker == 2 || eventTimeChecker == 3 || eventTimeChecker == 4)
             {
-                if (ListManager.ReplaceSlotIsAvailable)
+                if (EventManager.ReplaceSlotIsAvailable())
                 {
-                    ReplacedVehicle rv = new ReplacedVehicle(addOnCarNames[Util.GetRandomInt(addOnCarNames.Count)]);
+                    ReplacedVehicle rv = new ReplacedVehicle(addOnCarNames[Util.GetRandomIntBelow(addOnCarNames.Count)]);
 
                     if (rv.IsCreatedIn(radius))
                     {
-                        ListManager.Add(rv, ListManager.EventType.ReplacedVehicle);
-                        Function.Call(Hash.FLASH_MINIMAP_DISPLAY);
+                        EventManager.Add(rv, EventManager.EventType.ReplacedVehicle);
+
+                        if (!NoMinimapFlash) Function.Call(Hash.FLASH_MINIMAP_DISPLAY);
                     }
                     else rv.Restore(true);
                 }
@@ -844,7 +840,7 @@ namespace YouAreNotAlone
             }
             else if (eventTimeChecker == 5)
             {
-                switch (Util.GetRandomInt(9))
+                switch (Util.GetRandomIntBelow(9))
                 {
                     case 0:
                         {
@@ -852,8 +848,9 @@ namespace YouAreNotAlone
 
                             if (cj.IsCreatedIn(radius))
                             {
-                                ListManager.Add(cj, ListManager.EventType.Carjacker);
-                                Function.Call(Hash.FLASH_MINIMAP_DISPLAY);
+                                EventManager.Add(cj, EventManager.EventType.Carjacker);
+
+                                if (!NoMinimapFlash) Function.Call(Hash.FLASH_MINIMAP_DISPLAY);
                             }
                             else cj.Restore(true);
 
@@ -862,12 +859,13 @@ namespace YouAreNotAlone
 
                     case 1:
                         {
-                            AggressiveDriver ad = new AggressiveDriver(racerCarNames[Util.GetRandomInt(racerCarNames.Count)]);
+                            AggressiveDriver ad = new AggressiveDriver(racerCarNames[Util.GetRandomIntBelow(racerCarNames.Count)]);
 
                             if (ad.IsCreatedIn(radius))
                             {
-                                ListManager.Add(ad, ListManager.EventType.AggressiveDriver);
-                                Function.Call(Hash.FLASH_MINIMAP_DISPLAY);
+                                EventManager.Add(ad, EventManager.EventType.AggressiveDriver);
+
+                                if (!NoMinimapFlash) Function.Call(Hash.FLASH_MINIMAP_DISPLAY);
                             }
                             else ad.Restore(true);
 
@@ -876,74 +874,31 @@ namespace YouAreNotAlone
 
                     case 2:
                         {
-                            Vehicle[] nearbyVehicles = World.GetNearbyVehicles(Game.Player.Character.Position, radius);
+                            OnFire of = new OnFire();
 
-                            if (nearbyVehicles.Length < 1)
+                            if (of.IsCreatedIn(radius, true))
                             {
-                                nearbyVehicles = null;
-                                break;
+                                EventManager.Add(of, EventManager.EventType.Fire);
+
+                                if (!NoMinimapFlash) Function.Call(Hash.FLASH_MINIMAP_DISPLAY);
                             }
+                            else of.Restore(true);
 
-                            for (int trycount = 0; trycount < 5; trycount++)
-                            {
-                                Vehicle explosiveVehicle = nearbyVehicles[Util.GetRandomInt(nearbyVehicles.Length)];
-
-                                if (Util.WeCanReplace(explosiveVehicle))
-                                {
-                                    if (Util.BlipIsOn(explosiveVehicle))
-                                    {
-                                        explosiveVehicle.CurrentBlip.Remove();
-                                        Script.Wait(100);
-                                    }
-
-                                    Util.AddBlipOn(explosiveVehicle, 0.7f, BlipSprite.PersonalVehicleCar, BlipColor.Red, "Vehicle Explosion");
-                                    DispatchAgainst(explosiveVehicle, ListManager.EventType.Fire);
-                                    explosiveVehicle.Explode();
-                                    Function.Call(Hash.FLASH_MINIMAP_DISPLAY);
-
-                                    break;
-                                }
-                                else explosiveVehicle = null;
-                            }
-
-                            nearbyVehicles = null;
                             break;
                         }
 
                     case 3:
                         {
-                            Vehicle[] nearbyVehicles = World.GetNearbyVehicles(Game.Player.Character.Position, radius);
+                            OnFire of = new OnFire();
 
-                            if (nearbyVehicles.Length < 1)
+                            if (of.IsCreatedIn(radius, false))
                             {
-                                nearbyVehicles = null;
-                                break;
+                                EventManager.Add(of, EventManager.EventType.Fire);
+
+                                if (!NoMinimapFlash) Function.Call(Hash.FLASH_MINIMAP_DISPLAY);
                             }
+                            else of.Restore(true);
 
-                            for (int trycount = 0; trycount < 5; trycount++)
-                            {
-                                Vehicle undriveableVehicle = nearbyVehicles[Util.GetRandomInt(nearbyVehicles.Length)];
-
-                                if (Util.WeCanReplace(undriveableVehicle))
-                                {
-                                    if (Util.BlipIsOn(undriveableVehicle))
-                                    {
-                                        undriveableVehicle.CurrentBlip.Remove();
-                                        Script.Wait(100);
-                                    }
-
-                                    Util.AddBlipOn(undriveableVehicle, 0.7f, BlipSprite.PersonalVehicleCar, BlipColor.Yellow, "Vehicle on Fire");
-                                    DispatchAgainst(undriveableVehicle, ListManager.EventType.Fire);
-                                    undriveableVehicle.EngineHealth = -900.0f;
-                                    undriveableVehicle.IsDriveable = false;
-                                    Function.Call(Hash.FLASH_MINIMAP_DISPLAY);
-
-                                    break;
-                                }
-                                else undriveableVehicle = null;
-                            }
-
-                            nearbyVehicles = null;
                             break;
                         }
 
@@ -953,37 +908,44 @@ namespace YouAreNotAlone
 
                             if (safePosition.Equals(Vector3.Zero)) break;
 
+                            Road road = new Road(Vector3.Zero, 0.0f);
+
+                            for (int cnt = 0; cnt < 5; cnt++)
+                            {
+                                road = Util.GetNextPositionOnStreetWithHeading(safePosition.Around(50.0f));
+
+                                if (!road.Position.Equals(Vector3.Zero)) break;
+                            }
+
+                            if (road.Position.Equals(Vector3.Zero)) break;
+
                             GangTeam teamA = new GangTeam();
                             GangTeam teamB = new GangTeam();
 
-                            int teamANum = Util.GetRandomInt(gangModels.Count);
+                            int teamANum = Util.GetRandomIntBelow(gangModels.Count);
                             int teamBNum = -1;
 
-                            while (teamBNum == -1 || teamANum == teamBNum) teamBNum = Util.GetRandomInt(gangModels.Count);
+                            while (teamBNum == -1 || teamANum == teamBNum) teamBNum = Util.GetRandomIntBelow(gangModels.Count);
 
                             if (teamANum == -1 || teamBNum == -1) break;
 
-                            int relationshipA = Util.NewRelationship(ListManager.EventType.GangTeam);
-                            int relationshipB = Util.NewRelationship(ListManager.EventType.GangTeam);
+                            int relationshipA = Util.NewRelationshipOf(EventManager.EventType.GangTeam);
+                            int relationshipB = Util.NewRelationshipOf(EventManager.EventType.GangTeam);
 
                             if (relationshipA == 0 || relationshipB == 0) break;
 
                             World.SetRelationshipBetweenGroups(Relationship.Hate, relationshipA, relationshipB);
-                            Vector3 position1 = World.GetNextPositionOnSidewalk(safePosition.Around(5.0f));
-                            Vector3 position2 = World.GetNextPositionOnSidewalk(safePosition.Around(5.0f));
 
-                            if (position1.Equals(Vector3.Zero) || position2.Equals(Vector3.Zero)) break;
-
-                            if (teamA.IsCreatedIn(radius, position1, gangModels[teamANum], relationshipA, BlipColor.Green, "A Team")
-                                && teamB.IsCreatedIn(radius, position2, gangModels[teamBNum], relationshipB, BlipColor.Red, "B Team"))
+                            if (teamA.IsCreatedIn(radius, road.Position.Around(5.0f), gangModels[teamANum], relationshipA, BlipColor.Green, "A Team")
+                                && teamB.IsCreatedIn(radius, road.Position.Around(5.0f), gangModels[teamBNum], relationshipB, BlipColor.Red, "B Team"))
                             {
-                                ListManager.Add(teamA, ListManager.EventType.GangTeam);
-                                ListManager.Add(teamB, ListManager.EventType.GangTeam);
+                                EventManager.Add(teamA, EventManager.EventType.GangTeam);
+                                EventManager.Add(teamB, EventManager.EventType.GangTeam);
 
                                 teamA.PerformTask();
                                 teamB.PerformTask();
 
-                                Function.Call(Hash.FLASH_MINIMAP_DISPLAY);
+                                if (!NoMinimapFlash) Function.Call(Hash.FLASH_MINIMAP_DISPLAY);
                             }
                             else
                             {
@@ -1000,12 +962,24 @@ namespace YouAreNotAlone
 
                             if (safePosition.Equals(Vector3.Zero)) break;
 
-                            Massacre ms = new Massacre();
+                            Road road = new Road(Vector3.Zero, 0.0f);
 
-                            if (ms.IsCreatedIn(radius, safePosition))
+                            for (int cnt = 0; cnt < 5; cnt++)
                             {
-                                ListManager.Add(ms, ListManager.EventType.Massacre);
-                                Function.Call(Hash.FLASH_MINIMAP_DISPLAY);
+                                road = Util.GetNextPositionOnStreetWithHeading(safePosition.Around(50.0f));
+
+                                if (!road.Position.Equals(Vector3.Zero)) break;
+                            }
+
+                            if (road.Position.Equals(Vector3.Zero)) break;
+
+                            Massacre ms = new Massacre();
+                            
+                            if (ms.IsCreatedIn(radius, road.Position))
+                            {
+                                EventManager.Add(ms, EventManager.EventType.Massacre);
+
+                                if (!NoMinimapFlash) Function.Call(Hash.FLASH_MINIMAP_DISPLAY);
                             }
                             else ms.Restore(true);
 
@@ -1014,20 +988,21 @@ namespace YouAreNotAlone
 
                     case 6:
                         {
-                            Vector3 goal = racingPosition[Util.GetRandomInt(racingPosition.Count)];
+                            Vector3 goal = racingPosition[Util.GetRandomIntBelow(racingPosition.Count)];
                             Vector3 safePosition = Util.GetSafePositionIn(radius);
 
                             if (safePosition.Equals(Vector3.Zero)) break;
 
                             Racers r = null;
 
-                            if (Util.GetRandomInt(4) == 1) r = new Racers(racerBikeNames, safePosition, goal);
+                            if (Util.GetRandomIntBelow(4) == 1) r = new Racers(racerBikeNames, safePosition, goal);
                             else r = new Racers(racerCarNames, safePosition, goal);
 
                             if (r.IsCreatedIn(radius))
                             {
-                                ListManager.Add(r, ListManager.EventType.Racer);
-                                Function.Call(Hash.FLASH_MINIMAP_DISPLAY);
+                                EventManager.Add(r, EventManager.EventType.Racer);
+
+                                if (!NoMinimapFlash) Function.Call(Hash.FLASH_MINIMAP_DISPLAY);
                             }
                             else r.Restore(true);
 
@@ -1036,12 +1011,13 @@ namespace YouAreNotAlone
 
                     case 7:
                         {
-                            Driveby db = new Driveby(drivebyCarNames[Util.GetRandomInt(drivebyCarNames.Count)]);
+                            Driveby db = new Driveby(drivebyCarNames[Util.GetRandomIntBelow(drivebyCarNames.Count)]);
 
-                            if (db.IsCreatedIn(radius, gangModels[Util.GetRandomInt(gangModels.Count)]))
+                            if (db.IsCreatedIn(radius, gangModels[Util.GetRandomIntBelow(gangModels.Count)]))
                             {
-                                ListManager.Add(db, ListManager.EventType.Driveby);
-                                Function.Call(Hash.FLASH_MINIMAP_DISPLAY);
+                                EventManager.Add(db, EventManager.EventType.Driveby);
+
+                                if (!NoMinimapFlash) Function.Call(Hash.FLASH_MINIMAP_DISPLAY);
                             }
                             else db.Restore(true);
 
@@ -1050,12 +1026,13 @@ namespace YouAreNotAlone
 
                     case 8:
                         {
-                            Terrorist tr = new Terrorist(terroristCarNames[Util.GetRandomInt(terroristCarNames.Count)]);
+                            Terrorist tr = new Terrorist(terroristCarNames[Util.GetRandomIntBelow(terroristCarNames.Count)]);
 
                             if (tr.IsCreatedIn(radius))
                             {
-                                ListManager.Add(tr, ListManager.EventType.Terrorist);
-                                Function.Call(Hash.FLASH_MINIMAP_DISPLAY);
+                                EventManager.Add(tr, EventManager.EventType.Terrorist);
+
+                                if (!NoMinimapFlash) Function.Call(Hash.FLASH_MINIMAP_DISPLAY);
                             }
                             else tr.Restore(true);
 

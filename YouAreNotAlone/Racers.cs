@@ -10,7 +10,7 @@ namespace YouAreNotAlone
         private Vector3 safePosition;
         private Vector3 goal;
 
-        public Racers(List<string> models, Vector3 position, Vector3 goal) : base(ListManager.EventType.Racer)
+        public Racers(List<string> models, Vector3 position, Vector3 goal) : base(EventManager.EventType.Racer)
         {
             this.racers = new List<Racer>();
             this.models = models;
@@ -24,11 +24,26 @@ namespace YouAreNotAlone
 
             for (int i = 0; i < 4; i++)
             {
-                Racer r = new Racer(models[Util.GetRandomInt(models.Count)], goal);
-                Road road = Util.GetNextPositionOnStreetWithHeading(safePosition);
+                Racer r = new Racer(models[Util.GetRandomIntBelow(models.Count)], goal);
+                Road road = new Road(Vector3.Zero, 0.0f);
 
-                if (!road.Position.Equals(Vector3.Zero) && r.IsCreatedIn(radius, road)) racers.Add(r);
-                else r.Restore(true);
+                for (int cnt = 0; cnt < 5; cnt++)
+                {
+                    road = Util.GetNextPositionOnStreetWithHeading(safePosition.Around(50.0f));
+
+                    if (!road.Position.Equals(Vector3.Zero)) break;
+                }
+
+                if (road.Position.Equals(Vector3.Zero))
+                {
+                    Restore(true);
+                    return false;
+                }
+                else
+                {
+                    if (r.IsCreatedIn(radius, road)) racers.Add(r);
+                    else r.Restore(true);
+                }
             }
 
             foreach (Racer r in racers)
@@ -51,6 +66,8 @@ namespace YouAreNotAlone
         public override void Restore(bool instantly)
         {
             foreach (Racer r in racers) r.Restore(instantly);
+
+            racers.Clear();
         }
 
         public override bool ShouldBeRemoved()

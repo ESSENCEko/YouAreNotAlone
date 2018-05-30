@@ -8,7 +8,7 @@ namespace YouAreNotAlone
     {
         private string name;
 
-        public AggressiveDriver(string name) : base(ListManager.EventType.AggressiveDriver) { this.name = name; }
+        public AggressiveDriver(string name) : base(EventManager.EventType.AggressiveDriver) { this.name = name; }
 
         public bool IsCreatedIn(float radius)
         {
@@ -16,7 +16,14 @@ namespace YouAreNotAlone
 
             if (safePosition.Equals(Vector3.Zero)) return false;
 
-            Road road = Util.GetNextPositionOnStreetWithHeading(safePosition);
+            Road road = new Road(Vector3.Zero, 0.0f);
+
+            for (int cnt = 0; cnt < 5; cnt++)
+            {
+                road = Util.GetNextPositionOnStreetWithHeading(safePosition.Around(50.0f));
+
+                if (!road.Position.Equals(Vector3.Zero)) break;
+            }
 
             if (road.Position.Equals(Vector3.Zero)) return false;
 
@@ -38,13 +45,15 @@ namespace YouAreNotAlone
             Util.Tune(spawnedVehicle, true, true);
 
             spawnedPed.RelationshipGroup = relationship;
+            spawnedPed.IsPriorityTargetForEnemies = true;
             spawnedPed.AlwaysKeepTask = true;
             spawnedPed.BlockPermanentEvents = true;
             spawnedPed.Task.CruiseWithVehicle(spawnedVehicle, 100.0f, (int)DrivingStyle.AvoidTrafficExtremely);
 
             if (!Util.BlipIsOn(spawnedPed))
             {
-                Util.AddBlipOn(spawnedPed, 0.7f, BlipSprite.PersonalVehicleCar, BlipColor.Green, "Aggressive " + spawnedVehicle.FriendlyName);
+                if (!Main.NoBlipOnCriminal) Util.AddBlipOn(spawnedPed, 0.7f, BlipSprite.PersonalVehicleCar, BlipColor.Green, "Aggressive " + spawnedVehicle.FriendlyName);
+
                 return true;
             }
             else
@@ -63,16 +72,11 @@ namespace YouAreNotAlone
             }
             else
             {
-                if (Util.ThereIs(spawnedPed))
-                {
-                    spawnedPed.MarkAsNoLongerNeeded();
-
-                    if (Util.BlipIsOn(spawnedPed)) spawnedPed.CurrentBlip.Remove();
-                }
-                if (Util.ThereIs(spawnedVehicle)) spawnedVehicle.MarkAsNoLongerNeeded();
+                Util.NaturallyRemove(spawnedPed);
+                Util.NaturallyRemove(spawnedVehicle);
             }
 
-            if (relationship != 0) Util.CleanUpRelationship(relationship, ListManager.EventType.AggressiveDriver);
+            if (relationship != 0) Util.CleanUp(relationship);
         }
 
         public override bool ShouldBeRemoved()
@@ -83,7 +87,7 @@ namespace YouAreNotAlone
                 return true;
             }
 
-            if (spawnedVehicle.IsUpsideDown && spawnedVehicle.IsStopped) spawnedVehicle.PlaceOnGround();
+            if (spawnedVehicle.IsUpsideDown && spawnedVehicle.IsStopped && !spawnedVehicle.PlaceOnGround()) spawnedVehicle.PlaceOnNextStreet();
             if (Util.ThereIs(spawnedPed))
             {
                 CheckDispatch();

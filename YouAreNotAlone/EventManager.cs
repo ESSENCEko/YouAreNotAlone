@@ -4,53 +4,62 @@ using System.Collections.Generic;
 
 namespace YouAreNotAlone
 {
-    public class ListManager : Script
+    public class EventManager : Script
     {
         private static List<AdvancedEntity> aggressiveList;
         private static List<AdvancedEntity> carjackerList;
-        private static List<AdvancedEntity> dispatchList;
         private static List<AdvancedEntity> drivebyList;
         private static List<AdvancedEntity> gangList;
         private static List<AdvancedEntity> massacreList;
+        private static List<AdvancedEntity> onFireList;
         private static List<AdvancedEntity> racerList;
         private static List<AdvancedEntity> replacedList;
-        private static List<AdvancedEntity> shieldList;
-        private static List<AdvancedEntity> stingerList;
         private static List<AdvancedEntity> terroristList;
         private int timeChecker;
-
-        public static bool ReplaceSlotIsAvailable { get { return replacedList.Count < 5; } }
 
         public enum EventType
         {
             AggressiveDriver,
-            Army,
             Carjacker,
-            Cop,
             Driveby,
-            GangTeam,
             Fire,
+            GangTeam,
             Massacre,
             Racer,
             ReplacedVehicle,
-            RoadBlock,
-            Shield,
             Terrorist
         }
 
-        static ListManager()
+        static EventManager()
         {
             aggressiveList = new List<AdvancedEntity>();
             carjackerList = new List<AdvancedEntity>();
-            dispatchList = new List<AdvancedEntity>();
             drivebyList = new List<AdvancedEntity>();
             gangList = new List<AdvancedEntity>();
             massacreList = new List<AdvancedEntity>();
+            onFireList = new List<AdvancedEntity>();
             racerList = new List<AdvancedEntity>();
             replacedList = new List<AdvancedEntity>();
-            shieldList = new List<AdvancedEntity>();
-            stingerList = new List<AdvancedEntity>();
             terroristList = new List<AdvancedEntity>();
+        }
+
+        public static bool ReplaceSlotIsAvailable()
+        {
+            if (replacedList.Count < 5) return true;
+            else
+            {
+                foreach (ReplacedVehicle rv in replacedList)
+                {
+                    if (rv.CanBeNaturallyRemoved())
+                    {
+                        rv.Restore(true);
+                        replacedList.Remove(rv);
+                        break;
+                    }
+                }
+
+                return replacedList.Count < 5;
+            }
         }
 
         public static void Add(AdvancedEntity en, EventType type)
@@ -63,14 +72,6 @@ namespace YouAreNotAlone
                         break;
                     }
 
-                case EventType.Army:
-                case EventType.Cop:
-                case EventType.Fire:
-                    {
-                        dispatchList.Add(en);
-                        break;
-                    }
-
                 case EventType.Carjacker:
                     {
                         carjackerList.Add(en);
@@ -80,6 +81,12 @@ namespace YouAreNotAlone
                 case EventType.Driveby:
                     {
                         drivebyList.Add(en);
+                        break;
+                    }
+
+                case EventType.Fire:
+                    {
+                        onFireList.Add(en);
                         break;
                     }
 
@@ -103,19 +110,13 @@ namespace YouAreNotAlone
 
                 case EventType.ReplacedVehicle:
                     {
+                        if (replacedList.Count > 4)
+                        {
+                            replacedList[0].Restore(false);
+                            replacedList.RemoveAt(0);
+                        }
+
                         replacedList.Add(en);
-                        break;
-                    }
-
-                case EventType.RoadBlock:
-                    {
-                        stingerList.Add(en);
-                        break;
-                    }
-
-                case EventType.Shield:
-                    {
-                        shieldList.Add(en);
                         break;
                     }
 
@@ -127,7 +128,7 @@ namespace YouAreNotAlone
             }
         }
 
-        public ListManager()
+        public EventManager()
         {
             timeChecker = 0;
             Tick += OnTick;
@@ -139,14 +140,12 @@ namespace YouAreNotAlone
             {
                 CleanUp(aggressiveList);
                 CleanUp(carjackerList);
-                CleanUp(dispatchList);
                 CleanUp(drivebyList);
                 CleanUp(gangList);
                 CleanUp(massacreList);
+                CleanUp(onFireList);
                 CleanUp(racerList);
                 CleanUp(replacedList);
-                CleanUp(shieldList);
-                CleanUp(stingerList);
                 CleanUp(terroristList);
 
                 timeChecker = 0;
@@ -155,8 +154,6 @@ namespace YouAreNotAlone
 
             foreach (AggressiveDriver ad in aggressiveList) ad.CheckNitroable();
             foreach (Racers r in racerList) r.CheckNitroable();
-            foreach (Shield s in shieldList) s.CheckShieldable();
-            foreach (Stinger s in stingerList) s.CheckStingable();
         }
 
         private void CleanUp(List<AdvancedEntity> l)

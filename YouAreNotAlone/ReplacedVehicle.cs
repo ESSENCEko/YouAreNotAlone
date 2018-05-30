@@ -18,9 +18,9 @@ namespace YouAreNotAlone
 
             for (int trycount = 0; trycount < 5; trycount++)
             {
-                Vehicle selectedVehicle = nearbyVehicles[Util.GetRandomInt(nearbyVehicles.Length)];
+                Vehicle selectedVehicle = nearbyVehicles[Util.GetRandomIntBelow(nearbyVehicles.Length)];
 
-                if (Util.WeCanReplace(selectedVehicle) && !selectedVehicle.IsPersistent && !Function.Call<bool>(Hash.IS_VEHICLE_ATTACHED_TO_TRAILER, selectedVehicle) && Util.SomethingIsBetween(selectedVehicle))
+                if (Util.WeCanReplace(selectedVehicle) && !selectedVehicle.IsPersistent && !selectedVehicle.IsAttached() && !Util.ThereIs(selectedVehicle.GetEntityAttachedTo()) && Util.SomethingIsBetweenPlayerAnd(selectedVehicle))
                 {
                     Vector3 selectedPosition = selectedVehicle.Position;
                     float selectedHeading = selectedVehicle.Heading;
@@ -33,9 +33,6 @@ namespace YouAreNotAlone
                     spawnedVehicle = Util.Create(name, selectedPosition, selectedHeading, true);
 
                     if (!Util.ThereIs(spawnedVehicle)) return false;
-
-                    System.IO.File.WriteAllText(@"lastCreatedVehicle.log", "[" + System.DateTime.Now.ToString("yyyy-MM-dd-HH:mm:ss") + "] " + name);
-
                     if (selectedEngineRunning)
                     {
                         spawnedPed = spawnedVehicle.CreateRandomPedOnSeat(VehicleSeat.Driver);
@@ -47,15 +44,15 @@ namespace YouAreNotAlone
                             spawnedVehicle.Speed = selectedSpeed;
                             spawnedPed.RelationshipGroup = Function.Call<int>(Hash.GET_HASH_KEY, "CIV" + spawnedPed.Gender.ToString().ToUpper());
                             spawnedPed.Task.CruiseWithVehicle(spawnedVehicle, 20.0f, (int)DrivingStyle.Normal);
-                            spawnedPed.MarkAsNoLongerNeeded();
+                            Util.NaturallyRemove(spawnedPed);
                         }
                     }
 
-                    if (Util.GetRandomInt(3) == 1)
+                    if (Util.GetRandomIntBelow(3) == 1)
                     {
                         selectedBlipName = "Tuned ";
                         selectedBlipColor = BlipColor.Blue;
-                        Util.Tune(spawnedVehicle, Util.GetRandomInt(2) == 1, Util.GetRandomInt(3) == 1);
+                        Util.Tune(spawnedVehicle, Util.GetRandomIntBelow(2) == 1, Util.GetRandomIntBelow(2) == 1);
                     }
                     else
                     {
@@ -63,17 +60,16 @@ namespace YouAreNotAlone
                         selectedBlipColor = BlipColor.White;
                     }
 
-                    if (spawnedVehicle.FriendlyName == "NULL") selectedBlipName += spawnedVehicle.DisplayName.ToUpper();
-                    else selectedBlipName += spawnedVehicle.FriendlyName;
+                    selectedBlipName += spawnedVehicle.FriendlyName == "NULL" ? spawnedVehicle.DisplayName.ToUpper() : spawnedVehicle.FriendlyName;
 
                     if (!Util.BlipIsOn(spawnedVehicle))
                     {
-                        Util.AddBlipOn(spawnedVehicle, 0.7f, BlipSprite.PersonalVehicleCar, selectedBlipColor, selectedBlipName);
+                        if (!Main.NoBlipOnCriminal) Util.AddBlipOn(spawnedVehicle, 0.7f, BlipSprite.PersonalVehicleCar, selectedBlipColor, selectedBlipName);
+
                         return true;
                     }
                     else Restore(true);
                 }
-                else selectedVehicle = null;
             }
 
             return false;
@@ -88,25 +84,25 @@ namespace YouAreNotAlone
             }
             else
             {
-                if (Util.ThereIs(spawnedPed)) spawnedPed.MarkAsNoLongerNeeded();
-                if (Util.ThereIs(spawnedVehicle))
-                {
-                    spawnedVehicle.MarkAsNoLongerNeeded();
-
-                    if (Util.BlipIsOn(spawnedVehicle)) spawnedVehicle.CurrentBlip.Remove();
-                }
+                Util.NaturallyRemove(spawnedPed);
+                Util.NaturallyRemove(spawnedVehicle);
             }
         }
 
         public override bool ShouldBeRemoved()
         {
-            if (!Util.ThereIs(spawnedVehicle) || !spawnedVehicle.IsDriveable || !spawnedVehicle.IsInRangeOf(Game.Player.Character.Position, 200.0f))
+            if (!Util.ThereIs(spawnedVehicle) || !Util.WeCanEnter(spawnedVehicle) || !spawnedVehicle.IsInRangeOf(Game.Player.Character.Position, 200.0f))
             {
                 Restore(false);
                 return true;
             }
 
             return false;
+        }
+
+        public bool CanBeNaturallyRemoved()
+        {
+            return Util.SomethingIsBetweenPlayerAnd(spawnedVehicle);
         }
     }
 }

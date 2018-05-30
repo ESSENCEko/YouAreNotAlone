@@ -7,7 +7,7 @@ namespace YouAreNotAlone
         private float radius;
         private int trycount;
 
-        public Carjacker() : base(ListManager.EventType.Carjacker)
+        public Carjacker() : base(EventManager.EventType.Carjacker)
         {
             this.radius = 0.0f;
             this.trycount = 0;
@@ -19,21 +19,22 @@ namespace YouAreNotAlone
 
             if (nearbyPeds.Length < 1) return false;
 
-            spawnedPed = nearbyPeds[Util.GetRandomInt(nearbyPeds.Length)];
+            spawnedPed = nearbyPeds[Util.GetRandomIntBelow(nearbyPeds.Length)];
 
             if (!Util.ThereIs(spawnedPed) || spawnedPed.IsPersistent || spawnedPed.Equals(Game.Player.Character) || !spawnedPed.IsHuman || spawnedPed.IsDead) return false;
 
             this.radius = radius;
             spawnedPed.IsPersistent = true;
+            spawnedPed.IsPriorityTargetForEnemies = true;
 
             spawnedPed.AlwaysKeepTask = true;
             spawnedPed.BlockPermanentEvents = true;
 
             if (!Util.BlipIsOn(spawnedPed))
             {
-                Util.AddBlipOn(spawnedPed, 0.7f, BlipSprite.Masks, BlipColor.White, "Carjacker");
-                FindNewVehicle();
+                if (!Main.NoBlipOnCriminal) Util.AddBlipOn(spawnedPed, 0.7f, BlipSprite.Masks, BlipColor.White, "Carjacker");
 
+                FindNewVehicle();
                 return true;
             }
             else
@@ -45,21 +46,25 @@ namespace YouAreNotAlone
 
         private void FindNewVehicle()
         {
-            if (Util.ThereIs(spawnedVehicle) && spawnedVehicle.IsPersistent) spawnedVehicle.MarkAsNoLongerNeeded();
-
             trycount++;
-
+            Util.NaturallyRemove(spawnedVehicle);
+            spawnedVehicle = null;
             Vehicle[] nearbyVehicles = World.GetNearbyVehicles(spawnedPed.Position, radius / 2);
 
             if (nearbyVehicles.Length < 1) return;
 
-            spawnedVehicle = nearbyVehicles[Util.GetRandomInt(nearbyVehicles.Length)];
-
-            if (!Util.ThereIs(spawnedVehicle) || !spawnedVehicle.IsDriveable || Game.Player.Character.IsInVehicle(spawnedVehicle) || spawnedPed.IsInVehicle(spawnedVehicle))
+            for (int cnt = 0; cnt < 5; cnt++)
             {
-                spawnedVehicle = null;
-                return;
+                Vehicle v = nearbyVehicles[Util.GetRandomIntBelow(nearbyVehicles.Length)];
+
+                if (Util.ThereIs(v) && Util.WeCanEnter(v) && !Game.Player.Character.IsInVehicle(v) && !spawnedPed.IsInVehicle(v))
+                {
+                    spawnedVehicle = v;
+                    break;
+                }
             }
+
+            if (!Util.ThereIs(spawnedVehicle) || !Util.WeCanGiveTaskTo(spawnedPed)) return;
 
             spawnedVehicle.IsPersistent = true;
 
@@ -82,16 +87,11 @@ namespace YouAreNotAlone
             }
             else
             {
-                if (Util.ThereIs(spawnedPed))
-                {
-                    spawnedPed.MarkAsNoLongerNeeded();
-
-                    if (Util.BlipIsOn(spawnedPed)) spawnedPed.CurrentBlip.Remove();
-                }
-                if (Util.ThereIs(spawnedVehicle)) spawnedVehicle.MarkAsNoLongerNeeded();
+                Util.NaturallyRemove(spawnedPed);
+                Util.NaturallyRemove(spawnedVehicle);
             }
 
-            if (relationship != 0) Util.CleanUpRelationship(relationship, ListManager.EventType.Carjacker);
+            if (relationship != 0) Util.CleanUp(relationship);
         }
 
         public override bool ShouldBeRemoved()
@@ -102,7 +102,7 @@ namespace YouAreNotAlone
                 return true;
             }
 
-            if (!Util.ThereIs(spawnedVehicle) || !spawnedVehicle.IsDriveable || (spawnedVehicle.IsUpsideDown && spawnedVehicle.IsStopped) || !spawnedVehicle.IsInRangeOf(spawnedPed.Position, 100.0f)) FindNewVehicle();
+            if (!Util.ThereIs(spawnedVehicle) || !spawnedVehicle.IsInRangeOf(spawnedPed.Position, 100.0f) || !Util.WeCanEnter(spawnedVehicle)) FindNewVehicle();
             if (Util.ThereIs(spawnedVehicle) && spawnedPed.IsInVehicle(spawnedVehicle) && spawnedPed.RelationshipGroup != relationship) spawnedPed.RelationshipGroup = relationship;
             if (Util.ThereIs(spawnedPed)) CheckDispatch();
 

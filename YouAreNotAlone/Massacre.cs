@@ -9,7 +9,7 @@ namespace YouAreNotAlone
     {
         private List<Ped> members;
 
-        public Massacre() : base(ListManager.EventType.Massacre) { this.members = new List<Ped>(); }
+        public Massacre() : base(EventManager.EventType.Massacre) { this.members = new List<Ped>(); }
 
         public bool IsCreatedIn(float radius, Vector3 safePosition)
         {
@@ -35,7 +35,7 @@ namespace YouAreNotAlone
                 Ped p = Util.Create("hc_gunman", position);
 
                 if (!Util.ThereIs(p)) continue;
-                if (Util.GetRandomInt(4) == 1) p.Weapons.Give(WeaponHash.RPG, 25, true, true);
+                if (Util.GetRandomIntBelow(4) == 1) p.Weapons.Give(WeaponHash.RPG, 25, true, true);
                 else p.Weapons.Give(WeaponHash.Minigun, 1000, true, true);
 
                 p.Weapons.Give(WeaponHash.Pistol, 100, false, false);
@@ -50,7 +50,7 @@ namespace YouAreNotAlone
                 Function.Call(Hash.SET_PED_STRAFE_CLIPSET, p, "move_strafe_ballistic");
                 Function.Call(Hash.SET_WEAPON_ANIMATION_OVERRIDE, p, Function.Call<int>(Hash.GET_HASH_KEY, "Ballistic"));
 
-                Function.Call(Hash.SET_PED_COMPONENT_VARIATION, p, 0, Util.GetRandomInt(7), 0, 0);
+                Function.Call(Hash.SET_PED_COMPONENT_VARIATION, p, 0, Util.GetRandomIntBelow(7), 0, 0);
                 Function.Call(Hash.SET_PED_COMPONENT_VARIATION, p, 1, 1, 0, 0);
                 Function.Call(Hash.SET_PED_COMPONENT_VARIATION, p, 2, 0, 0, 0);
                 Function.Call(Hash.SET_PED_COMPONENT_VARIATION, p, 3, 1, 0, 0);
@@ -59,7 +59,7 @@ namespace YouAreNotAlone
                 Function.Call(Hash.SET_PED_COMPONENT_VARIATION, p, 8, 7, 0, 0);
                 Function.Call(Hash.SET_PED_COMPONENT_VARIATION, p, 9, 1, 0, 0);
 
-                switch (Util.GetRandomInt(4))
+                switch (Util.GetRandomIntBelow(4))
                 {
                     case 0:
                         Function.Call(Hash.SET_PED_PROP_INDEX, p, 0, 5, 0, true);
@@ -80,22 +80,32 @@ namespace YouAreNotAlone
 
                 Function.Call(Hash.SET_PED_FLEE_ATTRIBUTES, p, 0, false);
                 Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, p, 0, false);
+                Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, p, 17, true);
                 Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, p, 46, true);
                 Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, p, 5, true);
 
+                Function.Call(Hash.SET_PED_PATH_CAN_USE_CLIMBOVERS, p, false);
+                Function.Call(Hash.SET_PED_PATH_CAN_USE_LADDERS, p, false);
+                Function.Call(Hash.SET_PED_PATH_AVOID_FIRE, p, false);
+
                 p.RelationshipGroup = relationship;
+                p.IsPriorityTargetForEnemies = true;
                 p.AlwaysKeepTask = true;
+                p.BlockPermanentEvents = true;
 
                 p.FiringPattern = FiringPattern.FullAuto;
                 p.ShootRate = 1000;
                 p.CanRagdoll = false;
                 p.CanWrithe = false;
+
                 p.IsFireProof = true;
                 p.CanSwitchWeapons = true;
+                p.Task.FightAgainstHatedTargets(400.0f);
 
                 if (!Util.BlipIsOn(p))
                 {
-                    Util.AddBlipOn(p, 0.7f, BlipSprite.Rampage, BlipColor.White, "Massacre Squad");
+                    if (!Main.NoBlipOnCriminal) Util.AddBlipOn(p, 0.7f, BlipSprite.Rampage, BlipColor.White, "Massacre Squad");
+
                     members.Add(p);
                 }
                 else p.Delete();
@@ -108,8 +118,6 @@ namespace YouAreNotAlone
                     Restore(true);
                     return false;
                 }
-
-                p.Task.FightAgainstHatedTargets(400.0f);
             }
 
             return true;
@@ -126,18 +134,10 @@ namespace YouAreNotAlone
             }
             else
             {
-                foreach (Ped p in members)
-                {
-                    if (Util.ThereIs(p))
-                    {
-                        p.MarkAsNoLongerNeeded();
-
-                        if (Util.BlipIsOn(p)) p.CurrentBlip.Remove();
-                    }
-                }
+                foreach (Ped p in members) Util.NaturallyRemove(p);
             }
 
-            if (relationship != 0) Util.CleanUpRelationship(relationship, ListManager.EventType.Massacre);
+            if (relationship != 0) Util.CleanUp(relationship);
 
             members.Clear();
         }
@@ -154,28 +154,19 @@ namespace YouAreNotAlone
                     continue;
                 }
 
-                if (!members[i].IsDead) spawnedPed = members[i];
-                else
+                if (members[i].IsDead || !members[i].IsInRangeOf(Game.Player.Character.Position, 500.0f))
                 {
-                    if (Util.BlipIsOn(members[i])) members[i].CurrentBlip.Remove();
-
-                    members[i].MarkAsNoLongerNeeded();
+                    Util.NaturallyRemove(members[i]);
                     members.RemoveAt(i);
                     continue;
                 }
 
-                if (!members[i].IsInRangeOf(Game.Player.Character.Position, 500.0f))
-                {
-                    if (Util.BlipIsOn(members[i])) members[i].CurrentBlip.Remove();
-                    if (members[i].IsPersistent) members[i].MarkAsNoLongerNeeded();
-
-                    members.RemoveAt(i);
-                }
+                spawnedPed = members[i];
             }
 
             if (members.Count < 1)
             {
-                if (relationship != 0) Util.CleanUpRelationship(relationship, ListManager.EventType.Massacre);
+                if (relationship != 0) Util.CleanUp(relationship);
 
                 return true;
             }

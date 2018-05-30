@@ -40,6 +40,7 @@ namespace YouAreNotAlone
             stinger.IsFireProof = true;
             stinger.IsInvincible = true;
             stinger.FreezePosition = true;
+            stinger.LodDistance = 200;
 
             Vector3 dimension = stinger.Model.GetDimensions();
             points = new Vector3[4];
@@ -58,15 +59,12 @@ namespace YouAreNotAlone
             {
                 if (Util.ThereIs(stinger)) stinger.Delete();
             }
-            else
-            {
-                if (Util.ThereIs(stinger)) stinger.MarkAsNoLongerNeeded();
-            }
+            else Util.NaturallyRemove(stinger);
         }
 
         public override bool ShouldBeRemoved()
         {
-            if (!Util.ThereIs(stinger) || !Util.ThereIs(owner) || !stinger.IsInRangeOf(Game.Player.Character.Position, 500.0f))
+            if (!Util.ThereIs(stinger) || !Util.ThereIs(owner) || !stinger.IsInRangeOf(owner.Position, 300.0f) || !stinger.IsInRangeOf(Game.Player.Character.Position, 500.0f))
             {
                 Restore(false);
                 return true;

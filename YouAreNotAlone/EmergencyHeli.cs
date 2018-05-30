@@ -7,7 +7,7 @@ namespace YouAreNotAlone
 {
     public class EmergencyHeli : Emergency
     {
-        public EmergencyHeli(string name, Entity target, string emergencyType) : base(name, target, emergencyType) { }
+        public EmergencyHeli(string name, Entity target, string emergencyType) : base(name, target, emergencyType) { this.blipName += emergencyType + " Helicopter"; }
 
         public override bool IsCreatedIn(Vector3 safePosition, List<string> models)
         {
@@ -20,14 +20,14 @@ namespace YouAreNotAlone
                 {
                     if (spawnedVehicle.IsSeatFree((VehicleSeat)i))
                     {
-                        members.Add(spawnedVehicle.CreatePedOnSeat((VehicleSeat)i, models[Util.GetRandomInt(models.Count)]));
+                        members.Add(spawnedVehicle.CreatePedOnSeat((VehicleSeat)i, models[Util.GetRandomIntBelow(models.Count)]));
                         Script.Wait(50);
                     }
                 }
             }
             else
             {
-                string selectedModel = models[Util.GetRandomInt(models.Count)];
+                string selectedModel = models[Util.GetRandomIntBelow(models.Count)];
 
                 if (selectedModel == null)
                 {
@@ -89,6 +89,7 @@ namespace YouAreNotAlone
                 p.CanSwitchWeapons = true;
 
                 Function.Call(Hash.SET_PED_FLEE_ATTRIBUTES, p, 0, false);
+                Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, p, 17, true);
                 Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, p, 46, true);
                 Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, p, 5, true);
 
@@ -102,42 +103,63 @@ namespace YouAreNotAlone
 
             spawnedVehicle.EngineRunning = true;
             spawnedVehicle.Livery = 0;
+            spawnedVehicle.PrimaryColor = VehicleColor.MetallicBlack;
+            spawnedVehicle.SecondaryColor = VehicleColor.MetallicBlack;
             Function.Call(Hash.SET_HELI_BLADES_FULL_SPEED, spawnedVehicle);
             SetPedsOnDuty();
 
             return true;
         }
 
-        private new void SetPedsOnDuty()
+        private new void AddEmergencyBlip(bool forVehicle)
         {
-            if (onVehicleDuty)
+            if (forVehicle)
             {
+                if (Util.WeCanEnter(spawnedVehicle) && !Util.BlipIsOn(spawnedVehicle)) Util.AddBlipOn(spawnedVehicle, 0.7f, BlipSprite.PoliceHelicopterAnimated, (BlipColor)(-1), blipName);
+
                 foreach (Ped p in members)
                 {
-                    if (Util.ThereIs(spawnedVehicle) && p.Equals(spawnedVehicle.Driver)) Function.Call(Hash.TASK_VEHICLE_HELI_PROTECT, p, spawnedVehicle, target, 50.0f, 32, 25.0f, 35, 1);
-                    else if (!p.IsInCombat) p.Task.FightAgainstHatedTargets(400.0f);
+                    if (Util.BlipIsOn(p)) p.CurrentBlip.Remove();
                 }
             }
             else
             {
+                if (Util.BlipIsOn(spawnedVehicle)) spawnedVehicle.CurrentBlip.Remove();
+
                 foreach (Ped p in members)
                 {
-                    if (Util.ThereIs(p) && p.IsSittingInVehicle(spawnedVehicle)) p.Task.LeaveVehicle(spawnedVehicle, false);
-                    else if (!p.IsInCombat) p.Task.FightAgainstHatedTargets(400.0f);
+                    if (Util.WeCanGiveTaskTo(p) && !Util.BlipIsOn(p)) Util.AddBlipOn(p, 0.4f, BlipSprite.PoliceOfficer, (BlipColor)(-1), blipName);
                 }
             }
         }
 
-        private new void SetPedsOffDuty()
+        private new void SetPedsOnDuty()
         {
-            foreach (Ped p in members)
+            if (onVehicleDuty)
             {
-                if (Util.ThereIs(p) && p.IsPersistent)
+                if (!Main.NoBlipOnDispatch) AddEmergencyBlip(true);
+
+                foreach (Ped p in members)
                 {
-                    p.AlwaysKeepTask = false;
-                    p.BlockPermanentEvents = false;
-                    Function.Call(Hash.SET_PED_AS_COP, p, true);
-                    p.MarkAsNoLongerNeeded();
+                    if (Util.ThereIs(p) && Util.WeCanGiveTaskTo(p))
+                    {
+                        if (!Main.NoBlipOnDispatch && Util.BlipIsOn(p)) p.CurrentBlip.Remove();
+                        if (p.Equals(spawnedVehicle.Driver)) Function.Call(Hash.TASK_VEHICLE_HELI_PROTECT, p, spawnedVehicle, target, 50.0f, 32, 25.0f, 35, 1);
+                        else if (!p.IsInCombat) p.Task.FightAgainstHatedTargets(400.0f);
+                    }
+                }
+            }
+            else
+            {
+                if (!Main.NoBlipOnDispatch) AddEmergencyBlip(false);
+
+                foreach (Ped p in members)
+                {
+                    if (Util.ThereIs(p) && Util.WeCanGiveTaskTo(p))
+                    {
+                        if (p.IsSittingInVehicle(spawnedVehicle)) p.Task.LeaveVehicle(spawnedVehicle, false);
+                        else if (!p.IsInCombat) p.Task.FightAgainstHatedTargets(400.0f);
+                    }
                 }
             }
         }
@@ -156,22 +178,20 @@ namespace YouAreNotAlone
 
                 if (members[i].IsDead)
                 {
-                    members[i].MarkAsNoLongerNeeded();
+                    Util.NaturallyRemove(members[i]);
                     members.RemoveAt(i);
                 }
                 else if (!members[i].Equals(spawnedVehicle.Driver)) alive++;
             }
 
-            if (members.Count < 1 || !Util.ThereIs(spawnedVehicle) || !spawnedVehicle.IsInRangeOf(Game.Player.Character.Position, 500.0f))
+            if (!Util.ThereIs(spawnedVehicle) || !TargetIsFound() || alive < 1 || members.Count < 1 || !spawnedVehicle.IsInRangeOf(Game.Player.Character.Position, 500.0f))
             {
                 Restore(false);
                 return true;
             }
-
-            if (!TargetIsFound() || alive < 1) SetPedsOffDuty();
             else
             {
-                if (!spawnedVehicle.IsDriveable && spawnedVehicle.IsOnAllWheels) onVehicleDuty = false;
+                if (!Util.WeCanEnter(spawnedVehicle) && spawnedVehicle.IsOnAllWheels) onVehicleDuty = false;
                 else onVehicleDuty = true;
 
                 SetPedsOnDuty();

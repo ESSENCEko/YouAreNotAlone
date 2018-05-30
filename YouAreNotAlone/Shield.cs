@@ -29,7 +29,7 @@ namespace YouAreNotAlone
         {
             if (position.Equals(Vector3.Zero)) return false;
 
-            Model m = shieldModels[Util.GetRandomInt(shieldModels.Count)];
+            Model m = shieldModels[Util.GetRandomIntBelow(shieldModels.Count)];
             shield = World.CreateProp(m, position, true, true);
             m.MarkAsNoLongerNeeded();
 
@@ -40,10 +40,10 @@ namespace YouAreNotAlone
             shield.IsMeleeProof = true;
             shield.IsInvincible = true;
             shield.IsVisible = false;
+            shield.LodDistance = 200;
 
             Function.Call(Hash.SET_WEAPON_ANIMATION_OVERRIDE, owner, Function.Call<int>(Hash.GET_HASH_KEY, "Gang1H"));
             Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, owner, 0, false);
-            owner.CanPlayGestures = false;
             attached = false;
 
             return true;
@@ -55,10 +55,7 @@ namespace YouAreNotAlone
             {
                 if (Util.ThereIs(shield)) shield.Delete();
             }
-            else
-            {
-                if (Util.ThereIs(shield)) shield.MarkAsNoLongerNeeded();
-            }
+            else Util.NaturallyRemove(shield);
         }
 
         public override bool ShouldBeRemoved()
@@ -74,7 +71,7 @@ namespace YouAreNotAlone
 
         public void CheckShieldable()
         {
-            if (owner.IsInVehicle()) Detach(false);
+            if (owner.IsInVehicle() || owner.IsGettingIntoAVehicle) Detach(false);
             else if (owner.IsDead) Detach(true);
             else Attach();
         }
