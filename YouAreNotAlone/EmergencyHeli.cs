@@ -115,20 +115,28 @@ namespace YouAreNotAlone
         {
             if (forVehicle)
             {
-                if (Util.WeCanEnter(spawnedVehicle) && !Util.BlipIsOn(spawnedVehicle)) Util.AddBlipOn(spawnedVehicle, 0.7f, BlipSprite.PoliceHelicopterAnimated, (BlipColor)(-1), blipName);
+                if (Util.WeCanEnter(spawnedVehicle))
+                {
+                    if (!Util.BlipIsOn(spawnedVehicle)) Util.AddBlipOn(spawnedVehicle, 0.7f, BlipSprite.PoliceHelicopterAnimated, (BlipColor)(-1), blipName);
+                }
+                else if (Util.BlipIsOn(spawnedVehicle) && spawnedVehicle.CurrentBlip.Sprite.Equals(BlipSprite.PoliceHelicopterAnimated)) spawnedVehicle.CurrentBlip.Remove();
 
                 foreach (Ped p in members)
                 {
-                    if (Util.BlipIsOn(p)) p.CurrentBlip.Remove();
+                    if (Util.BlipIsOn(p) && p.CurrentBlip.Sprite.Equals(BlipSprite.PoliceOfficer)) p.CurrentBlip.Remove();
                 }
             }
             else
             {
-                if (Util.BlipIsOn(spawnedVehicle)) spawnedVehicle.CurrentBlip.Remove();
+                if (Util.BlipIsOn(spawnedVehicle) && spawnedVehicle.CurrentBlip.Sprite.Equals(BlipSprite.PoliceHelicopterAnimated)) spawnedVehicle.CurrentBlip.Remove();
 
                 foreach (Ped p in members)
                 {
-                    if (Util.WeCanGiveTaskTo(p) && !Util.BlipIsOn(p)) Util.AddBlipOn(p, 0.4f, BlipSprite.PoliceOfficer, (BlipColor)(-1), blipName);
+                    if (Util.WeCanGiveTaskTo(p))
+                    {
+                        if (!Util.BlipIsOn(p)) Util.AddBlipOn(p, 0.4f, BlipSprite.PoliceOfficer, (BlipColor)(-1), blipName);
+                    }
+                    else if (Util.BlipIsOn(p) && p.CurrentBlip.Sprite.Equals(BlipSprite.PoliceOfficer)) p.CurrentBlip.Remove();
                 }
             }
         }

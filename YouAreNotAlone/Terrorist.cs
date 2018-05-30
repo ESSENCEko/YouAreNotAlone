@@ -92,11 +92,8 @@ namespace YouAreNotAlone
                 return true;
             }
 
-            if (Util.ThereIs(spawnedPed))
-            {
-                CheckDispatch();
-                CheckBlockable();
-            }
+            CheckDispatch();
+            CheckBlockable();
 
             return false;
         }

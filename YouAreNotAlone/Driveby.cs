@@ -147,6 +147,9 @@ namespace YouAreNotAlone
                 return true;
             }
 
+            CheckDispatch();
+            CheckBlockable();
+
             if (!Util.WeCanEnter(spawnedVehicle))
             {
                 foreach (Ped p in members)
@@ -185,12 +188,6 @@ namespace YouAreNotAlone
                     Restore(false);
                     return true;
                 }
-            }
-
-            if (Util.ThereIs(spawnedPed))
-            {
-                CheckDispatch();
-                CheckBlockable();
             }
 
             return false;

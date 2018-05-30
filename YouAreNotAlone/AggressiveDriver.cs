@@ -88,11 +88,9 @@ namespace YouAreNotAlone
             }
 
             if (spawnedVehicle.IsUpsideDown && spawnedVehicle.IsStopped && !spawnedVehicle.PlaceOnGround()) spawnedVehicle.PlaceOnNextStreet();
-            if (Util.ThereIs(spawnedPed))
-            {
-                CheckDispatch();
-                CheckBlockable();
-            }
+
+            CheckDispatch();
+            CheckBlockable();
 
             return false;
         }

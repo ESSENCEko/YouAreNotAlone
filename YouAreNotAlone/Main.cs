@@ -218,7 +218,7 @@ namespace YouAreNotAlone
             };
             fireCarNames = new List<string>
             {
-                "firetruck"
+                "firetruk"
             };
 
             NoDispatch = false;
@@ -620,7 +620,7 @@ namespace YouAreNotAlone
 
         public static void DispatchAgainst(Entity target, EventManager.EventType type)
         {
-            if (NoDispatch) return; 
+            if (NoDispatch) return;
 
             Vector3 safePosition = Util.GetSafePositionNear(target.Position);
 
@@ -974,7 +974,7 @@ namespace YouAreNotAlone
                             if (road.Position.Equals(Vector3.Zero)) break;
 
                             Massacre ms = new Massacre();
-                            
+
                             if (ms.IsCreatedIn(radius, road.Position))
                             {
                                 EventManager.Add(ms, EventManager.EventType.Massacre);

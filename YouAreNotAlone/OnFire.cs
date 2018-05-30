@@ -34,12 +34,14 @@ namespace YouAreNotAlone
 
                     if (instantly)
                     {
-                        Util.AddBlipOn(OnFireVehicle, 0.7f, BlipSprite.PersonalVehicleCar, BlipColor.Red, "Vehicle Explosion");
+                        if (!Main.NoBlipOnCriminal) Util.AddBlipOn(OnFireVehicle, 0.7f, BlipSprite.PersonalVehicleCar, BlipColor.Red, "Vehicle Explosion");
+
                         OnFireVehicle.Explode();
                     }
                     else
                     {
-                        Util.AddBlipOn(OnFireVehicle, 0.7f, BlipSprite.PersonalVehicleCar, BlipColor.Yellow, "Vehicle on Fire");
+                        if (!Main.NoBlipOnCriminal) Util.AddBlipOn(OnFireVehicle, 0.7f, BlipSprite.PersonalVehicleCar, BlipColor.Yellow, "Vehicle on Fire");
+
                         OnFireVehicle.EngineHealth = -900.0f;
                         OnFireVehicle.IsDriveable = false;
                     }

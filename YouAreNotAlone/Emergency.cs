@@ -74,20 +74,28 @@ namespace YouAreNotAlone
         {
             if (forVehicle)
             {
-                if (Util.WeCanEnter(spawnedVehicle) && !Util.BlipIsOn(spawnedVehicle)) Util.AddBlipOn(spawnedVehicle, 0.5f, BlipSprite.PoliceOfficer, (BlipColor)(-1), blipName);
+                if (Util.WeCanEnter(spawnedVehicle))
+                {
+                    if (!Util.BlipIsOn(spawnedVehicle)) Util.AddBlipOn(spawnedVehicle, 0.5f, BlipSprite.PoliceOfficer, (BlipColor)(-1), blipName);
+                }
+                else if (Util.BlipIsOn(spawnedVehicle) && spawnedVehicle.CurrentBlip.Sprite.Equals(BlipSprite.PoliceOfficer)) spawnedVehicle.CurrentBlip.Remove();
 
                 foreach (Ped p in members)
                 {
-                    if (Util.BlipIsOn(p)) p.CurrentBlip.Remove();
+                    if (Util.BlipIsOn(p) && spawnedVehicle.CurrentBlip.Sprite.Equals(BlipSprite.PoliceOfficer)) p.CurrentBlip.Remove();
                 }
             }
             else
             {
-                if (Util.BlipIsOn(spawnedVehicle)) spawnedVehicle.CurrentBlip.Remove();
+                if (Util.BlipIsOn(spawnedVehicle) && spawnedVehicle.CurrentBlip.Sprite.Equals(BlipSprite.PoliceOfficer)) spawnedVehicle.CurrentBlip.Remove();
 
                 foreach (Ped p in members)
                 {
-                    if (Util.WeCanGiveTaskTo(p) && !Util.BlipIsOn(p)) Util.AddBlipOn(p, 0.4f, BlipSprite.PoliceOfficer, (BlipColor)(-1), blipName);
+                    if (Util.WeCanGiveTaskTo(p))
+                    {
+                        if (!Util.BlipIsOn(p)) Util.AddBlipOn(p, 0.4f, BlipSprite.PoliceOfficer, (BlipColor)(-1), blipName);
+                    }
+                    else if (Util.BlipIsOn(p) && p.CurrentBlip.Sprite.Equals(BlipSprite.PoliceOfficer)) p.CurrentBlip.Remove();
                 }
             }
         }
@@ -148,7 +156,7 @@ namespace YouAreNotAlone
                 }
                 else
                 {
-                    AddEmergencyBlip(false);
+                    if (!Main.NoBlipOnCriminal) AddEmergencyBlip(false);
 
                     foreach (Ped p in members)
                     {
@@ -233,13 +241,7 @@ namespace YouAreNotAlone
         {
             for (int i = members.Count - 1; i >= 0; i--)
             {
-                if (!Util.ThereIs(members[i]))
-                {
-                    members.RemoveAt(i);
-                    continue;
-                }
-
-                if (members[i].IsDead && Util.BlipIsOn(members[i])) members[i].CurrentBlip.Remove();
+                if (!Util.ThereIs(members[i])) members.RemoveAt(i);
             }
 
             if (!Util.ThereIs(spawnedVehicle) || members.Count < 1 || !spawnedVehicle.IsInRangeOf(Game.Player.Character.Position, 500.0f))
