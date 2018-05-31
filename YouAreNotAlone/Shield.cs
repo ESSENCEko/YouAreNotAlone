@@ -27,13 +27,23 @@ namespace YouAreNotAlone
 
         public bool IsCreatedIn(Vector3 position)
         {
-            if (position.Equals(Vector3.Zero)) return false;
+            if (position.Equals(Vector3.Zero))
+            {
+                Logger.Error("Shield: Couldn't find safe position. Abort.", "");
+
+                return false;
+            }
 
             Model m = shieldModels[Util.GetRandomIntBelow(shieldModels.Count)];
             shield = World.CreateProp(m, position, true, true);
             m.MarkAsNoLongerNeeded();
 
-            if (!Util.ThereIs(shield)) return false;
+            if (!Util.ThereIs(shield))
+            {
+                Logger.Error("Shield: Couldn't create shield. Abort.", "");
+
+                return false;
+            }
 
             shield.IsPersistent = true;
             shield.IsFireProof = true;
@@ -46,6 +56,8 @@ namespace YouAreNotAlone
             Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, owner, 0, false);
             attached = false;
 
+            Logger.Write("Shield: Created shield successfully.", "");
+
             return true;
         }
 
@@ -53,16 +65,24 @@ namespace YouAreNotAlone
         {
             if (instantly)
             {
+                Logger.Write("Shield: Restore instantly.", "");
+
                 if (Util.ThereIs(shield)) shield.Delete();
             }
-            else Util.NaturallyRemove(shield);
+            else
+            {
+                Logger.Write("Shield: Restore naturally.", "");
+                Util.NaturallyRemove(shield);
+            }
         }
 
         public override bool ShouldBeRemoved()
         {
             if (!Util.ThereIs(shield) || !Util.ThereIs(owner) || !shield.IsInRangeOf(Game.Player.Character.Position, 500.0f))
             {
+                Logger.Write("Shield: Shield need to be restored.", "");
                 Restore(false);
+
                 return true;
             }
 
@@ -83,6 +103,7 @@ namespace YouAreNotAlone
                 shield.AttachTo(owner, boneIndex, position, rotation);
                 shield.IsVisible = true;
                 attached = true;
+                Logger.Write("Shield: Attached to owner.", "");
             }
         }
 
@@ -93,6 +114,7 @@ namespace YouAreNotAlone
                 shield.Detach();
                 shield.IsVisible = shouldBeVisible;
                 attached = false;
+                Logger.Write("Shield: Detached from owner.", "");
             }
         }
     }

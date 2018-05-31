@@ -7,13 +7,27 @@ namespace YouAreNotAlone
 {
     public class EmergencyHeli : Emergency
     {
-        public EmergencyHeli(string name, Entity target, string emergencyType) : base(name, target, emergencyType) { this.blipName += emergencyType + " Helicopter"; }
+        public EmergencyHeli(string name, Entity target, string emergencyType) : base(name, target, emergencyType)
+        {
+            this.blipName += emergencyType + " Helicopter";
+            Logger.Write(blipName + ": Time to dispatch.", name);
+        }
 
         public override bool IsCreatedIn(Vector3 safePosition, List<string> models)
         {
-            spawnedVehicle = Util.Create(name, new Vector3(safePosition.X, safePosition.Y, safePosition.Z + 50.0f), (target.Position - safePosition).ToHeading(), false);
+            Vector3 position = World.GetNextPositionOnStreet(safePosition.Around(10.0f));
 
-            if (!Util.ThereIs(spawnedVehicle)) return false;
+            if (position.Equals(Vector3.Zero)) position = safePosition;
+
+            spawnedVehicle = Util.Create(name, new Vector3(position.X, position.Y, position.Z + 50.0f), (target.Position - position).ToHeading(), false);
+
+            if (!Util.ThereIs(spawnedVehicle))
+            {
+                Logger.Error(blipName + ": Couldn't create vehicle. Abort.", name);
+
+                return false;
+            }
+
             if (emergencyType == "LSPD")
             {
                 for (int i = -1; i < spawnedVehicle.PassengerSeats && i < 3; i++)
@@ -31,7 +45,9 @@ namespace YouAreNotAlone
 
                 if (selectedModel == null)
                 {
+                    Logger.Error(blipName + ": Couldn't find model. Abort.", name);
                     Restore(true);
+
                     return false;
                 }
 
@@ -45,11 +61,15 @@ namespace YouAreNotAlone
                 }
             }
 
+            Logger.Write(blipName + ": Created members.", name);
+
             foreach (Ped p in members)
             {
                 if (!Util.ThereIs(p))
                 {
+                    Logger.Error(blipName + ": There is a member who doesn't exist. Abort.", name);
                     Restore(true);
+
                     return false;
                 }
 
@@ -99,6 +119,7 @@ namespace YouAreNotAlone
 
                 p.RelationshipGroup = relationship;
                 p.NeverLeavesGroup = true;
+                Logger.Write(blipName + ": Characteristics are set.", name);
             }
 
             spawnedVehicle.EngineRunning = true;
@@ -106,15 +127,18 @@ namespace YouAreNotAlone
             spawnedVehicle.PrimaryColor = VehicleColor.MetallicBlack;
             spawnedVehicle.SecondaryColor = VehicleColor.MetallicBlack;
             Function.Call(Hash.SET_HELI_BLADES_FULL_SPEED, spawnedVehicle);
-            SetPedsOnDuty();
+            SetPedsOnDuty(true);
+            Logger.Write(blipName + ": Ready to dispatch.", name);
 
             return true;
         }
 
-        private new void AddEmergencyBlip(bool forVehicle)
+        private new void AddEmergencyBlip(bool onVehicle)
         {
-            if (forVehicle)
+            if (onVehicle)
             {
+                Logger.Write(blipName + ": Members are in vehicle. Add blip on vehicle.", name);
+
                 if (Util.WeCanEnter(spawnedVehicle))
                 {
                     if (!Util.BlipIsOn(spawnedVehicle)) Util.AddBlipOn(spawnedVehicle, 0.7f, BlipSprite.PoliceHelicopterAnimated, (BlipColor)(-1), blipName);
@@ -128,6 +152,8 @@ namespace YouAreNotAlone
             }
             else
             {
+                Logger.Write(blipName + ": Members are on foot. Add blips on members.", name);
+
                 if (Util.BlipIsOn(spawnedVehicle) && spawnedVehicle.CurrentBlip.Sprite.Equals(BlipSprite.PoliceHelicopterAnimated)) spawnedVehicle.CurrentBlip.Remove();
 
                 foreach (Ped p in members)
@@ -141,24 +167,55 @@ namespace YouAreNotAlone
             }
         }
 
-        private new void SetPedsOnDuty()
+        private new void SetPedsOnDuty(bool onVehicleDuty)
         {
             if (onVehicleDuty)
             {
-                if (!Main.NoBlipOnDispatch) AddEmergencyBlip(true);
-
-                foreach (Ped p in members)
+                if (ReadyToGoWith(members))
                 {
-                    if (Util.ThereIs(p) && Util.WeCanGiveTaskTo(p))
+                    if (Util.ThereIs(spawnedVehicle.Driver))
                     {
-                        if (!Main.NoBlipOnDispatch && Util.BlipIsOn(p)) p.CurrentBlip.Remove();
-                        if (p.Equals(spawnedVehicle.Driver)) Function.Call(Hash.TASK_VEHICLE_HELI_PROTECT, p, spawnedVehicle, target, 50.0f, 32, 25.0f, 35, 1);
-                        else if (!p.IsInCombat) p.Task.FightAgainstHatedTargets(400.0f);
+                        Logger.Write(blipName + ": Time to fight in vehicle.", name);
+
+                        if (!Main.NoBlipOnDispatch) AddEmergencyBlip(true);
+
+                        foreach (Ped p in members)
+                        {
+                            if (Util.ThereIs(p) && Util.WeCanGiveTaskTo(p))
+                            {
+                                if (p.Equals(spawnedVehicle.Driver)) Function.Call(Hash.TASK_VEHICLE_HELI_PROTECT, p, spawnedVehicle, target, 50.0f, 32, 25.0f, 35, 1);
+                                else if (!p.IsInCombat) p.Task.FightAgainstHatedTargets(400.0f);
+                            }
+                        }
                     }
+                    else if (spawnedVehicle.IsOnAllWheels)
+                    {
+                        Logger.Write(blipName + ": Time to fight in vehicle.", name);
+
+                        foreach (Ped p in members)
+                        {
+                            if (Util.WeCanGiveTaskTo(p)) p.Task.LeaveVehicle(spawnedVehicle, false);
+                        }
+                    }
+                }
+                else if (spawnedVehicle.IsOnAllWheels)
+                {
+                    if (!VehicleSeatsCanBeSeatedBy(members))
+                    {
+                        Logger.Write(blipName + ": Something wrong with assigning seats when on duty. Re-enter everyone.", name);
+
+                        foreach (Ped p in members)
+                        {
+                            if (Util.WeCanGiveTaskTo(p)) p.Task.LeaveVehicle(spawnedVehicle, false);
+                        }
+                    }
+                    else Logger.Write(blipName + ": Assigned seats successfully when on duty.", name);
                 }
             }
             else
             {
+                Logger.Write(blipName + ": Time to fight on foot.", name);
+
                 if (!Main.NoBlipOnDispatch) AddEmergencyBlip(false);
 
                 foreach (Ped p in members)
@@ -184,25 +241,26 @@ namespace YouAreNotAlone
                     continue;
                 }
 
-                if (members[i].IsDead)
+                if (Util.WeCanGiveTaskTo(members[i]))
                 {
-                    Util.NaturallyRemove(members[i]);
-                    members.RemoveAt(i);
+                    if (!members[i].Equals(spawnedVehicle.Driver)) alive++;
                 }
-                else if (!members[i].Equals(spawnedVehicle.Driver)) alive++;
+                else if (Util.BlipIsOn(members[i])) members[i].CurrentBlip.Remove();
             }
+
+            Logger.Write(blipName + ": Alive members without driver - " + alive.ToString(), name);
 
             if (!Util.ThereIs(spawnedVehicle) || !TargetIsFound() || alive < 1 || members.Count < 1 || !spawnedVehicle.IsInRangeOf(Game.Player.Character.Position, 500.0f))
             {
+                Logger.Write(blipName + ": Emergency helicopter need to be restored.", name);
                 Restore(false);
+
                 return true;
             }
             else
             {
-                if (!Util.WeCanEnter(spawnedVehicle) && spawnedVehicle.IsOnAllWheels) onVehicleDuty = false;
-                else onVehicleDuty = true;
-
-                SetPedsOnDuty();
+                Logger.Write(blipName + ": Found target. Time to be on duty.", name);
+                SetPedsOnDuty(Util.WeCanEnter(spawnedVehicle) || !spawnedVehicle.IsOnAllWheels);
             }
 
             return false;

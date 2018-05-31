@@ -10,7 +10,7 @@ namespace YouAreNotAlone
         public EmergencyBlock(string name, Entity target, string emergencyType) : base(name, target, emergencyType)
         {
             this.blipName += emergencyType + " Road Block";
-            this.onVehicleDuty = false;
+            Logger.Write(blipName + ": Time to block road.", name);
         }
 
         public override bool IsCreatedIn(Vector3 safePosition, List<string> models)
@@ -21,14 +21,29 @@ namespace YouAreNotAlone
             {
                 road = Util.GetNextPositionOnStreetWithHeading(safePosition.Around(50.0f));
 
-                if (!road.Position.Equals(Vector3.Zero)) break;
+                if (!road.Position.Equals(Vector3.Zero))
+                {
+                    Logger.Write(blipName + ": Found proper road.", name);
+
+                    break;
+                }
             }
 
-            if (road.Position.Equals(Vector3.Zero)) return false;
+            if (road.Position.Equals(Vector3.Zero))
+            {
+                Logger.Error(blipName + ": Couldn't find proper road. Abort.", name);
+
+                return false;
+            }
 
             spawnedVehicle = Util.Create(name, road.Position, road.Heading + 90, false);
 
-            if (!Util.ThereIs(spawnedVehicle)) return false;
+            if (!Util.ThereIs(spawnedVehicle))
+            {
+                Logger.Error(blipName + ": Couldn't create vehicle. Abort.", name);
+
+                return false;
+            }
 
             Stinger s = new Stinger(spawnedVehicle);
 
@@ -52,7 +67,9 @@ namespace YouAreNotAlone
 
                 if (selectedModel == null)
                 {
+                    Logger.Error(blipName + ": Couldn't find model. Abort.", name);
                     Restore(true);
+
                     return false;
                 }
 
@@ -66,11 +83,15 @@ namespace YouAreNotAlone
                 }
             }
 
+            Logger.Write(blipName + ": Tried to create stinger and created members.", name);
+
             foreach (Ped p in members)
             {
                 if (!Util.ThereIs(p))
                 {
+                    Logger.Error(blipName + ": There is a member who doesn't exist. Abort.", name);
                     Restore(true);
+
                     return false;
                 }
 
@@ -107,7 +128,7 @@ namespace YouAreNotAlone
                         }
                 }
 
-                if (p.IsInVehicle(spawnedVehicle)) p.Task.LeaveVehicle(spawnedVehicle, true);
+                if (p.IsInVehicle(spawnedVehicle)) p.Task.LeaveVehicle(spawnedVehicle, false);
 
                 p.Weapons.Current.InfiniteAmmo = true;
                 p.CanSwitchWeapons = true;
@@ -125,11 +146,12 @@ namespace YouAreNotAlone
 
                 p.RelationshipGroup = relationship;
                 p.NeverLeavesGroup = true;
+                Logger.Write(blipName + ": Characteristics are set.", name);
             }
 
             spawnedVehicle.EngineRunning = true;
-            onVehicleDuty = false;
-            SetPedsOnDuty();
+            SetPedsOnDuty(false);
+            Logger.Write(blipName + ": Ready to dispatch.", name);
 
             return true;
         }

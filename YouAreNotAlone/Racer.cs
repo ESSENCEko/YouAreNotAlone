@@ -19,27 +19,37 @@ namespace YouAreNotAlone
         {
             spawnedVehicle = Util.Create(name, road.Position, road.Heading, true);
 
-            if (!Util.ThereIs(spawnedVehicle)) return false;
+            if (!Util.ThereIs(spawnedVehicle))
+            {
+                Logger.Error("Racer: Couldn't create vehicle. Abort.", name);
+
+                return false;
+            }
 
             spawnedPed = spawnedVehicle.CreateRandomPedOnSeat(VehicleSeat.Driver);
 
             if (!Util.ThereIs(spawnedPed))
             {
+                Logger.Error("Racer: Couldn't create driver. Abort.", name);
                 spawnedVehicle.Delete();
+
                 return false;
             }
 
+            Logger.Write("Racer: Created vehicle and driver successfully.", name);
             Script.Wait(50);
             Function.Call(Hash.SET_DRIVER_ABILITY, spawnedPed, 1.0f);
             Function.Call(Hash.SET_DRIVER_AGGRESSIVENESS, spawnedPed, 1.0f);
             Util.Tune(spawnedVehicle, true, true);
+            Logger.Write("Racer: Tuned racer vehicle.", name);
 
             spawnedPed.RelationshipGroup = relationship;
             spawnedPed.IsPriorityTargetForEnemies = true;
             spawnedPed.AlwaysKeepTask = true;
             spawnedPed.BlockPermanentEvents = true;
+            Logger.Write("Racer: Characteristics are set.", name);
 
-            if (!spawnedPed.IsWearingHelmet) spawnedPed.GiveHelmet(false, HelmetType.RegularMotorcycleHelmet, 4096);
+            if (!spawnedVehicle.Model.IsCar && !spawnedPed.IsWearingHelmet) spawnedPed.GiveHelmet(false, HelmetType.RegularMotorcycleHelmet, 4096);
             if (!Util.BlipIsOn(spawnedPed))
             {
                 if (!Main.NoBlipOnCriminal)
@@ -49,18 +59,23 @@ namespace YouAreNotAlone
                 }
 
                 TaskSequence ts = new TaskSequence();
-                ts.AddTask.DriveTo(spawnedVehicle, goal, 10.0f, 100.0f, (int)DrivingStyle.AvoidTrafficExtremely);
+                ts.AddTask.DriveTo(spawnedVehicle, goal, 10.0f, 100.0f, 262692); // 4 + 32 + 512 + 262144
                 ts.AddTask.Wait(10000);
-                ts.AddTask.CruiseWithVehicle(spawnedVehicle, 100.0f, (int)DrivingStyle.AvoidTrafficExtremely);
+                ts.AddTask.CruiseWithVehicle(spawnedVehicle, 100.0f, 262692); // 4 + 32 + 512 + 262144
                 ts.Close();
 
                 spawnedPed.Task.PerformSequence(ts);
                 ts.Dispose();
+
+                Logger.Write("Racer: Created racer successfully.", name);
+
                 return true;
             }
             else
             {
+                Logger.Error("Racer: Blip is already on racer. Abort.", name);
                 Restore(true);
+
                 return false;
             }
         }
@@ -69,11 +84,14 @@ namespace YouAreNotAlone
         {
             if (instantly)
             {
+                Logger.Write("Racer: Restore instantly.", name);
+
                 if (Util.ThereIs(spawnedPed)) spawnedPed.Delete();
                 if (Util.ThereIs(spawnedVehicle)) spawnedVehicle.Delete();
             }
             else
             {
+                Logger.Write("Racer: Restore naturally.", name);
                 Util.NaturallyRemove(spawnedPed);
                 Util.NaturallyRemove(spawnedVehicle);
             }
@@ -85,7 +103,9 @@ namespace YouAreNotAlone
         {
             if (!Util.ThereIs(spawnedPed) || !Util.ThereIs(spawnedVehicle) || spawnedPed.IsDead || !spawnedPed.IsInRangeOf(Game.Player.Character.Position, 500.0f))
             {
+                Logger.Write("Racer: Racer need to be restored.", name);
                 Restore(false);
+
                 return true;
             }
 

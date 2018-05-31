@@ -22,7 +22,11 @@
             {
                 dispatchCooldown = 0;
 
-                if (!Util.AnyEmergencyIsNear(spawnedPed.Position, DispatchManager.DispatchType.Cop)) Main.DispatchAgainst(spawnedPed, type);
+                if (!Util.AnyEmergencyIsNear(spawnedPed.Position, DispatchManager.DispatchType.Cop))
+                {
+                    Logger.Write("Dispatch against", type.ToString());
+                    Main.DispatchAgainst(spawnedPed, type);
+                }
             }
         }
 
@@ -32,6 +36,7 @@
             else
             {
                 blockCooldown = 0;
+                Logger.Write("Block road against", type.ToString());
                 Main.BlockRoadAgainst(spawnedPed, type);
             }
         }

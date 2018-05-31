@@ -16,11 +16,17 @@ namespace YouAreNotAlone
             this.models = models;
             this.safePosition = position;
             this.goal = goal;
+            Logger.Write("Racers event selected.", "");
         }
 
         public bool IsCreatedIn(float radius)
         {
-            if (models == null || safePosition.Equals(Vector3.Zero) || goal.Equals(Vector3.Zero)) return false;
+            if (models == null || safePosition.Equals(Vector3.Zero) || goal.Equals(Vector3.Zero))
+            {
+                Logger.Error("Racers: Couldn't find models or safe position or goal. Abort.", "");
+
+                return false;
+            }
 
             for (int i = 0; i < 4; i++)
             {
@@ -31,16 +37,25 @@ namespace YouAreNotAlone
                 {
                     road = Util.GetNextPositionOnStreetWithHeading(safePosition.Around(50.0f));
 
-                    if (!road.Position.Equals(Vector3.Zero)) break;
+                    if (!road.Position.Equals(Vector3.Zero))
+                    {
+                        Logger.Write("Racers: Found proper road.", "");
+
+                        break;
+                    }
                 }
 
                 if (road.Position.Equals(Vector3.Zero))
                 {
+                    Logger.Error("Racers: Couldn't find proper road. Abort.", "");
                     Restore(true);
+
                     return false;
                 }
                 else
                 {
+                    Logger.Write("Racers: Creating a racer.", "");
+
                     if (r.IsCreatedIn(radius, road)) racers.Add(r);
                     else r.Restore(true);
                 }
@@ -50,10 +65,14 @@ namespace YouAreNotAlone
             {
                 if (!r.Exists())
                 {
+                    Logger.Write("Racers: There is a racer who doesn't exist. Abort.", "");
                     Restore(true);
+
                     return false;
                 }
             }
+
+            Logger.Write("Racers: Created racers successfully.", "");
 
             return true;
         }
@@ -65,6 +84,9 @@ namespace YouAreNotAlone
 
         public override void Restore(bool instantly)
         {
+            if (instantly) Logger.Write("Racers: Restore instantly.", "");
+            else Logger.Write("Racers: Restore naturally.", "");
+
             foreach (Racer r in racers) r.Restore(instantly);
 
             racers.Clear();
@@ -77,7 +99,12 @@ namespace YouAreNotAlone
                 if (racers[i].ShouldBeRemoved()) racers.RemoveAt(i);
             }
 
-            if (racers.Count < 1) return true;
+            if (racers.Count < 1)
+            {
+                Logger.Write("Racers: Every racer is gone. Time to be disposed.", "");
+
+                return true;
+            }
 
             float distance = float.MaxValue;
 

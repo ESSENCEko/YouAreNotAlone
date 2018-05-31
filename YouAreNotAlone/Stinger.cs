@@ -27,13 +27,23 @@ namespace YouAreNotAlone
 
         public bool IsCreatedIn(Vector3 position)
         {
-            if (position.Equals(Vector3.Zero)) return false;
+            if (position.Equals(Vector3.Zero))
+            {
+                Logger.Write("Stinger: Couldn't find safe position. Abort.", "");
+
+                return false;
+            }
 
             Model m = "p_ld_stinger_s";
             stinger = World.CreateProp(m, position, true, true);
             m.MarkAsNoLongerNeeded();
 
-            if (!Util.ThereIs(stinger)) return false;
+            if (!Util.ThereIs(stinger))
+            {
+                Logger.Write("Stinger: Couldn't create stinger. Abort.", "");
+
+                return false;
+            }
 
             stinger.Heading = owner.Heading;
             stinger.IsPersistent = true;
@@ -50,6 +60,8 @@ namespace YouAreNotAlone
             points[2] = stinger.Position - stinger.RightVector * dimension.X / 2 + stinger.ForwardVector * dimension.Y / 2;
             points[3] = stinger.Position + stinger.RightVector * dimension.X / 2 + stinger.ForwardVector * dimension.Y / 2;
 
+            Logger.Write("Stinger: Created stinger successfully.", "");
+
             return true;
         }
 
@@ -57,16 +69,24 @@ namespace YouAreNotAlone
         {
             if (instantly)
             {
+                Logger.Write("Stinger: Restore instanly.", "");
+
                 if (Util.ThereIs(stinger)) stinger.Delete();
             }
-            else Util.NaturallyRemove(stinger);
+            else
+            {
+                Logger.Write("Stinger: Restore naturally.", "");
+                Util.NaturallyRemove(stinger);
+            }
         }
 
         public override bool ShouldBeRemoved()
         {
             if (!Util.ThereIs(stinger) || !Util.ThereIs(owner) || !stinger.IsInRangeOf(owner.Position, 300.0f) || !stinger.IsInRangeOf(Game.Player.Character.Position, 500.0f))
             {
+                Logger.Write("Stinger: Stinger need to be restored.", "");
                 Restore(false);
+
                 return true;
             }
 

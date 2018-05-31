@@ -23,21 +23,33 @@ namespace YouAreNotAlone
             ts.AddTask.FightAgainstHatedTargets(200.0f);
             ts.AddTask.WanderAround();
             ts.Close();
+            Logger.Write("GangTeam event selected.", "");
         }
 
         public bool IsCreatedIn(float radius, Vector3 safePosition, List<string> selectedModels, int teamID, BlipColor teamColor, string teamName)
         {
             Vector3 position = World.GetNextPositionOnSidewalk(safePosition);
 
-            if (position.Equals(Vector3.Zero) || selectedModels == null) return false;
+            if (position.Equals(Vector3.Zero) || selectedModels == null)
+            {
+                Logger.Error("GangTeam: Couldn't find safe position or selected models. Abort.", "");
 
+                return false;
+            }
+
+            Logger.Write("GangTeam: Creating members.", "");
             this.relationship = teamID;
 
             for (int i = 0; i < 6; i++)
             {
                 Ped p = Util.Create(selectedModels[Util.GetRandomIntBelow(selectedModels.Count)], position);
 
-                if (!Util.ThereIs(p)) continue;
+                if (!Util.ThereIs(p))
+                {
+                    Logger.Error("GangTeam: Couldn't create a member. Skip to set characteristics.", "");
+
+                    continue;
+                }
 
                 if (Util.GetRandomIntBelow(3) == 0) p.Weapons.Give(closeWeapons[Util.GetRandomIntBelow(closeWeapons.Count)], 1, true, true);
                 else p.Weapons.Give(standoffWeapons[Util.GetRandomIntBelow(standoffWeapons.Count)], 300, true, true);
@@ -52,24 +64,34 @@ namespace YouAreNotAlone
                 p.AlwaysKeepTask = true;
                 p.BlockPermanentEvents = true;
                 p.Armor = Util.GetRandomIntBelow(100);
+                Logger.Write("GangTeam: Characteristics are set.", "");
 
                 if (!Util.BlipIsOn(p))
                 {
                     if (!Main.NoBlipOnCriminal) Util.AddBlipOn(p, 0.7f, BlipSprite.Rampage, teamColor, teamName);
 
+                    Logger.Write("GangTeam: Create a member successfully.", "");
                     members.Add(p);
                 }
-                else p.Delete();
+                else
+                {
+                    Logger.Error("GangTeam: Blip is already on the member. Delete this member to abort.", "");
+                    p.Delete();
+                }
             }
 
             foreach (Ped p in members)
             {
                 if (!Util.ThereIs(p))
                 {
+                    Logger.Error("GangTeam: There is a member who doesn't exist. Abort.", "");
                     Restore(true);
+
                     return false;
                 }
             }
+
+            Logger.Write("GangTeam: Create gang team successfully.", "");
 
             return true;
         }
@@ -78,6 +100,8 @@ namespace YouAreNotAlone
         {
             if (instantly)
             {
+                Logger.Write("GangTeam: Restore instanly.", "");
+
                 foreach (Ped p in members)
                 {
                     if (Util.ThereIs(p)) p.Delete();
@@ -85,6 +109,8 @@ namespace YouAreNotAlone
             }
             else
             {
+                Logger.Write("GangTeam: Restore naturally.", "");
+
                 foreach (Ped p in members) Util.NaturallyRemove(p);
             }
 
@@ -95,7 +121,12 @@ namespace YouAreNotAlone
 
         public void PerformTask()
         {
-            foreach (Ped p in members) p.Task.PerformSequence(ts);
+            Logger.Write("GangTeam: Let's fight with hated targets.", "");
+
+            foreach (Ped p in members)
+            {
+                if (Util.WeCanGiveTaskTo(p)) p.Task.PerformSequence(ts);
+            }
         }
 
         public override bool ShouldBeRemoved()
@@ -110,23 +141,28 @@ namespace YouAreNotAlone
                     continue;
                 }
 
-                if (members[i].IsDead || !members[i].IsInRangeOf(Game.Player.Character.Position, 500.0f))
+                if (!Util.WeCanGiveTaskTo(members[i]) || !members[i].IsInRangeOf(Game.Player.Character.Position, 500.0f))
                 {
+                    Logger.Write("GangTeam: Found a member who died or out of range. Need to be removed.", "");
                     Util.NaturallyRemove(members[i]);
                     members.RemoveAt(i);
+
                     continue;
                 }
 
-                spawnedPed = members[i];
-
                 if (!members[i].IsInCombat && Util.AnyEmergencyIsNear(members[i].Position, DispatchManager.DispatchType.Cop) && Util.WeCanGiveTaskTo(members[i])) members[i].Task.PerformSequence(ts);
+
+                spawnedPed = members[i];
             }
 
             if (members.Count < 1)
             {
+                Logger.Write("GangTeam: Everyone is gone. Time to be disposed.", "");
+
                 if (relationship != 0) Util.CleanUp(relationship);
 
                 ts.Dispose();
+
                 return true;
             }
 

@@ -248,6 +248,7 @@ namespace YouAreNotAlone
                 case EventManager.EventType.Racer:
                     {
                         foreach (int i in criminalRelationships) World.SetRelationshipBetweenGroups(Relationship.Hate, newRel, i);
+                        foreach (int i in copRelationships) World.SetRelationshipBetweenGroups(Relationship.Hate, newRel, i);
 
                         criminalRelationships.Add(newRel);
                         World.SetRelationshipBetweenGroups(Relationship.Hate, newRel, copID);
@@ -257,10 +258,10 @@ namespace YouAreNotAlone
 
                 case EventManager.EventType.Driveby:
                 case EventManager.EventType.Massacre:
-                case EventManager.EventType.Terrorist:
                     {
                         foreach (int i in oldRelationships) World.SetRelationshipBetweenGroups(Relationship.Hate, newRel, i);
                         foreach (int i in criminalRelationships) World.SetRelationshipBetweenGroups(Relationship.Hate, newRel, i);
+                        foreach (int i in copRelationships) World.SetRelationshipBetweenGroups(Relationship.Hate, newRel, i);
 
                         criminalRelationships.Add(newRel);
                         World.SetRelationshipBetweenGroups(Relationship.Hate, newRel, copID);
@@ -274,6 +275,23 @@ namespace YouAreNotAlone
                 case EventManager.EventType.GangTeam:
                     {
                         foreach (int i in criminalRelationships) World.SetRelationshipBetweenGroups(Relationship.Hate, newRel, i);
+                        foreach (int i in copRelationships) World.SetRelationshipBetweenGroups(Relationship.Hate, newRel, i);
+
+                        criminalRelationships.Add(newRel);
+                        World.SetRelationshipBetweenGroups(Relationship.Hate, newRel, copID);
+                        World.SetRelationshipBetweenGroups(Relationship.Respect, newRel, newRel);
+
+                        if (!Main.CriminalsCanFightWithPlayer) World.SetRelationshipBetweenGroups(Relationship.Respect, newRel, playerID);
+
+                        break;
+                    }
+
+                case EventManager.EventType.Terrorist:
+                    {
+                        foreach (int i in oldRelationships) World.SetRelationshipBetweenGroups(Relationship.Hate, newRel, i);
+                        foreach (int i in criminalRelationships) World.SetRelationshipBetweenGroups(Relationship.Hate, newRel, i);
+                        foreach (int i in armyRelationships) World.SetRelationshipBetweenGroups(Relationship.Hate, newRel, i);
+                        foreach (int i in copRelationships) World.SetRelationshipBetweenGroups(Relationship.Hate, newRel, i);
 
                         criminalRelationships.Add(newRel);
                         World.SetRelationshipBetweenGroups(Relationship.Hate, newRel, copID);
@@ -305,6 +323,8 @@ namespace YouAreNotAlone
                         armyRelationships.Add(newRel);
                         World.SetRelationshipBetweenGroups(Relationship.Respect, newRel, copID);
                         World.SetRelationshipBetweenGroups(Relationship.Respect, newRel, Function.Call<int>(Hash.GET_HASH_KEY, "ARMY"));
+                        World.SetRelationshipBetweenGroups(Relationship.Respect, newRel, Function.Call<int>(Hash.GET_HASH_KEY, "FIREMAN"));
+                        World.SetRelationshipBetweenGroups(Relationship.Respect, newRel, Function.Call<int>(Hash.GET_HASH_KEY, "MEDIC"));
                         World.SetRelationshipBetweenGroups(Relationship.Respect, newRel, newRel);
 
                         if (!Main.DispatchesCanFightWithPlayer) World.SetRelationshipBetweenGroups(Relationship.Respect, newRel, playerID);
@@ -323,6 +343,10 @@ namespace YouAreNotAlone
                         copRelationships.Add(newRel);
                         World.SetRelationshipBetweenGroups(Relationship.Respect, newRel, copID);
                         World.SetRelationshipBetweenGroups(Relationship.Respect, newRel, Function.Call<int>(Hash.GET_HASH_KEY, "ARMY"));
+                        World.SetRelationshipBetweenGroups(Relationship.Respect, newRel, Function.Call<int>(Hash.GET_HASH_KEY, "FIREMAN"));
+                        World.SetRelationshipBetweenGroups(Relationship.Respect, newRel, Function.Call<int>(Hash.GET_HASH_KEY, "MEDIC"));
+                        World.SetRelationshipBetweenGroups(Relationship.Like, newRel, Function.Call<int>(Hash.GET_HASH_KEY, "SECURITY_GUARD"));
+                        World.SetRelationshipBetweenGroups(Relationship.Dislike, newRel, Function.Call<int>(Hash.GET_HASH_KEY, "DEALER"));
                         World.SetRelationshipBetweenGroups(Relationship.Respect, newRel, newRel);
 
                         if (!Main.DispatchesCanFightWithPlayer) World.SetRelationshipBetweenGroups(Relationship.Respect, newRel, playerID);
@@ -385,13 +409,6 @@ namespace YouAreNotAlone
                         case DispatchManager.DispatchType.Cop:
                             {
                                 if (copRelationships.Contains(p.RelationshipGroup)) return true;
-
-                                break;
-                            }
-
-                        case DispatchManager.DispatchType.Emergency:
-                            {
-                                if (p.RelationshipGroup == Function.Call<int>(Hash.GET_HASH_KEY, "FIREMAN")) return true;
 
                                 break;
                             }

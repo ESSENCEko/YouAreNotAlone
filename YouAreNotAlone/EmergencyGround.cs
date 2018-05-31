@@ -7,7 +7,11 @@ namespace YouAreNotAlone
 {
     public class EmergencyGround : Emergency
     {
-        public EmergencyGround(string name, Entity target, string emergencyType) : base(name, target, emergencyType) { this.blipName += emergencyType + " Ground"; }
+        public EmergencyGround(string name, Entity target, string emergencyType) : base(name, target, emergencyType)
+        {
+            this.blipName += emergencyType + " Ground";
+            Logger.Write(blipName + ": Time to dispatch.", name);
+        }
 
         public override bool IsCreatedIn(Vector3 safePosition, List<string> models)
         {
@@ -17,14 +21,30 @@ namespace YouAreNotAlone
             {
                 road = Util.GetNextPositionOnStreetWithHeading(safePosition.Around(50.0f));
 
-                if (!road.Position.Equals(Vector3.Zero)) break;
+                if (!road.Position.Equals(Vector3.Zero))
+                {
+                    Logger.Write(blipName + ": Found proper road.", name);
+
+                    break;
+                }
             }
 
-            if (road.Position.Equals(Vector3.Zero)) return false;
+            if (road.Position.Equals(Vector3.Zero))
+            {
+                Logger.Error(blipName + ": Couldn't find proper road. Abort.", name);
+
+                return false;
+            }
 
             spawnedVehicle = Util.Create(name, road.Position, road.Heading, false);
 
-            if (!Util.ThereIs(spawnedVehicle)) return false;
+            if (!Util.ThereIs(spawnedVehicle))
+            {
+                Logger.Error(blipName + ": Couldn't create vehicle. Abort.", name);
+
+                return false;
+            }
+
             if (emergencyType == "LSPD")
             {
                 for (int i = -1; i < spawnedVehicle.PassengerSeats && i < 1; i++)
@@ -42,7 +62,9 @@ namespace YouAreNotAlone
 
                 if (selectedModel == null)
                 {
+                    Logger.Error(blipName + ": Couldn't find model. Abort.", name);
                     Restore(true);
+
                     return false;
                 }
 
@@ -56,11 +78,15 @@ namespace YouAreNotAlone
                 }
             }
 
+            Logger.Write(blipName + ": Created members.", name);
+
             foreach (Ped p in members)
             {
                 if (!Util.ThereIs(p))
                 {
+                    Logger.Error(blipName + ": There is a member who doesn't exist. Abort.", name);
                     Restore(true);
+
                     return false;
                 }
 
@@ -142,10 +168,12 @@ namespace YouAreNotAlone
 
                 p.RelationshipGroup = relationship;
                 p.NeverLeavesGroup = true;
+                Logger.Write(blipName + ": Characteristics are set.", name);
             }
 
             spawnedVehicle.EngineRunning = true;
-            SetPedsOnDuty();
+            SetPedsOnDuty(true);
+            Logger.Write(blipName + ": Ready to dispatch.", name);
 
             return true;
         }

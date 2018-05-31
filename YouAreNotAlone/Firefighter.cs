@@ -6,9 +6,9 @@ namespace YouAreNotAlone
 {
     public class Firefighter : EmergencyFire
     {
-        public Firefighter(string name, Entity target) : base(name, target, "FIREMAN") { }
+        public Firefighter(string name, Entity target) : base(name, target, "FIREMAN") { Logger.Write(blipName + ": Time to put off fires.", name); }
 
-        protected override void SetPedsOnDuty()
+        protected override void SetPedsOnDuty(bool onVehicleDuty)
         {
             if (onVehicleDuty)
             {
@@ -16,13 +16,17 @@ namespace YouAreNotAlone
                 {
                     if (Util.ThereIs(spawnedVehicle.Driver) && Util.WeCanGiveTaskTo(spawnedVehicle.Driver))
                     {
+                        Logger.Write(blipName + ": Time to go with vehicle.", name);
+
                         if (spawnedVehicle.HasSiren && !spawnedVehicle.SirenActive) spawnedVehicle.SirenActive = true;
                         if (!Main.NoBlipOnDispatch) AddEmergencyBlip(true);
 
-                        spawnedVehicle.Driver.Task.DriveTo(spawnedVehicle, targetPosition, 10.0f, 100.0f, (int)DrivingStyle.AvoidTrafficExtremely);
+                        spawnedVehicle.Driver.Task.DriveTo(spawnedVehicle, targetPosition, 10.0f, 100.0f, 262708); // 4 + 16 + 32 + 512 + 262144
                     }
                     else
                     {
+                        Logger.Write(blipName + ": There is no driver when on duty. Re-enter everyone.", name);
+
                         foreach (Ped p in members)
                         {
                             if (Util.WeCanGiveTaskTo(p)) p.Task.LeaveVehicle(spawnedVehicle, false);
@@ -33,13 +37,20 @@ namespace YouAreNotAlone
                 {
                     if (!VehicleSeatsCanBeSeatedBy(members))
                     {
-                        Restore(false);
-                        return;
+                        Logger.Write(blipName + ": Something wrong with assigning seats when on duty. Re-enter everyone.", name);
+
+                        foreach (Ped p in members)
+                        {
+                            if (Util.WeCanGiveTaskTo(p)) p.Task.LeaveVehicle(spawnedVehicle, false);
+                        }
                     }
+                    else Logger.Write(blipName + ": Assigned seats successfully when on duty.", name);
                 }
             }
             else
             {
+                Logger.Write(blipName + ": Time to put off fires.", name);
+
                 if (!Main.NoBlipOnDispatch) AddEmergencyBlip(false);
 
                 foreach (Ped p in members)
@@ -70,14 +81,22 @@ namespace YouAreNotAlone
 
                 if (!position.Equals(Vector3.Zero) && spawnedVehicle.IsInRangeOf(position, 200.0f))
                 {
+                    Logger.Write(blipName + ": Found fire position.", name);
                     targetPosition = position;
+
                     return true;
                 }
             }
 
+            Logger.Write(blipName + ": Couldn't find fire position. Try to find entity on fire.", name);
             Entity[] nearbyEntities = World.GetNearbyEntities(spawnedVehicle.Position, 200.0f);
 
-            if (nearbyEntities.Length < 1) return false;
+            if (nearbyEntities.Length < 1)
+            {
+                Logger.Write(blipName + ": There is no fire near.", name);
+
+                return false;
+            }
 
             foreach (Entity en in nearbyEntities)
             {
@@ -85,9 +104,13 @@ namespace YouAreNotAlone
                 {
                     target = en;
                     targetPosition = target.Position;
+                    Logger.Write(blipName + ": Found entity on fire.", name);
+
                     return true;
                 }
             }
+
+            Logger.Write(blipName + ": There is no fire near.", name);
 
             return false;
         }

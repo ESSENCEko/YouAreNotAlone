@@ -61,6 +61,7 @@
     <Compile Include="Firefighter.cs" />
     <Compile Include="GangTeam.cs" />
     <Compile Include="EventManager.cs" />
+    <Compile Include="Logger.cs" />
     <Compile Include="Massacre.cs" />
     <Compile Include="Nitroable.cs" />
     <Compile Include="OnFire.cs" />
