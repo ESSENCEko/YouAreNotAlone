@@ -52,7 +52,7 @@ namespace YouAreNotAlone
             NoMinimapFlash = false;
             NoBlipOnCriminal = false;
             NoBlipOnDispatch = false;
-            NoLog = false;
+            NoLog = true;
             Logger.Init();
 
             addOnCarNames = new List<string>();
