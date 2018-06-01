@@ -69,6 +69,8 @@ namespace YouAreNotAlone
             Script.Wait(50);
             Util.Tune(spawnedVehicle, false, false);
 
+            if (name == "khanjali" && spawnedVehicle.GetMod(VehicleMod.Roof) != -1) spawnedVehicle.SetMod(VehicleMod.Roof, -1, false);
+
             Function.Call(Hash.SET_PED_FLEE_ATTRIBUTES, spawnedPed, 0, false);
             Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, spawnedPed, 17, true);
             Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, spawnedPed, 46, true);

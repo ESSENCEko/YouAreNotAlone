@@ -5,7 +5,7 @@ namespace YouAreNotAlone
 {
     public static class Logger
     {
-        private static string filePath = @"YouAreNotAlone.log";
+        private readonly static string filePath = @"YouAreNotAlone.log";
 
         public static void Init()
         {

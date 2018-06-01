@@ -230,7 +230,7 @@ namespace YouAreNotAlone
             {
                 "firetruk"
             };
-            
+
             Logger.Write("Main: Added default models.", "");
 
             CheckDLCs();
@@ -490,7 +490,6 @@ namespace YouAreNotAlone
                 racerCarNames.Add("vigero3");
                 racerBikeNames.Add("kenshin");
                 drivebyCarNames.Add("greenwood");
-                copCarNames[1].Add("bcso1");
                 copCarNames[1].Add("bcso2");
                 copCarNames[1].Add("bcso3");
                 copCarNames[0].Add("hwaycar5");
@@ -526,11 +525,17 @@ namespace YouAreNotAlone
                 copCarNames[0].Add("pcpd2");
                 copCarNames[0].Add("pcpd3");
                 copCarNames[0].Add("police9");
+                copCarNames[0].Add("police10");
                 copCarNames[0].Add("police11");
                 copCarNames[0].Add("police12");
                 copCarNames[0].Add("police13");
                 copCarNames[0].Add("police15");
                 copCarNames[0].Add("police16");
+                copCarNames[0].Add("police17");
+                copCarNames[2].Add("police20");
+                copCarNames[2].Add("police25");
+                copCarNames[2].Add("police21");
+                copCarNames[2].Add("police22");
                 copCarNames[0].Add("police24");
                 copCarNames[0].Add("policet2");
                 copCarNames[0].Add("policet3");
@@ -542,6 +547,7 @@ namespace YouAreNotAlone
                 copCarNames[0].Add("rpdsuv2");
                 copCarNames[1].Add("sheriff7");
                 copCarNames[1].Add("sheriff9");
+                copCarNames[1].Add("sheriff12");
                 copCarNames[1].Add("uranushway");
                 copCarNames[1].Add("uranushway2");
                 copCarNames[2].Add("vaccapol");
@@ -555,9 +561,6 @@ namespace YouAreNotAlone
                 swatCarNames.Add("police14");
                 emCarNames.Add("ambulance2");
                 emCarNames.Add("ambulance3");
-                emCarNames.Add("emssuv");
-                emCarNames.Add("emsvan");
-                fireCarNames.Add("emertruk");
                 fireCarNames.Add("riot3");
             }
 
@@ -583,8 +586,6 @@ namespace YouAreNotAlone
                 copCarNames[1].Add("dovsheranch");
                 copCarNames[1].Add("dovshestan");
                 copCarNames[1].Add("dovshetrans");
-                copHeliNames.Add("dovpolmav");
-                copHeliNames.Add("dovshemav");
                 fibCarNames.Add("dovfibkur");
                 fibCarNames.Add("dovfibranch");
                 fibCarNames.Add("dovfibwash");
@@ -899,8 +900,6 @@ namespace YouAreNotAlone
 
                     case 1:
                         {
-                            if (racerCarNames.Count < 1) break;
-
                             AggressiveDriver ad = new AggressiveDriver(racerCarNames[Util.GetRandomIntBelow(racerCarNames.Count)]);
 
                             if (ad.IsCreatedIn(radius))
@@ -1039,18 +1038,8 @@ namespace YouAreNotAlone
 
                             Racers r = null;
 
-                            if (Util.GetRandomIntBelow(4) == 1)
-                            {
-                                if (racerBikeNames.Count < 1) break;
-
-                                r = new Racers(racerBikeNames, safePosition, goal);
-                            }
-                            else
-                            {
-                                if (racerCarNames.Count < 1) break;
-
-                                r = new Racers(racerCarNames, safePosition, goal);
-                            }
+                            if (Util.GetRandomIntBelow(4) == 1) r = new Racers(racerBikeNames, safePosition, goal);
+                            else r = new Racers(racerCarNames, safePosition, goal);
 
                             if (r.IsCreatedIn(radius))
                             {
@@ -1065,8 +1054,6 @@ namespace YouAreNotAlone
 
                     case 7:
                         {
-                            if (drivebyCarNames.Count < 1) break;
-
                             Driveby db = new Driveby(drivebyCarNames[Util.GetRandomIntBelow(drivebyCarNames.Count)]);
 
                             if (db.IsCreatedIn(radius, gangModels[Util.GetRandomIntBelow(gangModels.Count)]))
@@ -1082,8 +1069,6 @@ namespace YouAreNotAlone
 
                     case 8:
                         {
-                            if (terroristCarNames.Count < 1) break;
-
                             Terrorist tr = new Terrorist(terroristCarNames[Util.GetRandomIntBelow(terroristCarNames.Count)]);
 
                             if (tr.IsCreatedIn(radius))
