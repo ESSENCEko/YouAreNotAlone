@@ -12,7 +12,7 @@ namespace YouAreNotAlone
         public EmergencyFire(string name, Entity target, string emergencyType) : base(name, target, emergencyType)
         {
             this.blipName += emergencyType == "FIREMAN" ? "Fire Fighter" : "Paramedic";
-            Util.CleanUp(this.relationship, DispatchManager.DispatchType.Cop);
+            Util.CleanUp(this.relationship, Main_DispatchManager.DispatchType.Cop);
             this.relationship = 0;
             this.targetPosition = target.Position;
         }
@@ -146,7 +146,7 @@ namespace YouAreNotAlone
 
                 if (Util.WeCanEnter(spawnedVehicle))
                 {
-                    if (!Util.BlipIsOn(spawnedVehicle)) Util.AddBlipOn(spawnedVehicle, 0.7f, BlipSprite.Hospital, BlipColor.Red, blipName);
+                    if (!Util.BlipIsOn(spawnedVehicle)) Util.AddEmergencyBlipOn(spawnedVehicle, 0.7f, BlipSprite.Hospital, blipName);
                 }
                 else if (Util.BlipIsOn(spawnedVehicle) && spawnedVehicle.CurrentBlip.Sprite.Equals(BlipSprite.Hospital)) spawnedVehicle.CurrentBlip.Remove();
 
@@ -165,7 +165,7 @@ namespace YouAreNotAlone
                 {
                     if (Util.WeCanGiveTaskTo(p))
                     {
-                        if (!Util.BlipIsOn(p)) Util.AddBlipOn(p, 0.5f, BlipSprite.Hospital, BlipColor.Red, blipName);
+                        if (!Util.BlipIsOn(p)) Util.AddEmergencyBlipOn(p, 0.5f, BlipSprite.Hospital, blipName);
                     }
                     else if (Util.BlipIsOn(p) && p.CurrentBlip.Sprite.Equals(BlipSprite.Hospital)) p.CurrentBlip.Remove();
                 }

@@ -11,7 +11,7 @@ namespace YouAreNotAlone
         {
             if (Main.NoLog) return;
 
-            File.WriteAllText(filePath, "[" + DateTime.Now.ToString("HH:mm:ss") + "] " + "YouAreNotAlone started. (" + GTA.Game.Version.ToString() + ")\n");
+            File.WriteAllText(filePath, "[" + DateTime.Now.ToString("HH:mm:ss") + "] " + "Initializing. (" + GTA.Game.Version.ToString() + ")\n");
         }
 
         public static void Write(string s, string name)

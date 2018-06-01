@@ -22,8 +22,8 @@ namespace YouAreNotAlone
             this.emergencyType = emergencyType;
             this.blipName = "";
 
-            if (this.emergencyType == "ARMY") this.relationship = Util.NewRelationshipOf(DispatchManager.DispatchType.Army);
-            else this.relationship = Util.NewRelationshipOf(DispatchManager.DispatchType.Cop);
+            if (this.emergencyType == "ARMY") this.relationship = Util.NewRelationshipOf(Main_DispatchManager.DispatchType.Army);
+            else this.relationship = Util.NewRelationshipOf(Main_DispatchManager.DispatchType.Cop);
         }
 
         public abstract bool IsCreatedIn(Vector3 safePosition, List<string> models);
@@ -65,8 +65,8 @@ namespace YouAreNotAlone
 
             if (relationship != 0)
             {
-                if (emergencyType == "ARMY") Util.CleanUp(relationship, DispatchManager.DispatchType.Army);
-                else Util.CleanUp(relationship, DispatchManager.DispatchType.Cop);
+                if (emergencyType == "ARMY") Util.CleanUp(relationship, Main_DispatchManager.DispatchType.Army);
+                else Util.CleanUp(relationship, Main_DispatchManager.DispatchType.Cop);
             }
 
             members.Clear();
@@ -80,7 +80,7 @@ namespace YouAreNotAlone
 
                 if (Util.WeCanEnter(spawnedVehicle))
                 {
-                    if (!Util.BlipIsOn(spawnedVehicle)) Util.AddBlipOn(spawnedVehicle, 0.5f, BlipSprite.PoliceOfficer, (BlipColor)(-1), blipName);
+                    if (!Util.BlipIsOn(spawnedVehicle)) Util.AddEmergencyBlipOn(spawnedVehicle, 0.5f, BlipSprite.PoliceOfficer, blipName);
                 }
                 else if (Util.BlipIsOn(spawnedVehicle) && spawnedVehicle.CurrentBlip.Sprite.Equals(BlipSprite.PoliceOfficer)) spawnedVehicle.CurrentBlip.Remove();
 
@@ -99,7 +99,7 @@ namespace YouAreNotAlone
                 {
                     if (Util.WeCanGiveTaskTo(p))
                     {
-                        if (!Util.BlipIsOn(p)) Util.AddBlipOn(p, 0.4f, BlipSprite.PoliceOfficer, (BlipColor)(-1), blipName);
+                        if (!Util.BlipIsOn(p)) Util.AddEmergencyBlipOn(p, 0.4f, BlipSprite.PoliceOfficer, blipName);
                     }
                     else if (Util.BlipIsOn(p) && p.CurrentBlip.Sprite.Equals(BlipSprite.PoliceOfficer)) p.CurrentBlip.Remove();
                 }

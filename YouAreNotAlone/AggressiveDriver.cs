@@ -8,7 +8,7 @@ namespace YouAreNotAlone
     {
         private string name;
 
-        public AggressiveDriver(string name) : base(EventManager.EventType.AggressiveDriver)
+        public AggressiveDriver(string name) : base(Main_EventManager.EventType.AggressiveDriver)
         {
             this.name = name;
             Logger.Write("AggressiveDriver event selected.", name);
@@ -81,8 +81,7 @@ namespace YouAreNotAlone
 
             if (!Util.BlipIsOn(spawnedPed))
             {
-                if (!Main.NoBlipOnCriminal) Util.AddBlipOn(spawnedPed, 0.7f, BlipSprite.PersonalVehicleCar, BlipColor.Green, "Aggressive " + spawnedVehicle.FriendlyName);
-
+                Util.AddBlipOn(spawnedPed, 0.7f, BlipSprite.PersonalVehicleCar, BlipColor.Green, "Aggressive " + spawnedVehicle.FriendlyName);
                 Logger.Write("AggressiveDriver: Created aggressive driver successfully.", name);
 
                 return true;

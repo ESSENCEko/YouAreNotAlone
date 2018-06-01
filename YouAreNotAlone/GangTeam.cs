@@ -12,7 +12,7 @@ namespace YouAreNotAlone
         private List<WeaponHash> standoffWeapons;
         private TaskSequence ts;
 
-        public GangTeam() : base(EventManager.EventType.GangTeam)
+        public GangTeam() : base(Main_EventManager.EventType.GangTeam)
         {
             this.members = new List<Ped>();
             this.closeWeapons = new List<WeaponHash> { WeaponHash.Bat, WeaponHash.Hatchet, WeaponHash.Hammer, WeaponHash.Knife, WeaponHash.KnuckleDuster, WeaponHash.Machete, WeaponHash.Wrench, WeaponHash.BattleAxe, WeaponHash.Unarmed };
@@ -68,8 +68,7 @@ namespace YouAreNotAlone
 
                 if (!Util.BlipIsOn(p))
                 {
-                    if (!Main.NoBlipOnCriminal) Util.AddBlipOn(p, 0.7f, BlipSprite.Rampage, teamColor, teamName);
-
+                    Util.AddBlipOn(p, 0.7f, BlipSprite.Rampage, teamColor, teamName);
                     Logger.Write("GangTeam: Create a member successfully.", "");
                     members.Add(p);
                 }
@@ -150,7 +149,7 @@ namespace YouAreNotAlone
                     continue;
                 }
 
-                if (!members[i].IsInCombat && Util.AnyEmergencyIsNear(members[i].Position, DispatchManager.DispatchType.Cop) && Util.WeCanGiveTaskTo(members[i])) members[i].Task.PerformSequence(ts);
+                if (!members[i].IsInCombat && Util.AnyEmergencyIsNear(members[i].Position, Main_DispatchManager.DispatchType.Cop) && Util.WeCanGiveTaskTo(members[i])) members[i].Task.PerformSequence(ts);
 
                 spawnedPed = members[i];
             }

@@ -86,8 +86,7 @@ namespace YouAreNotAlone
 
                     if (!Util.BlipIsOn(spawnedVehicle))
                     {
-                        if (!Main.NoBlipOnCriminal) Util.AddBlipOn(spawnedVehicle, 0.7f, BlipSprite.PersonalVehicleCar, blipColor, blipName);
-
+                        Util.AddBlipOn(spawnedVehicle, 0.7f, BlipSprite.PersonalVehicleCar, blipColor, blipName);
                         Logger.Write("ReplacedVehicle: Create replacing vehicle successfully.", name);
 
                         return true;

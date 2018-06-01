@@ -50,7 +50,7 @@
     <Compile Include="AggressiveDriver.cs" />
     <Compile Include="Carjacker.cs" />
     <Compile Include="Criminal.cs" />
-    <Compile Include="DispatchManager.cs" />
+    <Compile Include="Main_DispatchManager.cs" />
     <Compile Include="Driveby.cs" />
     <Compile Include="Emergency.cs" />
     <Compile Include="EmergencyBlock.cs" />
@@ -60,7 +60,7 @@
     <Compile Include="EntitySet.cs" />
     <Compile Include="Firefighter.cs" />
     <Compile Include="GangTeam.cs" />
-    <Compile Include="EventManager.cs" />
+    <Compile Include="Main_EventManager.cs" />
     <Compile Include="Logger.cs" />
     <Compile Include="Massacre.cs" />
     <Compile Include="Nitroable.cs" />

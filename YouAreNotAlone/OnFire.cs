@@ -46,17 +46,13 @@ namespace YouAreNotAlone
                     if (instantly)
                     {
                         Logger.Write("OnFire: Time to explode selected vehicle.", "");
-
-                        if (!Main.NoBlipOnCriminal) Util.AddBlipOn(OnFireVehicle, 0.7f, BlipSprite.PersonalVehicleCar, BlipColor.Red, "Vehicle Explosion");
-
+                        Util.AddBlipOn(OnFireVehicle, 0.7f, BlipSprite.PersonalVehicleCar, BlipColor.Red, "Vehicle Explosion");
                         OnFireVehicle.Explode();
                     }
                     else
                     {
                         Logger.Write("OnFire: Time to set selected vehicle on fire.", "");
-
-                        if (!Main.NoBlipOnCriminal) Util.AddBlipOn(OnFireVehicle, 0.7f, BlipSprite.PersonalVehicleCar, BlipColor.Yellow, "Vehicle on Fire");
-
+                        Util.AddBlipOn(OnFireVehicle, 0.7f, BlipSprite.PersonalVehicleCar, BlipColor.Yellow, "Vehicle on Fire");
                         OnFireVehicle.EngineHealth = -900.0f;
                         OnFireVehicle.IsDriveable = false;
                     }
@@ -89,7 +85,7 @@ namespace YouAreNotAlone
             {
                 dispatchCooldown = 0;
                 Logger.Write("OnFire: Dispatch against", "Fire");
-                Main.DispatchAgainst(OnFireVehicle, EventManager.EventType.Fire);
+                Main.DispatchAgainst(OnFireVehicle, Main_EventManager.EventType.Fire);
             }
 
             return false;

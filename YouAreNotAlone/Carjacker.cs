@@ -7,7 +7,7 @@ namespace YouAreNotAlone
         private float radius;
         private int trycount;
 
-        public Carjacker() : base(EventManager.EventType.Carjacker)
+        public Carjacker() : base(Main_EventManager.EventType.Carjacker)
         {
             this.radius = 0.0f;
             this.trycount = 0;
@@ -49,8 +49,7 @@ namespace YouAreNotAlone
 
                 if (!Util.BlipIsOn(spawnedPed))
                 {
-                    if (!Main.NoBlipOnCriminal) Util.AddBlipOn(spawnedPed, 0.7f, BlipSprite.Masks, BlipColor.White, "Carjacker");
-
+                    Util.AddBlipOn(spawnedPed, 0.7f, BlipSprite.Masks, BlipColor.White, "Carjacker");
                     Logger.Write("Carjacker: Selected carjacker successfully.", "");
                     FindNewVehicle();
 

@@ -47,7 +47,7 @@ namespace YouAreNotAlone
 
             Stinger s = new Stinger(spawnedVehicle);
 
-            if (s.IsCreatedIn(spawnedVehicle.Position - spawnedVehicle.ForwardVector * spawnedVehicle.Model.GetDimensions().Y)) DispatchManager.Add(s, DispatchManager.DispatchType.Stinger);
+            if (s.IsCreatedIn(spawnedVehicle.Position - spawnedVehicle.ForwardVector * spawnedVehicle.Model.GetDimensions().Y)) Main_DispatchManager.Add(s, Main_DispatchManager.DispatchType.Stinger);
             else s.Restore(true);
 
             if (emergencyType == "LSPD")
@@ -128,7 +128,7 @@ namespace YouAreNotAlone
                         }
                 }
 
-                if (p.IsInVehicle(spawnedVehicle)) p.Task.LeaveVehicle(spawnedVehicle, false);
+                if (p.IsInVehicle(spawnedVehicle)) p.Task.LeaveVehicle(spawnedVehicle, LeaveVehicleFlags.WarpOut);
 
                 p.Weapons.Current.InfiniteAmmo = true;
                 p.CanSwitchWeapons = true;

@@ -8,7 +8,7 @@ namespace YouAreNotAlone
     {
         private string name;
 
-        public Terrorist(string name) : base(EventManager.EventType.Terrorist)
+        public Terrorist(string name) : base(Main_EventManager.EventType.Terrorist)
         {
             this.name = name;
             Logger.Write("Terrorist event selected.", name);
@@ -85,8 +85,7 @@ namespace YouAreNotAlone
 
             if (!Util.BlipIsOn(spawnedPed))
             {
-                if (!Main.NoBlipOnCriminal) Util.AddBlipOn(spawnedPed, 0.7f, BlipSprite.Tank, BlipColor.Red, "Terrorist " + spawnedVehicle.FriendlyName);
-
+                Util.AddBlipOn(spawnedPed, 0.7f, BlipSprite.Tank, BlipColor.Red, "Terrorist " + spawnedVehicle.FriendlyName);
                 Logger.Write("Terrorist: Created terrorist successfully.", name);
 
                 return true;
@@ -142,7 +141,7 @@ namespace YouAreNotAlone
             {
                 dispatchCooldown = 0;
 
-                if (!Util.AnyEmergencyIsNear(spawnedPed.Position, DispatchManager.DispatchType.Army))
+                if (!Util.AnyEmergencyIsNear(spawnedPed.Position, Main_DispatchManager.DispatchType.Army))
                 {
                     Logger.Write("Dispatch against", type.ToString());
                     Main.DispatchAgainst(spawnedPed, type);

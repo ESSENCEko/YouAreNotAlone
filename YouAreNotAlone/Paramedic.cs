@@ -33,8 +33,8 @@ namespace YouAreNotAlone
                         Logger.Write(blipName + ": Time to go with vehicle.", name);
 
                         if (spawnedVehicle.HasSiren && !spawnedVehicle.SirenActive) spawnedVehicle.SirenActive = true;
-                        if (!Main.NoBlipOnDispatch) AddEmergencyBlip(true);
 
+                        AddEmergencyBlip(true);
                         spawnedVehicle.Driver.Task.DriveTo(spawnedVehicle, targetPosition, 10.0f, 100.0f, 262708); // 4 + 16 + 32 + 512 + 262144
                     }
                     else
@@ -64,8 +64,7 @@ namespace YouAreNotAlone
             else if (target.Model.IsPed)
             {
                 Logger.Write(blipName + ": Time to investigate dead bodies.", name);
-
-                if (!Main.NoBlipOnDispatch) AddEmergencyBlip(false);
+                AddEmergencyBlip(false);
 
                 foreach (Ped p in members)
                 {

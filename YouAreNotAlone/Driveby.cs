@@ -10,7 +10,7 @@ namespace YouAreNotAlone
         private List<Ped> members;
         private string name;
 
-        public Driveby(string name) : base(EventManager.EventType.Driveby)
+        public Driveby(string name) : base(Main_EventManager.EventType.Driveby)
         {
             this.members = new List<Ped>();
             this.name = name;
@@ -152,11 +152,8 @@ namespace YouAreNotAlone
             {
                 if (Util.ThereIs(p) && !p.IsDead)
                 {
-                    if (!Main.NoBlipOnCriminal)
-                    {
-                        if (!Util.BlipIsOn(p)) Util.AddBlipOn(p, 0.7f, BlipSprite.GunCar, BlipColor.White, "Driveby " + spawnedVehicle.FriendlyName);
-                        else if (!p.CurrentBlip.Sprite.Equals(BlipSprite.GunCar)) p.CurrentBlip.Remove();
-                    }
+                    if (!Util.BlipIsOn(p)) Util.AddBlipOn(p, 0.7f, BlipSprite.GunCar, BlipColor.White, "Driveby " + spawnedVehicle.FriendlyName);
+                    else if (!p.CurrentBlip.Sprite.Equals(BlipSprite.GunCar)) p.CurrentBlip.Remove();
 
                     Logger.Write("Driveby: Found driver and added blip on it.", name);
                     spawnedPed = p;

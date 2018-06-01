@@ -9,7 +9,7 @@ namespace YouAreNotAlone
     {
         private List<Ped> members;
 
-        public Massacre() : base(EventManager.EventType.Massacre)
+        public Massacre() : base(Main_EventManager.EventType.Massacre)
         {
             this.members = new List<Ped>();
             Logger.Write("Massacre event selected.", "");
@@ -131,8 +131,7 @@ namespace YouAreNotAlone
 
                 if (!Util.BlipIsOn(p))
                 {
-                    if (!Main.NoBlipOnCriminal) Util.AddBlipOn(p, 0.7f, BlipSprite.Rampage, BlipColor.White, "Massacre Squad");
-
+                    Util.AddBlipOn(p, 0.7f, BlipSprite.Rampage, BlipColor.White, "Massacre Squad");
                     Logger.Write("Massacre: Create a member successfully.", "");
                     members.Add(p);
                 }

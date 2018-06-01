@@ -137,14 +137,26 @@ namespace YouAreNotAlone
 
         public static void AddBlipOn(Entity en, float scale, BlipSprite bs, BlipColor bc, string bn)
         {
+            if (Main.NoBlipOnCriminal) return;
             if (ThereIs(en))
             {
                 en.AddBlip();
                 en.CurrentBlip.Scale = scale;
                 en.CurrentBlip.Sprite = bs;
+                en.CurrentBlip.Color = bc;
+                en.CurrentBlip.Name = bn;
+                en.CurrentBlip.IsShortRange = true;
+            }
+        }
 
-                if (bc != (BlipColor)(-1)) en.CurrentBlip.Color = bc;
-
+        public static void AddEmergencyBlipOn(Entity en, float scale, BlipSprite bs, string bn)
+        {
+            if (Main.NoBlipOnDispatch) return;
+            if (ThereIs(en))
+            {
+                en.AddBlip();
+                en.CurrentBlip.Scale = scale;
+                en.CurrentBlip.Sprite = bs;
                 en.CurrentBlip.Name = bn;
                 en.CurrentBlip.IsShortRange = true;
             }
@@ -237,15 +249,15 @@ namespace YouAreNotAlone
             }
         }
 
-        public static int NewRelationshipOf(EventManager.EventType type)
+        public static int NewRelationshipOf(Main_EventManager.EventType type)
         {
             int newRel = World.AddRelationshipGroup((count++).ToString());
 
             switch (type)
             {
-                case EventManager.EventType.AggressiveDriver:
-                case EventManager.EventType.Carjacker:
-                case EventManager.EventType.Racer:
+                case Main_EventManager.EventType.AggressiveDriver:
+                case Main_EventManager.EventType.Carjacker:
+                case Main_EventManager.EventType.Racer:
                     {
                         foreach (int i in criminalRelationships) World.SetRelationshipBetweenGroups(Relationship.Hate, newRel, i);
                         foreach (int i in copRelationships) World.SetRelationshipBetweenGroups(Relationship.Hate, newRel, i);
@@ -256,8 +268,8 @@ namespace YouAreNotAlone
                         break;
                     }
 
-                case EventManager.EventType.Driveby:
-                case EventManager.EventType.Massacre:
+                case Main_EventManager.EventType.Driveby:
+                case Main_EventManager.EventType.Massacre:
                     {
                         foreach (int i in oldRelationships) World.SetRelationshipBetweenGroups(Relationship.Hate, newRel, i);
                         foreach (int i in criminalRelationships) World.SetRelationshipBetweenGroups(Relationship.Hate, newRel, i);
@@ -272,7 +284,7 @@ namespace YouAreNotAlone
                         break;
                     }
 
-                case EventManager.EventType.GangTeam:
+                case Main_EventManager.EventType.GangTeam:
                     {
                         foreach (int i in criminalRelationships) World.SetRelationshipBetweenGroups(Relationship.Hate, newRel, i);
                         foreach (int i in copRelationships) World.SetRelationshipBetweenGroups(Relationship.Hate, newRel, i);
@@ -286,7 +298,7 @@ namespace YouAreNotAlone
                         break;
                     }
 
-                case EventManager.EventType.Terrorist:
+                case Main_EventManager.EventType.Terrorist:
                     {
                         foreach (int i in oldRelationships) World.SetRelationshipBetweenGroups(Relationship.Hate, newRel, i);
                         foreach (int i in criminalRelationships) World.SetRelationshipBetweenGroups(Relationship.Hate, newRel, i);
@@ -306,15 +318,15 @@ namespace YouAreNotAlone
             return newRel;
         }
 
-        public static int NewRelationshipOf(DispatchManager.DispatchType type)
+        public static int NewRelationshipOf(Main_DispatchManager.DispatchType type)
         {
             int newRel = World.AddRelationshipGroup((count++).ToString());
 
             switch (type)
             {
-                case DispatchManager.DispatchType.Army:
-                case DispatchManager.DispatchType.ArmyHeli:
-                case DispatchManager.DispatchType.ArmyRoadBlock:
+                case Main_DispatchManager.DispatchType.Army:
+                case Main_DispatchManager.DispatchType.ArmyHeli:
+                case Main_DispatchManager.DispatchType.ArmyRoadBlock:
                     {
                         foreach (int i in criminalRelationships) World.SetRelationshipBetweenGroups(Relationship.Hate, newRel, i);
                         foreach (int i in armyRelationships) World.SetRelationshipBetweenGroups(Relationship.Respect, newRel, i);
@@ -332,9 +344,9 @@ namespace YouAreNotAlone
                         break;
                     }
 
-                case DispatchManager.DispatchType.Cop:
-                case DispatchManager.DispatchType.CopHeli:
-                case DispatchManager.DispatchType.CopRoadBlock:
+                case Main_DispatchManager.DispatchType.Cop:
+                case Main_DispatchManager.DispatchType.CopHeli:
+                case Main_DispatchManager.DispatchType.CopRoadBlock:
                     {
                         foreach (int i in criminalRelationships) World.SetRelationshipBetweenGroups(Relationship.Hate, newRel, i);
                         foreach (int i in armyRelationships) World.SetRelationshipBetweenGroups(Relationship.Respect, newRel, i);
@@ -365,21 +377,21 @@ namespace YouAreNotAlone
             if (criminalRelationships.Contains(relationship)) criminalRelationships.Remove(relationship);
         }
 
-        public static void CleanUp(int relationship, DispatchManager.DispatchType type)
+        public static void CleanUp(int relationship, Main_DispatchManager.DispatchType type)
         {
             switch (type)
             {
-                case DispatchManager.DispatchType.Army:
-                case DispatchManager.DispatchType.ArmyHeli:
-                case DispatchManager.DispatchType.ArmyRoadBlock:
+                case Main_DispatchManager.DispatchType.Army:
+                case Main_DispatchManager.DispatchType.ArmyHeli:
+                case Main_DispatchManager.DispatchType.ArmyRoadBlock:
                     {
                         if (armyRelationships.Contains(relationship)) armyRelationships.Remove(relationship);
                         break;
                     }
 
-                case DispatchManager.DispatchType.Cop:
-                case DispatchManager.DispatchType.CopHeli:
-                case DispatchManager.DispatchType.CopRoadBlock:
+                case Main_DispatchManager.DispatchType.Cop:
+                case Main_DispatchManager.DispatchType.CopHeli:
+                case Main_DispatchManager.DispatchType.CopRoadBlock:
                     {
                         if (copRelationships.Contains(relationship)) copRelationships.Remove(relationship);
                         break;
@@ -387,7 +399,7 @@ namespace YouAreNotAlone
             }
         }
 
-        public static bool AnyEmergencyIsNear(Vector3 position, DispatchManager.DispatchType type)
+        public static bool AnyEmergencyIsNear(Vector3 position, Main_DispatchManager.DispatchType type)
         {
             Ped[] nearbyPeds = World.GetNearbyPeds(position, 100.0f);
 
@@ -399,14 +411,14 @@ namespace YouAreNotAlone
                 {
                     switch (type)
                     {
-                        case DispatchManager.DispatchType.Army:
+                        case Main_DispatchManager.DispatchType.Army:
                             {
                                 if (armyRelationships.Contains(p.RelationshipGroup)) return true;
 
                                 break;
                             }
 
-                        case DispatchManager.DispatchType.Cop:
+                        case Main_DispatchManager.DispatchType.Cop:
                             {
                                 if (copRelationships.Contains(p.RelationshipGroup)) return true;
 
