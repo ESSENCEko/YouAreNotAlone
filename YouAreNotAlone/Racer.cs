@@ -9,7 +9,7 @@ namespace YouAreNotAlone
         private string name;
         private Vector3 goal;
 
-        public Racer(string name, Vector3 goal) : base(Main_EventManager.EventType.Racer)
+        public Racer(string name, Vector3 goal) : base(EventManager.EventType.Racer)
         {
             this.name = name;
             this.goal = goal;

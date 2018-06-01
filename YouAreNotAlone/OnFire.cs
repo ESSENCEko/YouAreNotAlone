@@ -85,7 +85,7 @@ namespace YouAreNotAlone
             {
                 dispatchCooldown = 0;
                 Logger.Write("OnFire: Dispatch against", "Fire");
-                Main.DispatchAgainst(OnFireVehicle, Main_EventManager.EventType.Fire);
+                Main.DispatchAgainst(OnFireVehicle, EventManager.EventType.Fire);
             }
 
             return false;

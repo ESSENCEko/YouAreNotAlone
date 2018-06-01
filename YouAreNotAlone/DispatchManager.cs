@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace YouAreNotAlone
 {
-    public class Main_DispatchManager : Script
+    public class DispatchManager : Script
     {
         private static List<AdvancedEntity> armyList;
         private static List<AdvancedEntity> armyHeliList;
@@ -30,7 +30,7 @@ namespace YouAreNotAlone
             Stinger
         }
 
-        static Main_DispatchManager()
+        static DispatchManager()
         {
             armyList = new List<AdvancedEntity>();
             armyHeliList = new List<AdvancedEntity>();
@@ -114,7 +114,7 @@ namespace YouAreNotAlone
             Logger.Write("DispatchManager: Added new entity.", type.ToString());
         }
 
-        public Main_DispatchManager()
+        public DispatchManager()
         {
             timeChecker = 0;
             Tick += OnTick;

@@ -9,7 +9,7 @@ namespace YouAreNotAlone
     {
         private List<Ped> members;
 
-        public Massacre() : base(Main_EventManager.EventType.Massacre)
+        public Massacre() : base(EventManager.EventType.Massacre)
         {
             this.members = new List<Ped>();
             Logger.Write("Massacre event selected.", "");

@@ -11,7 +11,7 @@ namespace YouAreNotAlone
         private int nitroAmount;
         private bool nitroCooldown;
 
-        public Nitroable(Main_EventManager.EventType type) : base(type)
+        public Nitroable(EventManager.EventType type) : base(type)
         {
             exhausts = new List<string>
             {

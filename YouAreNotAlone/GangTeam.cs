@@ -12,7 +12,7 @@ namespace YouAreNotAlone
         private List<WeaponHash> standoffWeapons;
         private TaskSequence ts;
 
-        public GangTeam() : base(Main_EventManager.EventType.GangTeam)
+        public GangTeam() : base(EventManager.EventType.GangTeam)
         {
             this.members = new List<Ped>();
             this.closeWeapons = new List<WeaponHash> { WeaponHash.Bat, WeaponHash.Hatchet, WeaponHash.Hammer, WeaponHash.Knife, WeaponHash.KnuckleDuster, WeaponHash.Machete, WeaponHash.Wrench, WeaponHash.BattleAxe, WeaponHash.Unarmed };
@@ -149,7 +149,7 @@ namespace YouAreNotAlone
                     continue;
                 }
 
-                if (!members[i].IsInCombat && Util.AnyEmergencyIsNear(members[i].Position, Main_DispatchManager.DispatchType.Cop) && Util.WeCanGiveTaskTo(members[i])) members[i].Task.PerformSequence(ts);
+                if (!members[i].IsInCombat && Util.AnyEmergencyIsNear(members[i].Position, DispatchManager.DispatchType.Cop) && Util.WeCanGiveTaskTo(members[i])) members[i].Task.PerformSequence(ts);
 
                 spawnedPed = members[i];
             }

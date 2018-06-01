@@ -8,7 +8,7 @@ namespace YouAreNotAlone
     {
         private string name;
 
-        public AggressiveDriver(string name) : base(Main_EventManager.EventType.AggressiveDriver)
+        public AggressiveDriver(string name) : base(EventManager.EventType.AggressiveDriver)
         {
             this.name = name;
             Logger.Write("AggressiveDriver event selected.", name);

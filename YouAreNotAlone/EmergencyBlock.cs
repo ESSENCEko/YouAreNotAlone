@@ -47,7 +47,7 @@ namespace YouAreNotAlone
 
             Stinger s = new Stinger(spawnedVehicle);
 
-            if (s.IsCreatedIn(spawnedVehicle.Position - spawnedVehicle.ForwardVector * spawnedVehicle.Model.GetDimensions().Y)) Main_DispatchManager.Add(s, Main_DispatchManager.DispatchType.Stinger);
+            if (s.IsCreatedIn(spawnedVehicle.Position - spawnedVehicle.ForwardVector * spawnedVehicle.Model.GetDimensions().Y)) DispatchManager.Add(s, DispatchManager.DispatchType.Stinger);
             else s.Restore(true);
 
             if (emergencyType == "LSPD")

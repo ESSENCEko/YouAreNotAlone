@@ -5,9 +5,9 @@
         protected int relationship;
         protected int dispatchCooldown;
         protected int blockCooldown;
-        protected Main_EventManager.EventType type;
+        protected EventManager.EventType type;
 
-        public Criminal(Main_EventManager.EventType type) : base()
+        public Criminal(EventManager.EventType type) : base()
         {
             this.dispatchCooldown = 7;
             this.blockCooldown = 0;
@@ -22,7 +22,7 @@
             {
                 dispatchCooldown = 0;
 
-                if (!Util.AnyEmergencyIsNear(spawnedPed.Position, Main_DispatchManager.DispatchType.Cop))
+                if (!Util.AnyEmergencyIsNear(spawnedPed.Position, DispatchManager.DispatchType.Cop))
                 {
                     Logger.Write("Dispatch against", type.ToString());
                     Main.DispatchAgainst(spawnedPed, type);

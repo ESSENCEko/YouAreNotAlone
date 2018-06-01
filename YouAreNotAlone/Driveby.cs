@@ -10,7 +10,7 @@ namespace YouAreNotAlone
         private List<Ped> members;
         private string name;
 
-        public Driveby(string name) : base(Main_EventManager.EventType.Driveby)
+        public Driveby(string name) : base(EventManager.EventType.Driveby)
         {
             this.members = new List<Ped>();
             this.name = name;

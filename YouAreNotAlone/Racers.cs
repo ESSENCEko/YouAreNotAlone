@@ -10,7 +10,7 @@ namespace YouAreNotAlone
         private Vector3 safePosition;
         private Vector3 goal;
 
-        public Racers(List<string> models, Vector3 position, Vector3 goal) : base(Main_EventManager.EventType.Racer)
+        public Racers(List<string> models, Vector3 position, Vector3 goal) : base(EventManager.EventType.Racer)
         {
             this.racers = new List<Racer>();
             this.models = models;

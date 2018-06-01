@@ -8,7 +8,7 @@ namespace YouAreNotAlone
     {
         private string name;
 
-        public Terrorist(string name) : base(Main_EventManager.EventType.Terrorist)
+        public Terrorist(string name) : base(EventManager.EventType.Terrorist)
         {
             this.name = name;
             Logger.Write("Terrorist event selected.", name);
@@ -141,7 +141,7 @@ namespace YouAreNotAlone
             {
                 dispatchCooldown = 0;
 
-                if (!Util.AnyEmergencyIsNear(spawnedPed.Position, Main_DispatchManager.DispatchType.Army))
+                if (!Util.AnyEmergencyIsNear(spawnedPed.Position, DispatchManager.DispatchType.Army))
                 {
                     Logger.Write("Dispatch against", type.ToString());
                     Main.DispatchAgainst(spawnedPed, type);

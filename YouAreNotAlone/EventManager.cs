@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace YouAreNotAlone
 {
-    public class Main_EventManager : Script
+    public class EventManager : Script
     {
         private static List<AdvancedEntity> aggressiveList;
         private static List<AdvancedEntity> carjackerList;
@@ -30,7 +30,7 @@ namespace YouAreNotAlone
             Terrorist
         }
 
-        static Main_EventManager()
+        static EventManager()
         {
             aggressiveList = new List<AdvancedEntity>();
             carjackerList = new List<AdvancedEntity>();
@@ -140,7 +140,7 @@ namespace YouAreNotAlone
             Logger.Write("EventManager: Added new entity.", type.ToString());
         }
 
-        public Main_EventManager()
+        public EventManager()
         {
             timeChecker = 0;
             Tick += OnTick;

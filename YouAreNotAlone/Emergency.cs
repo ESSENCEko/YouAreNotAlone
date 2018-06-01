@@ -22,8 +22,8 @@ namespace YouAreNotAlone
             this.emergencyType = emergencyType;
             this.blipName = "";
 
-            if (this.emergencyType == "ARMY") this.relationship = Util.NewRelationshipOf(Main_DispatchManager.DispatchType.Army);
-            else this.relationship = Util.NewRelationshipOf(Main_DispatchManager.DispatchType.Cop);
+            if (this.emergencyType == "ARMY") this.relationship = Util.NewRelationshipOf(DispatchManager.DispatchType.Army);
+            else this.relationship = Util.NewRelationshipOf(DispatchManager.DispatchType.Cop);
         }
 
         public abstract bool IsCreatedIn(Vector3 safePosition, List<string> models);
@@ -65,8 +65,8 @@ namespace YouAreNotAlone
 
             if (relationship != 0)
             {
-                if (emergencyType == "ARMY") Util.CleanUp(relationship, Main_DispatchManager.DispatchType.Army);
-                else Util.CleanUp(relationship, Main_DispatchManager.DispatchType.Cop);
+                if (emergencyType == "ARMY") Util.CleanUp(relationship, DispatchManager.DispatchType.Army);
+                else Util.CleanUp(relationship, DispatchManager.DispatchType.Cop);
             }
 
             members.Clear();
