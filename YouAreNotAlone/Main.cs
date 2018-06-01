@@ -529,6 +529,7 @@ namespace YouAreNotAlone
                 copCarNames[0].Add("police11");
                 copCarNames[0].Add("police12");
                 copCarNames[0].Add("police13");
+                copCarNames[2].Add("police14");
                 copCarNames[0].Add("police15");
                 copCarNames[0].Add("police16");
                 copCarNames[0].Add("police17");
@@ -558,7 +559,6 @@ namespace YouAreNotAlone
                 fibCarNames.Add("fbi6");
                 fibCarNames.Add("fbi7");
                 fibCarNames.Add("fbi8");
-                swatCarNames.Add("police14");
                 emCarNames.Add("ambulance2");
                 emCarNames.Add("ambulance3");
                 fireCarNames.Add("riot3");
