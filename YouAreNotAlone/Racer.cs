@@ -49,7 +49,7 @@ namespace YouAreNotAlone
             spawnedPed.AlwaysKeepTask = true;
             spawnedPed.BlockPermanentEvents = true;
             Logger.Write("Racer: Characteristics are set.", name);
-            
+
             if (!Util.BlipIsOn(spawnedPed))
             {
                 if (spawnedVehicle.Model.IsCar) Util.AddBlipOn(spawnedPed, 0.7f, BlipSprite.PersonalVehicleCar, (BlipColor)17, "Racer " + VehicleName.GetNameOf(spawnedVehicle.Model.Hash));

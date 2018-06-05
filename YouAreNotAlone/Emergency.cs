@@ -279,12 +279,13 @@ namespace YouAreNotAlone
 
         protected void AddVarietyTo(Ped p)
         {
-            if (Function.Call<int>(Hash.GET_NUMBER_OF_PED_PROP_TEXTURE_VARIATIONS, p, 0, 0) > 0
-                && Util.GetRandomIntBelow(2) == 1)
+            if (Function.Call<int>(Hash.GET_NUMBER_OF_PED_DRAWABLE_VARIATIONS, p, 8) > 0 && Util.GetRandomIntBelow(2) == 1)
+                Function.Call(Hash.SET_PED_COMPONENT_VARIATION, p, 8, Util.GetRandomIntBelow(Function.Call<int>(Hash.GET_NUMBER_OF_PED_DRAWABLE_VARIATIONS, p, 8)), 0, 0);
+
+            if (Function.Call<int>(Hash.GET_NUMBER_OF_PED_PROP_DRAWABLE_VARIATIONS, p, 0) > 0 && Util.GetRandomIntBelow(2) == 1)
                 Function.Call(Hash.SET_PED_PROP_INDEX, p, 0, Util.GetRandomIntBelow(Function.Call<int>(Hash.GET_NUMBER_OF_PED_PROP_TEXTURE_VARIATIONS, p, 0, 0)), 0, false);
 
-            if (Function.Call<int>(Hash.GET_NUMBER_OF_PED_PROP_TEXTURE_VARIATIONS, p, 1, 0) > 0
-                && Util.GetRandomIntBelow(2) == 1)
+            if (Function.Call<int>(Hash.GET_NUMBER_OF_PED_PROP_DRAWABLE_VARIATIONS, p, 1) > 0 && Util.GetRandomIntBelow(2) == 1)
                 Function.Call(Hash.SET_PED_PROP_INDEX, p, 1, Util.GetRandomIntBelow(Function.Call<int>(Hash.GET_NUMBER_OF_PED_PROP_TEXTURE_VARIATIONS, p, 1, 0)), 0, false);
         }
 

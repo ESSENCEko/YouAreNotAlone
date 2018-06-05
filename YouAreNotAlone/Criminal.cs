@@ -18,8 +18,9 @@
         protected void CheckDispatch()
         {
             if (dispatchCooldown < 15) dispatchCooldown++;
-            else if (!Util.AnyEmergencyIsNear(spawnedPed.Position, DispatchManager.DispatchType.Cop) && Main.DispatchAgainst(spawnedPed, type))
+            else if (!Util.AnyEmergencyIsNear(spawnedPed.Position, DispatchManager.DispatchType.Cop))
             {
+                Main.DispatchAgainst(spawnedPed, type);
                 Logger.Write("Dispatch against", type.ToString());
                 dispatchCooldown = 0;
             }
