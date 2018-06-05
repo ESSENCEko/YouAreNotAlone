@@ -15,6 +15,7 @@ namespace YouAreNotAlone
             this.members = new List<Ped>();
             this.name = name;
             Logger.Write("Driveby event selected.", name);
+            System.IO.File.AppendAllText(@"YANA_lastCreatedVehicle.log", "[" + System.DateTime.Now.ToString("HH:mm:ss") + "] " + name + "\n");
         }
 
         public bool IsCreatedIn(float radius, List<string> selectedModels)
@@ -60,7 +61,7 @@ namespace YouAreNotAlone
 
             Logger.Write("Driveby: Created vehicle successfully.", name);
             List<WeaponHash> drivebyWeaponList = new List<WeaponHash> { WeaponHash.MicroSMG, WeaponHash.Pistol, WeaponHash.APPistol, WeaponHash.CombatPistol, WeaponHash.MachinePistol, WeaponHash.MiniSMG, WeaponHash.Revolver, WeaponHash.RevolverMk2, WeaponHash.DoubleActionRevolver };
-            Util.Tune(spawnedVehicle, false, (Util.GetRandomIntBelow(3) == 1));
+            Util.Tune(spawnedVehicle, false, (Util.GetRandomIntBelow(3) == 1), false);
 
             for (int i = -1; i < spawnedVehicle.PassengerSeats; i++)
             {
@@ -152,7 +153,7 @@ namespace YouAreNotAlone
             {
                 if (Util.ThereIs(p) && !p.IsDead)
                 {
-                    if (!Util.BlipIsOn(p)) Util.AddBlipOn(p, 0.7f, BlipSprite.GunCar, BlipColor.White, "Driveby " + spawnedVehicle.FriendlyName);
+                    if (!Util.BlipIsOn(p)) Util.AddBlipOn(p, 0.7f, BlipSprite.GunCar, BlipColor.White, "Driveby " + VehicleName.GetNameOf(spawnedVehicle.Model.Hash));
                     else if (!p.CurrentBlip.Sprite.Equals(BlipSprite.GunCar)) p.CurrentBlip.Remove();
 
                     Logger.Write("Driveby: Found driver and added blip on it.", name);

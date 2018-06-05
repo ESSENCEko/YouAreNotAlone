@@ -95,6 +95,8 @@ namespace YouAreNotAlone
                     return false;
                 }
 
+                if (p.IsInVehicle(spawnedVehicle)) p.Task.LeaveVehicle(spawnedVehicle, LeaveVehicleFlags.WarpOut);
+
                 switch (emergencyType)
                 {
                     case "ARMY":
@@ -127,8 +129,6 @@ namespace YouAreNotAlone
                             break;
                         }
                 }
-
-                if (p.IsInVehicle(spawnedVehicle)) p.Task.LeaveVehicle(spawnedVehicle, LeaveVehicleFlags.WarpOut);
 
                 p.Weapons.Current.InfiniteAmmo = true;
                 p.CanSwitchWeapons = true;

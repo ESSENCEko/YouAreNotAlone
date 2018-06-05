@@ -90,22 +90,18 @@ namespace YouAreNotAlone
             Logger.Write(blipName + ": Couldn't find fire position. Try to find entity on fire.", name);
             Entity[] nearbyEntities = World.GetNearbyEntities(spawnedVehicle.Position, 200.0f);
 
-            if (nearbyEntities.Length < 1)
+            if (nearbyEntities.Length > 0)
             {
-                Logger.Write(blipName + ": There is no fire near.", name);
-
-                return false;
-            }
-
-            foreach (Entity en in nearbyEntities)
-            {
-                if (Util.ThereIs(en) && en.IsOnFire)
+                foreach (Entity en in nearbyEntities)
                 {
-                    target = en;
-                    targetPosition = target.Position;
-                    Logger.Write(blipName + ": Found entity on fire.", name);
+                    if (Util.ThereIs(en) && en.IsOnFire)
+                    {
+                        target = en;
+                        targetPosition = target.Position;
+                        Logger.Write(blipName + ": Found entity on fire.", name);
 
-                    return true;
+                        return true;
+                    }
                 }
             }
 

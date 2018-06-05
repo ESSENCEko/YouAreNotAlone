@@ -13,6 +13,7 @@ namespace YouAreNotAlone
         {
             this.name = name;
             this.goal = goal;
+            System.IO.File.AppendAllText(@"YANA_lastCreatedVehicle.log", "[" + System.DateTime.Now.ToString("HH:mm:ss") + "] " + name + "\n");
         }
 
         public bool IsCreatedIn(float radius, Road road)
@@ -40,7 +41,7 @@ namespace YouAreNotAlone
             Script.Wait(50);
             Function.Call(Hash.SET_DRIVER_ABILITY, spawnedPed, 1.0f);
             Function.Call(Hash.SET_DRIVER_AGGRESSIVENESS, spawnedPed, 1.0f);
-            Util.Tune(spawnedVehicle, true, true);
+            Util.Tune(spawnedVehicle, true, true, true);
             Logger.Write("Racer: Tuned racer vehicle.", name);
 
             spawnedPed.RelationshipGroup = relationship;
@@ -48,12 +49,16 @@ namespace YouAreNotAlone
             spawnedPed.AlwaysKeepTask = true;
             spawnedPed.BlockPermanentEvents = true;
             Logger.Write("Racer: Characteristics are set.", name);
-
-            if (!spawnedVehicle.Model.IsCar && !spawnedPed.IsWearingHelmet) spawnedPed.GiveHelmet(false, HelmetType.RegularMotorcycleHelmet, 4096);
+            
             if (!Util.BlipIsOn(spawnedPed))
             {
-                if (spawnedVehicle.Model.IsCar) Util.AddBlipOn(spawnedPed, 0.7f, BlipSprite.PersonalVehicleCar, (BlipColor)17, "Racer " + spawnedVehicle.FriendlyName);
-                else Util.AddBlipOn(spawnedPed, 1.0f, BlipSprite.PersonalVehicleBike, (BlipColor)17, "Racer " + spawnedVehicle.FriendlyName);
+                if (spawnedVehicle.Model.IsCar) Util.AddBlipOn(spawnedPed, 0.7f, BlipSprite.PersonalVehicleCar, (BlipColor)17, "Racer " + VehicleName.GetNameOf(spawnedVehicle.Model.Hash));
+                else
+                {
+                    if (!spawnedPed.IsWearingHelmet) spawnedPed.GiveHelmet(false, HelmetType.RegularMotorcycleHelmet, 4096);
+
+                    Util.AddBlipOn(spawnedPed, 1.0f, BlipSprite.PersonalVehicleBike, (BlipColor)17, "Racer " + VehicleName.GetNameOf(spawnedVehicle.Model.Hash));
+                }
 
                 TaskSequence ts = new TaskSequence();
                 ts.AddTask.DriveTo(spawnedVehicle, goal, 10.0f, 100.0f, 262692); // 4 + 32 + 512 + 262144

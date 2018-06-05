@@ -12,6 +12,7 @@ namespace YouAreNotAlone
         {
             this.name = name;
             Logger.Write("Terrorist event selected.", name);
+            System.IO.File.AppendAllText(@"YANA_lastCreatedVehicle.log", "[" + System.DateTime.Now.ToString("HH:mm:ss") + "] " + name + "\n");
         }
 
         public bool IsCreatedIn(float radius)
@@ -67,7 +68,7 @@ namespace YouAreNotAlone
 
             Logger.Write("Terrorist: Created vehicle and driver.", name);
             Script.Wait(50);
-            Util.Tune(spawnedVehicle, false, false);
+            Util.Tune(spawnedVehicle, false, false, false);
 
             if (name == "khanjali" && spawnedVehicle.GetMod(VehicleMod.Roof) != -1) spawnedVehicle.SetMod(VehicleMod.Roof, -1, false);
 
@@ -87,7 +88,7 @@ namespace YouAreNotAlone
 
             if (!Util.BlipIsOn(spawnedPed))
             {
-                Util.AddBlipOn(spawnedPed, 0.7f, BlipSprite.Tank, BlipColor.Red, "Terrorist " + spawnedVehicle.FriendlyName);
+                Util.AddBlipOn(spawnedPed, 0.7f, BlipSprite.Tank, BlipColor.Red, "Terrorist " + VehicleName.GetNameOf(spawnedVehicle.Model.Hash));
                 Logger.Write("Terrorist: Created terrorist successfully.", name);
 
                 return true;
@@ -139,15 +140,10 @@ namespace YouAreNotAlone
         private new void CheckDispatch()
         {
             if (dispatchCooldown < 15) dispatchCooldown++;
-            else
+            else if (!Util.AnyEmergencyIsNear(spawnedPed.Position, DispatchManager.DispatchType.Army) && Main.DispatchAgainst(spawnedPed, type))
             {
+                Logger.Write("Dispatch against", type.ToString());
                 dispatchCooldown = 0;
-
-                if (!Util.AnyEmergencyIsNear(spawnedPed.Position, DispatchManager.DispatchType.Army))
-                {
-                    Logger.Write("Dispatch against", type.ToString());
-                    Main.DispatchAgainst(spawnedPed, type);
-                }
             }
         }
     }

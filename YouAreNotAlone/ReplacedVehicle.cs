@@ -12,6 +12,7 @@ namespace YouAreNotAlone
         {
             this.name = name;
             Logger.Write("ReplacedVehicle event selected.", name);
+            System.IO.File.AppendAllText(@"YANA_lastCreatedVehicle.log", "[" + System.DateTime.Now.ToString("HH:mm:ss") + "] " + name + "\n");
         }
 
         public bool IsCreatedIn(float radius)
@@ -72,7 +73,7 @@ namespace YouAreNotAlone
                     {
                         blipName = "Tuned ";
                         blipColor = BlipColor.Blue;
-                        Util.Tune(spawnedVehicle, Util.GetRandomIntBelow(2) == 1, Util.GetRandomIntBelow(2) == 1);
+                        Util.Tune(spawnedVehicle, Util.GetRandomIntBelow(2) == 1, Util.GetRandomIntBelow(2) == 1, false);
                         Logger.Write("ReplacedVehicle: Tune replacing vehicle.", name);
                     }
                     else
@@ -82,11 +83,9 @@ namespace YouAreNotAlone
                         Logger.Write("ReplacedVehicle: Remain stock replacing vehicle.", name);
                     }
 
-                    blipName += spawnedVehicle.FriendlyName == "NULL" ? spawnedVehicle.DisplayName.ToUpper() : spawnedVehicle.FriendlyName;
-
                     if (!Util.BlipIsOn(spawnedVehicle))
                     {
-                        Util.AddBlipOn(spawnedVehicle, 0.7f, BlipSprite.PersonalVehicleCar, blipColor, blipName);
+                        Util.AddBlipOn(spawnedVehicle, 0.7f, BlipSprite.PersonalVehicleCar, blipColor, blipName + VehicleName.GetNameOf(spawnedVehicle.Model.Hash));
                         Logger.Write("ReplacedVehicle: Create replacing vehicle successfully.", name);
 
                         return true;

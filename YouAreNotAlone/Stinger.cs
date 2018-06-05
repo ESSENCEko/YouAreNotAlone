@@ -1,29 +1,27 @@
 ﻿using GTA;
 using GTA.Math;
-using System.Collections.Generic;
 
 namespace YouAreNotAlone
 {
     public class Stinger : AdvancedEntity
     {
-        private List<string> wheels;
         private Vehicle owner;
         private Prop stinger;
         private Vector3[] points;
 
-        public Stinger(Vehicle v)
+        public enum Wheel
         {
-            this.wheels = new List<string>
-            {
-                "wheel_lf",
-                "wheel_rf",
-                "wheel_lm1",
-                "wheel_rm1",
-                "wheel_lr",
-                "wheel_rr"
-            };
-            this.owner = v;
+            wheel_lf,
+            wheel_rf,
+            wheel_lm1,
+            wheel_rm1,
+            wheel_lr,
+            wheel_rr,
+            wheel_lm2 = 40483,
+            wheel_rm2 = 40442
         }
+
+        public Stinger(Vehicle v) { this.owner = v; }
 
         public bool IsCreatedIn(Vector3 position)
         {
@@ -103,9 +101,9 @@ namespace YouAreNotAlone
             {
                 if (Util.ThereIs(v) && v.IsTouching(stinger) && v.CanTiresBurst)
                 {
-                    for (int i = 0; i < wheels.Count; i++)
+                    foreach (Wheel w in System.Enum.GetValues(typeof(Wheel)))
                     {
-                        if (v.HasBone(wheels[i]) && !v.IsTireBurst(i) && StingerAreaContains(v.GetBoneCoord(wheels[i]))) v.BurstTire(i);
+                        if (v.HasBone(w.ToString()) && !v.IsTireBurst((int)w) && StingerAreaContains(v.GetBoneCoord(w.ToString()))) v.BurstTire((int)w);
                     }
                 }
             }

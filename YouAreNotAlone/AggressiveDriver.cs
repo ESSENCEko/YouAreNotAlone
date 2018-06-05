@@ -12,6 +12,7 @@ namespace YouAreNotAlone
         {
             this.name = name;
             Logger.Write("AggressiveDriver event selected.", name);
+            System.IO.File.AppendAllText(@"YANA_lastCreatedVehicle.log", "[" + System.DateTime.Now.ToString("HH:mm:ss") + "] " + name + "\n");
         }
 
         public bool IsCreatedIn(float radius)
@@ -69,7 +70,7 @@ namespace YouAreNotAlone
             Script.Wait(50);
             Function.Call(Hash.SET_DRIVER_ABILITY, spawnedPed, 1.0f);
             Function.Call(Hash.SET_DRIVER_AGGRESSIVENESS, spawnedPed, 1.0f);
-            Util.Tune(spawnedVehicle, true, true);
+            Util.Tune(spawnedVehicle, true, true, true);
             Logger.Write("AggressiveDriver: Tuned aggressive vehicle.", name);
 
             spawnedPed.RelationshipGroup = relationship;
@@ -81,7 +82,7 @@ namespace YouAreNotAlone
 
             if (!Util.BlipIsOn(spawnedPed))
             {
-                Util.AddBlipOn(spawnedPed, 0.7f, BlipSprite.PersonalVehicleCar, BlipColor.Green, "Aggressive " + spawnedVehicle.FriendlyName);
+                Util.AddBlipOn(spawnedPed, 0.7f, BlipSprite.PersonalVehicleCar, BlipColor.Green, "Aggressive " + VehicleName.GetNameOf(spawnedVehicle.Model.Hash));
                 Logger.Write("AggressiveDriver: Created aggressive driver successfully.", name);
 
                 return true;

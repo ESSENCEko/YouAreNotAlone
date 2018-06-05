@@ -96,24 +96,20 @@ namespace YouAreNotAlone
             targetPosition = Vector3.Zero;
             Ped[] nearbyPeds = World.GetNearbyPeds(spawnedVehicle.Position, 200.0f);
 
-            if (nearbyPeds.Length < 1)
+            if (nearbyPeds.Length > 0)
             {
-                Logger.Write(blipName + ": There is no dead body.", name);
-
-                return false;
-            }
-
-            foreach (Ped selectedPed in nearbyPeds)
-            {
-                if (Util.ThereIs(selectedPed) && selectedPed.IsDead)
+                foreach (Ped selectedPed in nearbyPeds)
                 {
-                    if (!checkedPeds.Contains(selectedPed.Handle))
+                    if (Util.ThereIs(selectedPed) && selectedPed.IsDead)
                     {
-                        target = selectedPed;
-                        targetPosition = Function.Call<Vector3>(Hash.GET_PED_BONE_COORDS, (Ped)target, 11816, 0.0f, 0.0f, 0.0f);
-                        Logger.Write(blipName + ": Found a dead body.", name);
+                        if (!checkedPeds.Contains(selectedPed.Handle))
+                        {
+                            target = selectedPed;
+                            targetPosition = Function.Call<Vector3>(Hash.GET_PED_BONE_COORDS, (Ped)target, 11816, 0.0f, 0.0f, 0.0f);
+                            Logger.Write(blipName + ": Found a dead body.", name);
 
-                        return true;
+                            return true;
+                        }
                     }
                 }
             }

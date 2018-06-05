@@ -2,8 +2,10 @@
 using GTA.Math;
 using GTA.Native;
 using System;
-using System.Drawing;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Drawing;
+using System.Runtime.InteropServices;
 
 namespace YouAreNotAlone
 {
@@ -39,15 +41,13 @@ namespace YouAreNotAlone
             Function.Call<int>(Hash.GET_HASH_KEY, "GANG_10"),
             Function.Call<int>(Hash.GET_HASH_KEY, "DEALER"),
             Function.Call<int>(Hash.GET_HASH_KEY, "PRIVATE_SECURITY"),
-            Function.Call<int>(Hash.GET_HASH_KEY, "ARMY"),
             Function.Call<int>(Hash.GET_HASH_KEY, "PRISONER"),
             Function.Call<int>(Hash.GET_HASH_KEY, "FIREMAN"),
             Function.Call<int>(Hash.GET_HASH_KEY, "MEDIC")
         };
         private static List<int> criminalRelationships = new List<int>();
-        private static List<int> copRelationships = new List<int>();
-        private static List<int> armyRelationships = new List<int>();
-        private static int copID = Function.Call<int>(Hash.GET_HASH_KEY, "COP");
+        private static List<int> copRelationships = new List<int> { Function.Call<int>(Hash.GET_HASH_KEY, "COP") };
+        private static List<int> armyRelationships = new List<int> { Function.Call<int>(Hash.GET_HASH_KEY, "ARMY") };
         private static int playerID = Function.Call<int>(Hash.GET_HASH_KEY, "PLAYER");
         private static int count = 0;
 
@@ -73,7 +73,7 @@ namespace YouAreNotAlone
             {
                 RaycastResult r = World.Raycast(GameplayCamera.Position, en.Position, IntersectOptions.Map);
 
-                return !en.IsOnScreen || en.IsOccluded || (r.DitHitAnything && r.HitCoords.DistanceTo(GameplayCamera.Position) < 50.0f);
+                return !en.IsOnScreen || (r.DitHitAnything && r.HitCoords.DistanceTo(GameplayCamera.Position) < 50.0f);
             }
         }
 
@@ -84,7 +84,7 @@ namespace YouAreNotAlone
             {
                 RaycastResult r = World.Raycast(GameplayCamera.Position, position, IntersectOptions.Map);
 
-                return Vector3.Subtract(GameplayCamera.Position + GameplayCamera.Direction * 100.0f, position).Length() > 100.0f || (r.DitHitAnything && r.HitCoords.DistanceTo(GameplayCamera.Position) < 50.0f);
+                return position.DistanceTo(GameplayCamera.Position + GameplayCamera.Direction * 100.0f) > 100.0f || (r.DitHitAnything && r.HitCoords.DistanceTo(GameplayCamera.Position) < 50.0f);
             }
         }
 
@@ -189,7 +189,7 @@ namespace YouAreNotAlone
                     if (withColors)
                     {
                         v.PrimaryColor = (VehicleColor)vehicleColors.GetValue(dice.Next(vehicleColors.Length));
-                        v.SecondaryColor = (VehicleColor)vehicleColors.GetValue(dice.Next(vehicleColors.Length));
+                        v.SecondaryColor = dice.Next(2) == 1 ? v.PrimaryColor : (VehicleColor)vehicleColors.GetValue(dice.Next(vehicleColors.Length));
                     }
 
                     return v;
@@ -199,7 +199,7 @@ namespace YouAreNotAlone
             return null;
         }
 
-        public static void Tune(Vehicle v, bool withNeons, bool withWheels)
+        public static void Tune(Vehicle v, bool withNeons, bool withWheels, bool withTireSmoke)
         {
             if (ThereIs(v))
             {
@@ -207,7 +207,7 @@ namespace YouAreNotAlone
                 v.ToggleMod(VehicleToggleMod.Turbo, true);
                 v.ToggleMod(VehicleToggleMod.XenonHeadlights, dice.Next(2) == 1);
 
-                if (dice.Next(2) == 1)
+                if (withTireSmoke)
                 {
                     v.ToggleMod(VehicleToggleMod.TireSmoke, true);
                     v.TireSmokeColor = Color.FromKnownColor((KnownColor)neonColors.GetValue(dice.Next(neonColors.Length)));
@@ -263,7 +263,6 @@ namespace YouAreNotAlone
                         foreach (int i in copRelationships) World.SetRelationshipBetweenGroups(Relationship.Hate, newRel, i);
 
                         criminalRelationships.Add(newRel);
-                        World.SetRelationshipBetweenGroups(Relationship.Hate, newRel, copID);
 
                         break;
                     }
@@ -276,7 +275,6 @@ namespace YouAreNotAlone
                         foreach (int i in copRelationships) World.SetRelationshipBetweenGroups(Relationship.Hate, newRel, i);
 
                         criminalRelationships.Add(newRel);
-                        World.SetRelationshipBetweenGroups(Relationship.Hate, newRel, copID);
                         World.SetRelationshipBetweenGroups(Relationship.Respect, newRel, newRel);
 
                         if (!Main.CriminalsCanFightWithPlayer) World.SetRelationshipBetweenGroups(Relationship.Respect, newRel, playerID);
@@ -290,7 +288,6 @@ namespace YouAreNotAlone
                         foreach (int i in copRelationships) World.SetRelationshipBetweenGroups(Relationship.Hate, newRel, i);
 
                         criminalRelationships.Add(newRel);
-                        World.SetRelationshipBetweenGroups(Relationship.Hate, newRel, copID);
                         World.SetRelationshipBetweenGroups(Relationship.Respect, newRel, newRel);
 
                         if (!Main.CriminalsCanFightWithPlayer) World.SetRelationshipBetweenGroups(Relationship.Respect, newRel, playerID);
@@ -306,7 +303,6 @@ namespace YouAreNotAlone
                         foreach (int i in copRelationships) World.SetRelationshipBetweenGroups(Relationship.Hate, newRel, i);
 
                         criminalRelationships.Add(newRel);
-                        World.SetRelationshipBetweenGroups(Relationship.Hate, newRel, copID);
                         World.SetRelationshipBetweenGroups(Relationship.Respect, newRel, newRel);
 
                         if (!Main.CriminalsCanFightWithPlayer) World.SetRelationshipBetweenGroups(Relationship.Respect, newRel, playerID);
@@ -333,8 +329,6 @@ namespace YouAreNotAlone
                         foreach (int i in copRelationships) World.SetRelationshipBetweenGroups(Relationship.Respect, newRel, i);
 
                         armyRelationships.Add(newRel);
-                        World.SetRelationshipBetweenGroups(Relationship.Respect, newRel, copID);
-                        World.SetRelationshipBetweenGroups(Relationship.Respect, newRel, Function.Call<int>(Hash.GET_HASH_KEY, "ARMY"));
                         World.SetRelationshipBetweenGroups(Relationship.Respect, newRel, Function.Call<int>(Hash.GET_HASH_KEY, "FIREMAN"));
                         World.SetRelationshipBetweenGroups(Relationship.Respect, newRel, Function.Call<int>(Hash.GET_HASH_KEY, "MEDIC"));
                         World.SetRelationshipBetweenGroups(Relationship.Respect, newRel, newRel);
@@ -353,8 +347,6 @@ namespace YouAreNotAlone
                         foreach (int i in copRelationships) World.SetRelationshipBetweenGroups(Relationship.Respect, newRel, i);
 
                         copRelationships.Add(newRel);
-                        World.SetRelationshipBetweenGroups(Relationship.Respect, newRel, copID);
-                        World.SetRelationshipBetweenGroups(Relationship.Respect, newRel, Function.Call<int>(Hash.GET_HASH_KEY, "ARMY"));
                         World.SetRelationshipBetweenGroups(Relationship.Respect, newRel, Function.Call<int>(Hash.GET_HASH_KEY, "FIREMAN"));
                         World.SetRelationshipBetweenGroups(Relationship.Respect, newRel, Function.Call<int>(Hash.GET_HASH_KEY, "MEDIC"));
                         World.SetRelationshipBetweenGroups(Relationship.Like, newRel, Function.Call<int>(Hash.GET_HASH_KEY, "SECURITY_GUARD"));
@@ -413,14 +405,14 @@ namespace YouAreNotAlone
                     {
                         case DispatchManager.DispatchType.Army:
                             {
-                                if (armyRelationships.Contains(p.RelationshipGroup)) return true;
+                                if (armyRelationships.Contains(p.RelationshipGroup) && Math.Abs(p.Position.Z - position.Z) < 5) return true;
 
                                 break;
                             }
 
                         case DispatchManager.DispatchType.Cop:
                             {
-                                if (copRelationships.Contains(p.RelationshipGroup)) return true;
+                                if (copRelationships.Contains(p.RelationshipGroup) && Math.Abs(p.Position.Z - position.Z) < 5) return true;
 
                                 break;
                             }
@@ -444,6 +436,26 @@ namespace YouAreNotAlone
 
                     if (SomethingIsBetweenPlayerPositionAnd(roadPos) && !Function.Call<bool>(Hash.IS_POINT_OBSCURED_BY_A_MISSION_ENTITY, roadPos.X, roadPos.Y, roadPos.Z, 5.0f, 5.0f, 5.0f, 0))
                         return new Road(roadPos, roadHeading.GetResult<float>());
+                }
+            }
+
+            return new Road(Vector3.Zero, 0.0f);
+        }
+
+        public static Road GetNextPositionOnStreetWithHeadingToChase(Vector3 position, Vector3 targetPosition)
+        {
+            OutputArgument outPos = new OutputArgument();
+            OutputArgument outHeading = new OutputArgument();
+
+            for (int i = 1; i < 20; i++)
+            {
+                if (Function.Call<bool>(Hash.GET_NTH_CLOSEST_VEHICLE_NODE_WITH_HEADING, position.X, position.Y, position.Z, i, outPos, outHeading, new OutputArgument(), 9, 3.0f, 2.5f))
+                {
+                    Vector3 roadPos = outPos.GetResult<Vector3>();
+                    float roadHeading = outHeading.GetResult<float>();
+
+                    if (SomethingIsBetweenPlayerPositionAnd(roadPos) && Math.Abs(roadHeading - (targetPosition - roadPos).ToHeading()) < 60 && !Function.Call<bool>(Hash.IS_POINT_OBSCURED_BY_A_MISSION_ENTITY, roadPos.X, roadPos.Y, roadPos.Z, 5.0f, 5.0f, 5.0f, 0))
+                        return new Road(roadPos, roadHeading);
                 }
             }
 

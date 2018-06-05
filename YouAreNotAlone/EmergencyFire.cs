@@ -23,7 +23,7 @@ namespace YouAreNotAlone
 
             for (int cnt = 0; cnt < 5; cnt++)
             {
-                road = Util.GetNextPositionOnStreetWithHeading(safePosition.Around(50.0f));
+                road = Util.GetNextPositionOnStreetWithHeadingToChase(safePosition.Around(50.0f), targetPosition);
 
                 if (!road.Position.Equals(Vector3.Zero))
                 {
@@ -175,6 +175,18 @@ namespace YouAreNotAlone
         protected new abstract void SetPedsOnDuty(bool onVehicleDuty);
         protected new void SetPedsOffDuty()
         {
+            if (!offDuty)
+            {
+                if (Util.BlipIsOn(spawnedVehicle) && spawnedVehicle.CurrentBlip.Sprite.Equals(BlipSprite.Hospital)) spawnedVehicle.CurrentBlip.Remove();
+
+                foreach (Ped p in members)
+                {
+                    if (Util.BlipIsOn(p) && p.CurrentBlip.Sprite.Equals(BlipSprite.Hospital)) p.CurrentBlip.Remove();
+                }
+
+                offDuty = true;
+            }
+
             if (!Util.WeCanEnter(spawnedVehicle)) Restore(false);
             else if (ReadyToGoWith(members))
             {
@@ -183,14 +195,12 @@ namespace YouAreNotAlone
                     Logger.Write(blipName + ": Time to be off duty.", name);
 
                     if (spawnedVehicle.HasSiren && spawnedVehicle.SirenActive) spawnedVehicle.SirenActive = false;
-                    if (Util.BlipIsOn(spawnedVehicle) && spawnedVehicle.CurrentBlip.Sprite.Equals(BlipSprite.Hospital)) spawnedVehicle.CurrentBlip.Remove();
                     if (!Function.Call<bool>(Hash.GET_IS_TASK_ACTIVE, spawnedVehicle.Driver, 151))
                     {
                         foreach (Ped p in members)
                         {
                             if (Util.ThereIs(p))
                             {
-                                if (Util.BlipIsOn(p) && p.CurrentBlip.Sprite.Equals(BlipSprite.Hospital)) p.CurrentBlip.Remove();
                                 if (Util.WeCanGiveTaskTo(p))
                                 {
                                     if (p.Equals(spawnedVehicle.Driver)) p.Task.CruiseWithVehicle(spawnedVehicle, 20.0f, (int)DrivingStyle.Normal);
@@ -305,6 +315,7 @@ namespace YouAreNotAlone
             }
             else
             {
+                if (offDuty) offDuty = false;
                 if (!spawnedVehicle.IsInRangeOf(Game.Player.Character.Position, 500.0f))
                 {
                     Logger.Write(blipName + ": Target found but too far from player. Time to be restored.", name);

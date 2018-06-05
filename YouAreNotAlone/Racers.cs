@@ -35,7 +35,7 @@ namespace YouAreNotAlone
 
                 for (int cnt = 0; cnt < 5; cnt++)
                 {
-                    road = Util.GetNextPositionOnStreetWithHeading(safePosition.Around(50.0f));
+                    road = Util.GetNextPositionOnStreetWithHeadingToChase(safePosition.Around(50.0f), goal);
 
                     if (!road.Position.Equals(Vector3.Zero))
                     {

@@ -18,26 +18,20 @@
         protected void CheckDispatch()
         {
             if (dispatchCooldown < 15) dispatchCooldown++;
-            else
+            else if (!Util.AnyEmergencyIsNear(spawnedPed.Position, DispatchManager.DispatchType.Cop) && Main.DispatchAgainst(spawnedPed, type))
             {
+                Logger.Write("Dispatch against", type.ToString());
                 dispatchCooldown = 0;
-
-                if (!Util.AnyEmergencyIsNear(spawnedPed.Position, DispatchManager.DispatchType.Cop))
-                {
-                    Logger.Write("Dispatch against", type.ToString());
-                    Main.DispatchAgainst(spawnedPed, type);
-                }
             }
         }
 
         protected void CheckBlockable()
         {
             if (blockCooldown < 15) blockCooldown++;
-            else
+            else if (Main.BlockRoadAgainst(spawnedPed, type))
             {
-                blockCooldown = 0;
                 Logger.Write("Block road against", type.ToString());
-                Main.BlockRoadAgainst(spawnedPed, type);
+                blockCooldown = 0;
             }
         }
     }
