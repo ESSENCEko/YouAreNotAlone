@@ -138,103 +138,9 @@ namespace YouAreNotAlone
             members.Clear();
         }
 
-        protected new void AddEmergencyBlip(bool onVehicle)
-        {
-            if (onVehicle)
-            {
-                Logger.Write(blipName + ": Members are in vehicle. Add blip on vehicle.", name);
-
-                if (Util.WeCanEnter(spawnedVehicle))
-                {
-                    if (!Util.BlipIsOn(spawnedVehicle)) Util.AddEmergencyBlipOn(spawnedVehicle, 0.7f, BlipSprite.Hospital, blipName);
-                }
-                else if (Util.BlipIsOn(spawnedVehicle) && spawnedVehicle.CurrentBlip.Sprite.Equals(BlipSprite.Hospital)) spawnedVehicle.CurrentBlip.Remove();
-
-                foreach (Ped p in members)
-                {
-                    if (Util.BlipIsOn(p) && p.CurrentBlip.Sprite.Equals(BlipSprite.Hospital)) p.CurrentBlip.Remove();
-                }
-            }
-            else
-            {
-                Logger.Write(blipName + ": Members are on foot. Add blips on members.", name);
-
-                if (Util.BlipIsOn(spawnedVehicle) && spawnedVehicle.CurrentBlip.Sprite.Equals(BlipSprite.Hospital)) spawnedVehicle.CurrentBlip.Remove();
-
-                foreach (Ped p in members)
-                {
-                    if (Util.WeCanGiveTaskTo(p))
-                    {
-                        if (!Util.BlipIsOn(p)) Util.AddEmergencyBlipOn(p, 0.5f, BlipSprite.Hospital, blipName);
-                    }
-                    else if (Util.BlipIsOn(p) && p.CurrentBlip.Sprite.Equals(BlipSprite.Hospital)) p.CurrentBlip.Remove();
-                }
-            }
-        }
+        protected override BlipSprite CurrentBlipSprite { get { return BlipSprite.Hospital; } }
 
         protected new abstract void SetPedsOnDuty(bool onVehicleDuty);
-        protected new void SetPedsOffDuty()
-        {
-            if (!offDuty)
-            {
-                if (Util.BlipIsOn(spawnedVehicle) && spawnedVehicle.CurrentBlip.Sprite.Equals(BlipSprite.Hospital)) spawnedVehicle.CurrentBlip.Remove();
-
-                foreach (Ped p in members)
-                {
-                    if (Util.BlipIsOn(p) && p.CurrentBlip.Sprite.Equals(BlipSprite.Hospital)) p.CurrentBlip.Remove();
-                }
-
-                offDuty = true;
-            }
-
-            if (!Util.WeCanEnter(spawnedVehicle)) Restore(false);
-            else if (ReadyToGoWith(members))
-            {
-                if (Util.ThereIs(spawnedVehicle.Driver))
-                {
-                    Logger.Write(blipName + ": Time to be off duty.", name);
-
-                    if (spawnedVehicle.HasSiren && spawnedVehicle.SirenActive) spawnedVehicle.SirenActive = false;
-                    if (!Function.Call<bool>(Hash.GET_IS_TASK_ACTIVE, spawnedVehicle.Driver, 151))
-                    {
-                        foreach (Ped p in members)
-                        {
-                            if (Util.ThereIs(p))
-                            {
-                                if (Util.WeCanGiveTaskTo(p))
-                                {
-                                    if (p.Equals(spawnedVehicle.Driver)) p.Task.CruiseWithVehicle(spawnedVehicle, 20.0f, (int)DrivingStyle.Normal);
-                                    else p.Task.Wait(1000);
-                                }
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    Logger.Write(blipName + ": There is no driver when off duty. Re-enter everyone.", name);
-
-                    foreach (Ped p in members)
-                    {
-                        if (Util.WeCanGiveTaskTo(p)) p.Task.LeaveVehicle(spawnedVehicle, false);
-                    }
-                }
-            }
-            else
-            {
-                if (!VehicleSeatsCanBeSeatedBy(members))
-                {
-                    Logger.Write(blipName + ": Something wrong with assigning seats when off duty. Re-enter everyone.", name);
-
-                    foreach (Ped p in members)
-                    {
-                        if (Util.WeCanGiveTaskTo(p)) p.Task.LeaveVehicle(spawnedVehicle, false);
-                    }
-                }
-                else Logger.Write(blipName + ": Assigned seats successfully when off duty.", name);
-            }
-        }
-
         protected abstract new bool TargetIsFound();
         private new void AddVarietyTo(Ped p)
         {
@@ -326,7 +232,7 @@ namespace YouAreNotAlone
                 else
                 {
                     Logger.Write(blipName + ": Target found. Time to be on duty.", name);
-                    SetPedsOnDuty(!spawnedVehicle.IsInRangeOf(targetPosition, 30.0f));
+                    SetPedsOnDuty(Util.WeCanEnter(spawnedVehicle) && !spawnedVehicle.IsInRangeOf(targetPosition, 30.0f));
                 }
             }
 

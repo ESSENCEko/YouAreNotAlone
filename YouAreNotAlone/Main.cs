@@ -232,8 +232,6 @@ namespace YouAreNotAlone
             };
 
             Logger.Write("Main: Added default models.", "");
-            System.IO.File.WriteAllText(@"YANA_lastCreatedVehicle.log", "[" + DateTime.Now.ToString("HH:mm:ss") + "] " + "Stared.\n");
-
             CheckDLCs();
             SetUp();
         }
@@ -373,6 +371,9 @@ namespace YouAreNotAlone
                 drivebyCarNames.Add("buccaneer2");
                 drivebyCarNames.Add("chino2");
                 drivebyCarNames.Add("voodoo");
+                gangModels[2].Add("csb_vagspeak");
+                gangModels[2].Add("ig_vagspeak");
+                gangModels[2].Add("mp_m_g_vagfun_01");
             }
 
             if (Function.Call<bool>(Hash.IS_DLC_PRESENT, Function.Call<int>(Hash.GET_HASH_KEY, "mplowrider2")))
@@ -483,7 +484,6 @@ namespace YouAreNotAlone
                 racerCarNames.Add("es550");
                 racerCarNames.Add("futo3");
                 racerCarNames.Add("gauntlet3");
-                racerCarNames.Add("gauntlet4");
                 racerCarNames.Add("gauntlet5");
                 racerCarNames.Add("hellhound");
                 racerCarNames.Add("rapidgt4");
@@ -534,7 +534,6 @@ namespace YouAreNotAlone
                 copCarNames[2].Add("police14");
                 copCarNames[0].Add("police15");
                 copCarNames[0].Add("police16");
-                copCarNames[0].Add("police17");
                 copCarNames[2].Add("police20");
                 copCarNames[2].Add("police21");
                 copCarNames[2].Add("police22");

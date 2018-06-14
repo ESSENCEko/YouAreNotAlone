@@ -1,12 +1,13 @@
 ﻿using GTA;
 using GTA.Math;
 using GTA.Native;
+using System.Collections.Generic;
 
 namespace YouAreNotAlone
 {
     public class Firefighter : EmergencyFire
     {
-        public Firefighter(string name, Entity target) : base(name, target, "FIREMAN") { Logger.Write(blipName + ": Time to put off fires.", name); }
+        public Firefighter(string name, Entity target) : base(name, target, "FIREMAN") { Logger.ForceWrite(blipName + ": Time to put off fires.", this.name); }
 
         protected override void SetPedsOnDuty(bool onVehicleDuty)
         {
@@ -29,7 +30,7 @@ namespace YouAreNotAlone
 
                         foreach (Ped p in members)
                         {
-                            if (Util.WeCanGiveTaskTo(p)) p.Task.LeaveVehicle(spawnedVehicle, false);
+                            if (Util.ThereIs(p) && Util.WeCanGiveTaskTo(p) && p.IsSittingInVehicle(spawnedVehicle)) p.Task.LeaveVehicle(spawnedVehicle, false);
                         }
                     }
                 }
@@ -41,7 +42,7 @@ namespace YouAreNotAlone
 
                         foreach (Ped p in members)
                         {
-                            if (Util.WeCanGiveTaskTo(p)) p.Task.LeaveVehicle(spawnedVehicle, false);
+                            if (Util.ThereIs(p) && Util.WeCanGiveTaskTo(p) && p.IsSittingInVehicle(spawnedVehicle)) p.Task.LeaveVehicle(spawnedVehicle, false);
                         }
                     }
                     else Logger.Write(blipName + ": Assigned seats successfully when on duty.", name);
@@ -70,6 +71,8 @@ namespace YouAreNotAlone
 
         protected override bool TargetIsFound()
         {
+            if (Util.ThereIs(target) && target.IsOnFire) return true;
+
             target = null;
             targetPosition = Vector3.Zero;
             OutputArgument outPos = new OutputArgument();
@@ -88,20 +91,19 @@ namespace YouAreNotAlone
             }
 
             Logger.Write(blipName + ": Couldn't find fire position. Try to find entity on fire.", name);
-            Entity[] nearbyEntities = World.GetNearbyEntities(spawnedVehicle.Position, 200.0f);
+            List<Entity> nearbyEntities = new List<Entity>(World.GetNearbyEntities(spawnedVehicle.Position, 200.0f));
 
-            if (nearbyEntities.Length > 0)
+            if (nearbyEntities.Count > 0)
             {
-                foreach (Entity en in nearbyEntities)
-                {
-                    if (Util.ThereIs(en) && en.IsOnFire)
-                    {
-                        target = en;
-                        targetPosition = target.Position;
-                        Logger.Write(blipName + ": Found entity on fire.", name);
+                Entity en = nearbyEntities.Find(e => Util.ThereIs(e) && e.IsOnFire);
 
-                        return true;
-                    }
+                if (Util.ThereIs(en))
+                {
+                    Logger.Write(blipName + ": Found entity on fire.", name);
+                    target = en;
+                    targetPosition = target.Position;
+
+                    return true;
                 }
             }
 

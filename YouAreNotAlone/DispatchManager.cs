@@ -119,7 +119,7 @@ namespace YouAreNotAlone
             timeChecker = 0;
             Tick += OnTick;
 
-            Logger.Write("DispatchManager started.", "");
+            Logger.ForceWrite("DispatchManager started.", "");
         }
 
         private void OnTick(Object sender, EventArgs e)

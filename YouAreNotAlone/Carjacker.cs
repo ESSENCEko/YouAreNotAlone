@@ -11,7 +11,7 @@ namespace YouAreNotAlone
         {
             this.radius = 0.0f;
             this.trycount = 0;
-            Logger.Write("Carjacker event selected.", "");
+            Logger.ForceWrite("Carjacker event selected.", "");
         }
 
         public bool IsCreatedIn(float radius)

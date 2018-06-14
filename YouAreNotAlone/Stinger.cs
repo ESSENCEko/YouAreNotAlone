@@ -93,7 +93,7 @@ namespace YouAreNotAlone
 
         public void CheckStingable()
         {
-            Vehicle[] nearbyVehicles = World.GetNearbyVehicles(stinger.Position, 10.0f);
+            Vehicle[] nearbyVehicles = World.GetNearbyVehicles(stinger.Position, 20.0f);
 
             if (nearbyVehicles.Length < 1) return;
 

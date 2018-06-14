@@ -11,8 +11,7 @@ namespace YouAreNotAlone
         public AggressiveDriver(string name) : base(EventManager.EventType.AggressiveDriver)
         {
             this.name = name;
-            Logger.Write("AggressiveDriver event selected.", name);
-            System.IO.File.AppendAllText(@"YANA_lastCreatedVehicle.log", "[" + System.DateTime.Now.ToString("HH:mm:ss") + "] " + name + "\n");
+            Logger.ForceWrite("AggressiveDriver event selected.", this.name);
         }
 
         public bool IsCreatedIn(float radius)
@@ -70,6 +69,7 @@ namespace YouAreNotAlone
             Script.Wait(50);
             Function.Call(Hash.SET_DRIVER_ABILITY, spawnedPed, 1.0f);
             Function.Call(Hash.SET_DRIVER_AGGRESSIVENESS, spawnedPed, 1.0f);
+            SetExhausts();
             Util.Tune(spawnedVehicle, true, true, true);
             Logger.Write("AggressiveDriver: Tuned aggressive vehicle.", name);
 

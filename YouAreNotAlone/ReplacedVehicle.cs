@@ -11,8 +11,7 @@ namespace YouAreNotAlone
         public ReplacedVehicle(string name) : base()
         {
             this.name = name;
-            Logger.Write("ReplacedVehicle event selected.", name);
-            System.IO.File.AppendAllText(@"YANA_lastCreatedVehicle.log", "[" + System.DateTime.Now.ToString("HH:mm:ss") + "] " + name + "\n");
+            Logger.ForceWrite("ReplacedVehicle event selected.", this.name);
         }
 
         public bool IsCreatedIn(float radius)
@@ -129,11 +128,6 @@ namespace YouAreNotAlone
             }
 
             return false;
-        }
-
-        public bool CanBeNaturallyRemoved()
-        {
-            return Util.SomethingIsBetweenPlayerAnd(spawnedVehicle);
         }
     }
 }

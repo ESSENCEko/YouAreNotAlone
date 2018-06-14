@@ -12,7 +12,7 @@ namespace YouAreNotAlone
         public Massacre() : base(EventManager.EventType.Massacre)
         {
             this.members = new List<Ped>();
-            Logger.Write("Massacre event selected.", "");
+            Logger.ForceWrite("Massacre event selected.", "");
         }
 
         public bool IsCreatedIn(float radius, Vector3 safePosition)
@@ -27,7 +27,9 @@ namespace YouAreNotAlone
                 return false;
             }
 
-            do
+            while (!Function.Call<bool>(Hash.HAS_ANIM_SET_LOADED, "anim_group_move_ballistic")
+            || !Function.Call<bool>(Hash.HAS_ANIM_SET_LOADED, "move_strafe_ballistic")
+            || !Function.Call<bool>(Hash.HAS_CLIP_SET_LOADED, "move_ballistic_minigun"))
             {
                 Function.Call(Hash.REQUEST_ANIM_SET, "anim_group_move_ballistic");
                 Function.Call(Hash.REQUEST_ANIM_SET, "move_strafe_ballistic");
@@ -37,12 +39,11 @@ namespace YouAreNotAlone
                 if (++trycount > 5)
                 {
                     Logger.Error("Massacre: Couldn't load anim/clip sets. Abort.", "");
+                    Restore(true);
 
                     return false;
                 }
-            } while (!Function.Call<bool>(Hash.HAS_ANIM_SET_LOADED, "anim_group_move_ballistic")
-            || !Function.Call<bool>(Hash.HAS_ANIM_SET_LOADED, "move_strafe_ballistic")
-            || !Function.Call<bool>(Hash.HAS_CLIP_SET_LOADED, "move_ballistic_minigun"));
+            }
 
             Logger.Write("Massacre: Anim/clip sets are loaded. Creating members.", "");
 
@@ -178,6 +179,10 @@ namespace YouAreNotAlone
 
             if (relationship != 0) Util.CleanUp(relationship);
 
+            Function.Call(Hash.REMOVE_ANIM_SET, "anim_group_move_ballistic");
+            Function.Call(Hash.REMOVE_ANIM_SET, "move_strafe_ballistic");
+            Function.Call(Hash.REMOVE_CLIP_SET, "move_ballistic_minigun");
+
             members.Clear();
         }
 
@@ -190,6 +195,7 @@ namespace YouAreNotAlone
                 if (!Util.ThereIs(members[i]))
                 {
                     members.RemoveAt(i);
+
                     continue;
                 }
 
@@ -208,8 +214,7 @@ namespace YouAreNotAlone
             if (members.Count < 1)
             {
                 Logger.Write("Massacre: Everyone is gone. Time to be disposed.", "");
-
-                if (relationship != 0) Util.CleanUp(relationship);
+                Restore(false);
 
                 return true;
             }

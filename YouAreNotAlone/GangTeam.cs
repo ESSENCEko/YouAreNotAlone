@@ -23,7 +23,7 @@ namespace YouAreNotAlone
             ts.AddTask.FightAgainstHatedTargets(200.0f);
             ts.AddTask.WanderAround();
             ts.Close();
-            Logger.Write("GangTeam event selected.", "");
+            Logger.ForceWrite("GangTeam event selected.", "");
         }
 
         public bool IsCreatedIn(float radius, Vector3 safePosition, List<string> selectedModels, int teamID, BlipColor teamColor, string teamName)
@@ -114,6 +114,7 @@ namespace YouAreNotAlone
             }
 
             if (relationship != 0) Util.CleanUp(relationship);
+            if (ts != null) ts.Dispose();
 
             members.Clear();
         }
@@ -124,7 +125,7 @@ namespace YouAreNotAlone
 
             foreach (Ped p in members)
             {
-                if (Util.WeCanGiveTaskTo(p)) p.Task.PerformSequence(ts);
+                if (Util.ThereIs(p) && Util.WeCanGiveTaskTo(p)) p.Task.PerformSequence(ts);
             }
         }
 
@@ -137,6 +138,7 @@ namespace YouAreNotAlone
                 if (!Util.ThereIs(members[i]))
                 {
                     members.RemoveAt(i);
+
                     continue;
                 }
 
@@ -149,7 +151,7 @@ namespace YouAreNotAlone
                     continue;
                 }
 
-                if (!members[i].IsInCombat && Util.AnyEmergencyIsNear(members[i].Position, DispatchManager.DispatchType.Cop) && Util.WeCanGiveTaskTo(members[i])) members[i].Task.PerformSequence(ts);
+                if (!members[i].IsInCombat && Util.AnyEmergencyIsNear(members[i].Position, DispatchManager.DispatchType.Cop, EventManager.EventType.None) && Util.WeCanGiveTaskTo(members[i])) members[i].Task.PerformSequence(ts);
 
                 spawnedPed = members[i];
             }
@@ -157,10 +159,7 @@ namespace YouAreNotAlone
             if (members.Count < 1)
             {
                 Logger.Write("GangTeam: Everyone is gone. Time to be disposed.", "");
-
-                if (relationship != 0) Util.CleanUp(relationship);
-
-                ts.Dispose();
+                Restore(false);
 
                 return true;
             }

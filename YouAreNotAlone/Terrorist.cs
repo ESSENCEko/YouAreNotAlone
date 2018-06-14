@@ -11,8 +11,7 @@ namespace YouAreNotAlone
         public Terrorist(string name) : base(EventManager.EventType.Terrorist)
         {
             this.name = name;
-            Logger.Write("Terrorist event selected.", name);
-            System.IO.File.AppendAllText(@"YANA_lastCreatedVehicle.log", "[" + System.DateTime.Now.ToString("HH:mm:ss") + "] " + name + "\n");
+            Logger.ForceWrite("Terrorist event selected.", this.name);
         }
 
         public bool IsCreatedIn(float radius)
@@ -140,7 +139,7 @@ namespace YouAreNotAlone
         private new void CheckDispatch()
         {
             if (dispatchCooldown < 15) dispatchCooldown++;
-            else if (!Util.AnyEmergencyIsNear(spawnedPed.Position, DispatchManager.DispatchType.Army))
+            else if (!Util.AnyEmergencyIsNear(spawnedPed.Position, DispatchManager.DispatchType.Army, type))
             {
                 Main.DispatchAgainst(spawnedPed, type);
                 Logger.Write("Dispatch against", type.ToString());

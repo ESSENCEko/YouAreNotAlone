@@ -14,31 +14,19 @@ namespace YouAreNotAlone
 
         protected bool ReadyToGoWith(List<Ped> members)
         {
-            bool result = true;
-
             foreach (Ped p in members)
             {
-                if (Util.ThereIs(p))
+                if (Util.ThereIs(p) && Util.WeCanGiveTaskTo(p) && !p.IsSittingInVehicle(spawnedVehicle))
                 {
-                    if (!Util.WeCanGiveTaskTo(p))
-                    {
-                        if (p.Equals(spawnedVehicle.Driver) && spawnedVehicle.IsStopped && (!spawnedVehicle.Model.IsBicycle && !spawnedVehicle.Model.IsBicycle && !spawnedVehicle.Model.IsQuadbike))
-                        {
-                            Logger.Write("EntitySet: Driver is dead. Time to eject it.", "");
-                            spawnedVehicle.OpenDoor(VehicleDoor.FrontLeftDoor, false, true);
-                            Script.Wait(100);
-                            Vector3 offset = p.Position + p.RightVector * (-1.01f);
-                            p.Position = new Vector3(offset.X, offset.Y, offset.Z - 1.0f);
-                        }
-                    }
-                    else if (!p.IsSittingInVehicle(spawnedVehicle)) result = false;
+                    Logger.Write("EntitySet: Someone is not sitting in vehicle. Wait.", "");
+
+                    return false;
                 }
             }
 
-            if (result) Logger.Write("EntitySet: Ready to start.", "");
-            else Logger.Write("EntitySet: Someone is not sitting in vehicle. Wait.", "");
+            Logger.Write("EntitySet: Ready to start.", "");
 
-            return result;
+            return true;
         }
 
         protected bool VehicleSeatsCanBeSeatedBy(List<Ped> members)
@@ -72,6 +60,7 @@ namespace YouAreNotAlone
                         if (++i >= spawnedVehicle.PassengerSeats)
                         {
                             Logger.Error("EntitySet: Something wrong with assigning seats.", "");
+
                             return false;
                         }
                     }

@@ -1,6 +1,7 @@
 ﻿using GTA;
 using GTA.Math;
 using GTA.Native;
+using System.Collections.Generic;
 
 namespace YouAreNotAlone
 {
@@ -9,11 +10,13 @@ namespace YouAreNotAlone
         public Vehicle OnFireVehicle { get; private set; }
 
         private int dispatchCooldown;
+        private bool instantly;
 
         public OnFire()
         {
             this.dispatchCooldown = 7;
-            Logger.Write("OnFire event selected.", "");
+            this.instantly = false;
+            Logger.ForceWrite("OnFire event selected.", "");
         }
 
         public bool IsCreatedIn(float radius, bool instantly)
@@ -27,6 +30,8 @@ namespace YouAreNotAlone
                 return false;
             }
 
+            this.instantly = instantly;
+
             for (int trycount = 0; trycount < 5; trycount++)
             {
                 Vehicle selectedVehicle = nearbyVehicles[Util.GetRandomIntBelow(nearbyVehicles.Length)];
@@ -35,26 +40,16 @@ namespace YouAreNotAlone
                 {
                     Logger.Write("OnFire: Found a proper vehicle.", "");
                     OnFireVehicle = selectedVehicle;
-
-                    if (Util.BlipIsOn(OnFireVehicle))
-                    {
-                        Logger.Write("OnFire: Already got a blip. Remove it.", "");
-                        OnFireVehicle.CurrentBlip.Remove();
-                        Script.Wait(100);
-                    }
-
                     OnFireVehicle.IsPersistent = true;
 
-                    if (instantly)
+                    if (this.instantly)
                     {
                         Logger.Write("OnFire: Time to explode selected vehicle.", "");
-                        Util.AddBlipOn(OnFireVehicle, 0.7f, BlipSprite.PersonalVehicleCar, BlipColor.Red, "Vehicle Explosion");
                         OnFireVehicle.Explode();
                     }
                     else
                     {
                         Logger.Write("OnFire: Time to set selected vehicle on fire.", "");
-                        Util.AddBlipOn(OnFireVehicle, 0.7f, BlipSprite.PersonalVehicleCar, BlipColor.Yellow, "Vehicle on Fire");
                         OnFireVehicle.EngineHealth = -900.0f;
                         OnFireVehicle.IsDriveable = false;
                     }
@@ -82,19 +77,13 @@ namespace YouAreNotAlone
                 }
             }
 
-            Entity[] nearbyEntities = World.GetNearbyEntities(OnFireVehicle.Position, 200.0f);
+            List<Entity> nearbyEntities = new List<Entity>(World.GetNearbyEntities(OnFireVehicle.Position, 200.0f));
 
-            if (nearbyEntities.Length > 0)
+            if (nearbyEntities.Count > 0 && Util.ThereIs(nearbyEntities.Find(e => Util.ThereIs(e) && e.IsOnFire)))
             {
-                foreach (Entity en in nearbyEntities)
-                {
-                    if (Util.ThereIs(en) && en.IsOnFire)
-                    {
-                        Logger.Write("OnFire: Found entity on fire.", "");
+                Logger.Write("OnFire: Found entity on fire.", "");
 
-                        return true;
-                    }
-                }
+                return true;
             }
 
             Logger.Write("OnFire: There is no fire near.", "");
@@ -116,6 +105,12 @@ namespace YouAreNotAlone
                 Restore(false);
 
                 return true;
+            }
+
+            if (!Util.BlipIsOn(OnFireVehicle))
+            {
+                if (instantly) Util.AddBlipOn(OnFireVehicle, 0.7f, BlipSprite.PersonalVehicleCar, BlipColor.Red, "Vehicle Explosion");
+                else Util.AddBlipOn(OnFireVehicle, 0.7f, BlipSprite.PersonalVehicleCar, BlipColor.Yellow, "Vehicle on Fire");
             }
 
             if (dispatchCooldown < 15) dispatchCooldown++;

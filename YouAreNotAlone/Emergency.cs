@@ -14,6 +14,7 @@ namespace YouAreNotAlone
         protected string blipName;
         protected int relationship;
         protected bool offDuty;
+        protected TaskSequence ts;
 
         public Emergency(string name, Entity target, string emergencyType) : base()
         {
@@ -23,7 +24,7 @@ namespace YouAreNotAlone
             this.emergencyType = emergencyType;
             this.blipName = "";
             this.offDuty = false;
-            System.IO.File.AppendAllText(@"YANA_lastCreatedVehicle.log", "[" + System.DateTime.Now.ToString("HH:mm:ss") + "] " + name + "\n");
+            this.ts = null;
 
             if (this.emergencyType == "ARMY") this.relationship = Util.NewRelationshipOf(DispatchManager.DispatchType.Army);
             else this.relationship = Util.NewRelationshipOf(DispatchManager.DispatchType.Cop);
@@ -66,6 +67,7 @@ namespace YouAreNotAlone
                 }
             }
 
+            if (ts != null) ts.Dispose();
             if (relationship != 0)
             {
                 if (emergencyType == "ARMY") Util.CleanUp(relationship, DispatchManager.DispatchType.Army);
@@ -75,42 +77,65 @@ namespace YouAreNotAlone
             members.Clear();
         }
 
+        protected abstract BlipSprite CurrentBlipSprite { get; }
         protected void AddEmergencyBlip(bool onVehicle)
         {
             if (onVehicle)
             {
                 Logger.Write(blipName + ": Members are in vehicle. Add blip on vehicle.", name);
 
-                if (Util.WeCanEnter(spawnedVehicle))
+                if (Util.ThereIs(spawnedVehicle))
                 {
-                    if (!Util.BlipIsOn(spawnedVehicle)) Util.AddEmergencyBlipOn(spawnedVehicle, 0.5f, BlipSprite.PoliceOfficer, blipName);
+                    if (Util.WeCanEnter(spawnedVehicle))
+                    {
+                        if (!Util.BlipIsOn(spawnedVehicle))
+                        {
+                            if (CurrentBlipSprite.Equals(BlipSprite.PoliceOfficer)) Util.AddEmergencyBlipOn(spawnedVehicle, 0.5f, CurrentBlipSprite, blipName);
+                            else Util.AddEmergencyBlipOn(spawnedVehicle, 0.7f, CurrentBlipSprite, blipName);
+                        }
+                    }
+                    else if (Util.BlipIsOn(spawnedVehicle)) spawnedVehicle.CurrentBlip.Remove();
                 }
-                else if (Util.BlipIsOn(spawnedVehicle) && spawnedVehicle.CurrentBlip.Sprite.Equals(BlipSprite.PoliceOfficer)) spawnedVehicle.CurrentBlip.Remove();
 
                 foreach (Ped p in members)
                 {
-                    if (Util.BlipIsOn(p) && p.CurrentBlip.Sprite.Equals(BlipSprite.PoliceOfficer)) p.CurrentBlip.Remove();
+                    if (Util.ThereIs(p) && Util.BlipIsOn(p)) p.CurrentBlip.Remove();
                 }
             }
             else
             {
                 Logger.Write(blipName + ": Members are on foot. Add blips on members.", name);
 
-                if (Util.BlipIsOn(spawnedVehicle) && spawnedVehicle.CurrentBlip.Sprite.Equals(BlipSprite.PoliceOfficer)) spawnedVehicle.CurrentBlip.Remove();
+                if (Util.ThereIs(spawnedVehicle) && Util.BlipIsOn(spawnedVehicle)) spawnedVehicle.CurrentBlip.Remove();
 
                 foreach (Ped p in members)
                 {
-                    if (Util.WeCanGiveTaskTo(p))
+                    if (Util.ThereIs(p))
                     {
-                        if (!Util.BlipIsOn(p)) Util.AddEmergencyBlipOn(p, 0.4f, BlipSprite.PoliceOfficer, blipName);
+                        if (Util.WeCanGiveTaskTo(p))
+                        {
+                            if (!Util.BlipIsOn(p))
+                            {
+                                if (CurrentBlipSprite.Equals(BlipSprite.PoliceOfficer)) Util.AddEmergencyBlipOn(p, 0.4f, CurrentBlipSprite, blipName);
+                                else Util.AddEmergencyBlipOn(p, 0.5f, CurrentBlipSprite, blipName);
+                            }
+                        }
+                        else if (Util.BlipIsOn(p)) p.CurrentBlip.Remove();
                     }
-                    else if (Util.BlipIsOn(p) && p.CurrentBlip.Sprite.Equals(BlipSprite.PoliceOfficer)) p.CurrentBlip.Remove();
                 }
             }
         }
 
         protected void SetPedsOnDuty(bool onVehicleDuty)
         {
+            if (ts == null)
+            {
+                ts = new TaskSequence();
+                ts.AddTask.LeaveVehicle(spawnedVehicle, false);
+                ts.AddTask.FightAgainstHatedTargets(400.0f);
+                ts.Close();
+            }
+
             if (onVehicleDuty)
             {
                 if (ReadyToGoWith(members))
@@ -118,34 +143,38 @@ namespace YouAreNotAlone
                     if (Util.ThereIs(spawnedVehicle.Driver))
                     {
                         Logger.Write(blipName + ": Time to fight in vehicle.", name);
+                        AddEmergencyBlip(true);
 
                         if (spawnedVehicle.HasSiren && !spawnedVehicle.SirenActive) spawnedVehicle.SirenActive = true;
-                        if (!Main.NoBlipOnDispatch) AddEmergencyBlip(true);
 
                         foreach (Ped p in members)
                         {
-                            if (Util.WeCanGiveTaskTo(p))
+                            if (Util.ThereIs(p) && Util.WeCanGiveTaskTo(p))
                             {
                                 if (p.Equals(spawnedVehicle.Driver))
                                 {
-                                    if (target.Model.IsPed && ((Ped)target).IsInVehicle()) p.Task.VehicleChase((Ped)target);
-                                    else p.Task.DriveTo(spawnedVehicle, target.Position, 10.0f, 100.0f, 262708); // 4 + 16 + 32 + 512 + 262144
+                                    if (this.GetType().Equals(typeof(EmergencyHeli))) Function.Call(Hash.TASK_VEHICLE_HELI_PROTECT, p, spawnedVehicle, target, 50.0f, 32, 25.0f, 35, 1);
+                                    else
+                                    {
+                                        if (target.Model.IsPed && ((Ped)target).IsInVehicle()) p.Task.VehicleChase((Ped)target);
+                                        else p.Task.DriveTo(spawnedVehicle, target.Position, 10.0f, 100.0f, 262708); // 4 + 16 + 32 + 512 + 262144
+                                    }
                                 }
                                 else if (!p.IsInCombat) p.Task.FightAgainstHatedTargets(400.0f);
                             }
                         }
                     }
-                    else
+                    else if (!this.GetType().Equals(typeof(EmergencyHeli)) || !spawnedVehicle.IsInAir)
                     {
                         Logger.Write(blipName + ": There is no driver when on duty. Re-enter everyone.", name);
 
                         foreach (Ped p in members)
                         {
-                            if (Util.WeCanGiveTaskTo(p)) p.Task.LeaveVehicle(spawnedVehicle, false);
+                            if (Util.ThereIs(p) && Util.WeCanGiveTaskTo(p) && p.IsSittingInVehicle(spawnedVehicle)) p.Task.LeaveVehicle(spawnedVehicle, false);
                         }
                     }
                 }
-                else
+                else if (!this.GetType().Equals(typeof(EmergencyHeli)) || !spawnedVehicle.IsInAir)
                 {
                     if (!VehicleSeatsCanBeSeatedBy(members))
                     {
@@ -153,7 +182,7 @@ namespace YouAreNotAlone
 
                         foreach (Ped p in members)
                         {
-                            if (Util.WeCanGiveTaskTo(p)) p.Task.LeaveVehicle(spawnedVehicle, false);
+                            if (Util.ThereIs(p) && Util.WeCanGiveTaskTo(p) && p.IsSittingInVehicle(spawnedVehicle)) p.Task.LeaveVehicle(spawnedVehicle, false);
                         }
                     }
                     else Logger.Write(blipName + ": Assigned seats successfully when on duty.", name);
@@ -161,27 +190,53 @@ namespace YouAreNotAlone
             }
             else
             {
-                if (Util.ThereIs(spawnedVehicle.Driver) && Util.WeCanGiveTaskTo(spawnedVehicle.Driver))
+                if (this.GetType().Equals(typeof(EmergencyHeli)))
                 {
-                    Logger.Write(blipName + ": Near the criminals. Time to get out of vehicle.", name);
-                    TaskSequence ts = new TaskSequence();
-                    Function.Call(Hash.TASK_VEHICLE_TEMP_ACTION, 0, spawnedVehicle, 1, 1000);
-                    ts.AddTask.LeaveVehicle(spawnedVehicle, false);
-                    ts.AddTask.FightAgainstHatedTargets(400.0f);
-                    ts.Close();
-
-                    spawnedVehicle.Driver.Task.PerformSequence(ts);
-                    ts.Dispose();
-                }
-                else
-                {
-                    Logger.Write(blipName + ": Time to fight on foot.", name);
-
-                    if (!Main.NoBlipOnDispatch) AddEmergencyBlip(false);
+                    AddEmergencyBlip(false);
 
                     foreach (Ped p in members)
                     {
-                        if (!p.IsInCombat && Util.WeCanGiveTaskTo(p)) p.Task.FightAgainstHatedTargets(400.0f);
+                        if (Util.ThereIs(p) && Util.WeCanGiveTaskTo(p))
+                        {
+                            if (p.IsSittingInVehicle(spawnedVehicle)) p.Task.PerformSequence(ts);
+                            else if (!p.IsInCombat) p.Task.FightAgainstHatedTargets(400.0f);
+                        }
+                    }
+                }
+                else
+                {
+                    if (spawnedVehicle.Speed < 1)
+                    {
+                        Logger.Write(blipName + ": Time to fight on foot.", name);
+                        AddEmergencyBlip(false);
+
+                        foreach (Ped p in members)
+                        {
+                            if (Util.ThereIs(p) && Util.WeCanGiveTaskTo(p))
+                            {
+                                if (p.IsSittingInVehicle(spawnedVehicle))
+                                {
+                                    OutputArgument weaponHash = new OutputArgument();
+
+                                    if (!Function.Call<bool>(Hash.GET_CURRENT_PED_VEHICLE_WEAPON, p, weaponHash) || weaponHash.GetResult<int>() == 1422046295) p.Task.PerformSequence(ts);
+                                    else p.Task.VehicleShootAtPed((Ped)target);
+                                }
+                                else if (!p.IsInCombat) p.Task.FightAgainstHatedTargets(400.0f);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        Logger.Write(blipName + ": Near the criminals. Time to get out of vehicle.", name);
+
+                        foreach (Ped p in members)
+                        {
+                            if (Util.ThereIs(p) && Util.WeCanGiveTaskTo(p))
+                            {
+                                if (p.Equals(spawnedVehicle.Driver)) Function.Call(Hash.TASK_VEHICLE_TEMP_ACTION, p, spawnedVehicle, 1, 1000);
+                                else if (!p.IsInCombat) p.Task.FightAgainstHatedTargets(400.0f);
+                            }
+                        }
                     }
                 }
             }
@@ -189,84 +244,90 @@ namespace YouAreNotAlone
 
         protected void SetPedsOffDuty()
         {
-            if (!offDuty)
+            if (offDuty)
             {
-                if (Util.BlipIsOn(spawnedVehicle) && spawnedVehicle.CurrentBlip.Sprite.Equals(BlipSprite.PoliceOfficer)) spawnedVehicle.CurrentBlip.Remove();
-
-                foreach (Ped p in members)
+                if (!Util.WeCanEnter(spawnedVehicle))
                 {
-                    if (Util.BlipIsOn(p) && p.CurrentBlip.Sprite.Equals(BlipSprite.PoliceOfficer)) p.CurrentBlip.Remove();
-                }
-
-                offDuty = true;
-            }
-
-            if (!Util.WeCanEnter(spawnedVehicle)) Restore(false);
-            else if (ReadyToGoWith(members))
-            {
-                if (Util.ThereIs(spawnedVehicle.Driver))
-                {
-                    Logger.Write(blipName + ": Time to be off duty.", name);
-
-                    if (spawnedVehicle.HasSiren && spawnedVehicle.SirenActive) spawnedVehicle.SirenActive = false;
-                    if (!Function.Call<bool>(Hash.GET_IS_TASK_ACTIVE, spawnedVehicle.Driver, 151))
-                    {
-                        foreach (Ped p in members)
-                        {
-                            if (Util.ThereIs(p))
-                            {
-                                if (Util.WeCanGiveTaskTo(p))
-                                {
-                                    if (p.Equals(spawnedVehicle.Driver)) p.Task.CruiseWithVehicle(spawnedVehicle, 20.0f, (int)DrivingStyle.Normal);
-                                    else p.Task.Wait(1000);
-                                }
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    Logger.Write(blipName + ": There is no driver when off duty. Re-enter everyone.", name);
-
                     foreach (Ped p in members)
                     {
-                        if (Util.WeCanGiveTaskTo(p)) p.Task.LeaveVehicle(spawnedVehicle, false);
+                        if (Util.ThereIs(p) && Util.WeCanGiveTaskTo(p) && !Function.Call<bool>(Hash.GET_IS_TASK_ACTIVE, p, 100)) p.Task.WanderAround();
                     }
                 }
+                else if (!ReadyToGoWith(members)) offDuty = false;
             }
             else
             {
-                if (!VehicleSeatsCanBeSeatedBy(members))
-                {
-                    Logger.Write(blipName + ": Something wrong with assigning seats when off duty. Re-enter everyone.", name);
+                if (Util.BlipIsOn(spawnedVehicle)) spawnedVehicle.CurrentBlip.Remove();
 
-                    foreach (Ped p in members)
+                foreach (Ped p in members)
+                {
+                    if (Util.BlipIsOn(p)) p.CurrentBlip.Remove();
+                }
+
+                if (!Util.WeCanEnter(spawnedVehicle)) offDuty = true;
+                else if (ReadyToGoWith(members))
+                {
+                    if (Util.ThereIs(spawnedVehicle.Driver))
                     {
-                        if (Util.WeCanGiveTaskTo(p)) p.Task.LeaveVehicle(spawnedVehicle, false);
+                        Logger.Write(blipName + ": Time to be off duty.", name);
+
+                        if (spawnedVehicle.HasSiren && spawnedVehicle.SirenActive) spawnedVehicle.SirenActive = false;
+
+                        foreach (Ped p in members)
+                        {
+                            if (Util.ThereIs(p) && Util.WeCanGiveTaskTo(p))
+                            {
+                                if (p.Equals(spawnedVehicle.Driver))
+                                {
+                                    if (!this.GetType().Equals(typeof(EmergencyHeli))) p.Task.CruiseWithVehicle(spawnedVehicle, 20.0f, (int)DrivingStyle.Normal);
+                                }
+                                else p.Task.Wait(1000);
+                            }
+                        }
+
+                        offDuty = true;
+                    }
+                    else if (!this.GetType().Equals(typeof(EmergencyHeli)) || !spawnedVehicle.IsInAir)
+                    {
+                        Logger.Write(blipName + ": There is no driver when off duty. Re-enter everyone.", name);
+
+                        foreach (Ped p in members)
+                        {
+                            if (Util.ThereIs(p) && Util.WeCanGiveTaskTo(p) && p.IsSittingInVehicle(spawnedVehicle)) p.Task.LeaveVehicle(spawnedVehicle, false);
+                        }
                     }
                 }
-                else Logger.Write(blipName + ": Assigned seats successfully when off duty.", name);
+                else if (!this.GetType().Equals(typeof(EmergencyHeli)) || !spawnedVehicle.IsInAir)
+                {
+                    if (!VehicleSeatsCanBeSeatedBy(members))
+                    {
+                        Logger.Write(blipName + ": Something wrong with assigning seats when off duty. Re-enter everyone.", name);
+
+                        foreach (Ped p in members)
+                        {
+                            if (Util.ThereIs(p) && Util.WeCanGiveTaskTo(p) && p.IsSittingInVehicle(spawnedVehicle)) p.Task.LeaveVehicle(spawnedVehicle, false);
+                        }
+                    }
+                    else Logger.Write(blipName + ": Assigned seats successfully when off duty.", name);
+                }
             }
         }
 
         protected bool TargetIsFound()
         {
+            if (Util.ThereIs(target) && Util.WeCanGiveTaskTo((Ped)target) && spawnedVehicle.IsInRangeOf(target.Position, 150.0f)) return true;
+
             target = null;
-            Ped[] nearbyPeds = World.GetNearbyPeds(spawnedVehicle.Position, 300.0f);
+            List<Ped> nearbyPeds = new List<Ped>(World.GetNearbyPeds(spawnedVehicle.Position, 300.0f));
 
-            if (nearbyPeds.Length < 1)
+            if (nearbyPeds.Count > 0)
             {
-                Logger.Write(blipName + ": There is no peds nearby. Abort finding target.", name);
+                Ped selectedPed = nearbyPeds.Find(p => Util.ThereIs(p) && Util.WeCanGiveTaskTo(p) && World.GetRelationshipBetweenGroups(relationship, p.RelationshipGroup).Equals(Relationship.Hate));
 
-                return false;
-            }
-
-            foreach (Ped p in nearbyPeds)
-            {
-                if (Util.ThereIs(p) && !p.IsDead && World.GetRelationshipBetweenGroups(relationship, p.RelationshipGroup).Equals(Relationship.Hate))
+                if (Util.ThereIs(selectedPed))
                 {
                     Logger.Write(blipName + ": Found target.", name);
-                    target = p;
+                    target = selectedPed;
 
                     return true;
                 }
@@ -281,6 +342,9 @@ namespace YouAreNotAlone
         {
             if (Function.Call<int>(Hash.GET_NUMBER_OF_PED_DRAWABLE_VARIATIONS, p, 8) > 0 && Util.GetRandomIntBelow(2) == 1)
                 Function.Call(Hash.SET_PED_COMPONENT_VARIATION, p, 8, Util.GetRandomIntBelow(Function.Call<int>(Hash.GET_NUMBER_OF_PED_DRAWABLE_VARIATIONS, p, 8)), 0, 0);
+
+            if (Function.Call<int>(Hash.GET_NUMBER_OF_PED_DRAWABLE_VARIATIONS, p, 9) > 0 && Util.GetRandomIntBelow(2) == 1)
+                Function.Call(Hash.SET_PED_COMPONENT_VARIATION, p, 9, Util.GetRandomIntBelow(Function.Call<int>(Hash.GET_NUMBER_OF_PED_DRAWABLE_VARIATIONS, p, 9)), 0, 0);
 
             if (Function.Call<int>(Hash.GET_NUMBER_OF_PED_PROP_DRAWABLE_VARIATIONS, p, 0) > 0 && Util.GetRandomIntBelow(2) == 1)
                 Function.Call(Hash.SET_PED_PROP_INDEX, p, 0, Util.GetRandomIntBelow(Function.Call<int>(Hash.GET_NUMBER_OF_PED_PROP_TEXTURE_VARIATIONS, p, 0, 0)), 0, false);

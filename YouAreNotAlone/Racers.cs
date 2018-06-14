@@ -16,7 +16,7 @@ namespace YouAreNotAlone
             this.models = models;
             this.safePosition = position;
             this.goal = goal;
-            Logger.Write("Racers event selected.", "");
+            Logger.ForceWrite("Racers event selected.", "");
         }
 
         public bool IsCreatedIn(float radius)
