@@ -1,9 +1,10 @@
 ﻿using GTA;
 using GTA.Math;
+using System.Collections.Generic;
 
 namespace YouAreNotAlone
 {
-    public class Stinger : AdvancedEntity
+    public class Stinger : AdvancedEntity, ICheckable
     {
         private Vehicle owner;
         private Prop stinger;
@@ -21,13 +22,13 @@ namespace YouAreNotAlone
             wheel_rm2 = 40442
         }
 
-        public Stinger(Vehicle v) { this.owner = v; }
+        public Stinger(Vehicle owner) { this.owner = owner; }
 
         public bool IsCreatedIn(Vector3 position)
         {
             if (position.Equals(Vector3.Zero))
             {
-                Logger.Write("Stinger: Couldn't find safe position. Abort.", "");
+                Logger.Write(false, "Stinger: Couldn't find safe position. Abort.", "");
 
                 return false;
             }
@@ -38,7 +39,7 @@ namespace YouAreNotAlone
 
             if (!Util.ThereIs(stinger))
             {
-                Logger.Write("Stinger: Couldn't create stinger. Abort.", "");
+                Logger.Write(false, "Stinger: Couldn't create stinger. Abort.", "");
 
                 return false;
             }
@@ -58,7 +59,7 @@ namespace YouAreNotAlone
             points[2] = stinger.Position - stinger.RightVector * dimension.X / 2 + stinger.ForwardVector * dimension.Y / 2;
             points[3] = stinger.Position + stinger.RightVector * dimension.X / 2 + stinger.ForwardVector * dimension.Y / 2;
 
-            Logger.Write("Stinger: Created stinger successfully.", "");
+            Logger.Write(false, "Stinger: Created stinger successfully.", "");
 
             return true;
         }
@@ -67,23 +68,22 @@ namespace YouAreNotAlone
         {
             if (instantly)
             {
-                Logger.Write("Stinger: Restore instanly.", "");
+                Logger.Write(false, "Stinger: Restore instanly.", "");
 
                 if (Util.ThereIs(stinger)) stinger.Delete();
             }
             else
             {
-                Logger.Write("Stinger: Restore naturally.", "");
+                Logger.Write(false, "Stinger: Restore naturally.", "");
                 Util.NaturallyRemove(stinger);
             }
         }
 
         public override bool ShouldBeRemoved()
         {
-            if (!Util.ThereIs(stinger) || !Util.ThereIs(owner) || !stinger.IsInRangeOf(owner.Position, 300.0f) || !stinger.IsInRangeOf(Game.Player.Character.Position, 500.0f))
+            if (!Util.ThereIs(stinger) || !Util.ThereIs(owner) || !stinger.IsInRangeOf(Game.Player.Character.Position, 500.0f))
             {
-                Logger.Write("Stinger: Stinger need to be restored.", "");
-                Restore(false);
+                Logger.Write(false, "Stinger: Stinger need to be restored.", "");
 
                 return true;
             }
@@ -91,20 +91,13 @@ namespace YouAreNotAlone
             return false;
         }
 
-        public void CheckStingable()
+        public void CheckAbilityUsable()
         {
-            Vehicle[] nearbyVehicles = World.GetNearbyVehicles(stinger.Position, 20.0f);
-
-            if (nearbyVehicles.Length < 1) return;
-
-            foreach (Vehicle v in nearbyVehicles)
+            foreach (Vehicle v in new List<Vehicle>(World.GetNearbyVehicles(stinger.Position, 20.0f)).FindAll(veh => Util.ThereIs(veh) && veh.IsTouching(stinger) && veh.CanTiresBurst))
             {
-                if (Util.ThereIs(v) && v.IsTouching(stinger) && v.CanTiresBurst)
+                foreach (Wheel w in System.Enum.GetValues(typeof(Wheel)))
                 {
-                    foreach (Wheel w in System.Enum.GetValues(typeof(Wheel)))
-                    {
-                        if (v.HasBone(w.ToString()) && !v.IsTireBurst((int)w) && StingerAreaContains(v.GetBoneCoord(w.ToString()))) v.BurstTire((int)w);
-                    }
+                    if (v.HasBone(w.ToString()) && !v.IsTireBurst((int)w) && StingerAreaContains(v.GetBoneCoord(w.ToString()))) v.BurstTire((int)w);
                 }
             }
         }

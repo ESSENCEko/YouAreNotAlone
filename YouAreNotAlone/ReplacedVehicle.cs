@@ -11,7 +11,7 @@ namespace YouAreNotAlone
         public ReplacedVehicle(string name) : base()
         {
             this.name = name;
-            Logger.ForceWrite("ReplacedVehicle event selected.", this.name);
+            Logger.Write(true, "ReplacedVehicle event selected.", this.name);
         }
 
         public bool IsCreatedIn(float radius)
@@ -31,7 +31,7 @@ namespace YouAreNotAlone
 
                 if (Util.WeCanReplace(selectedVehicle) && !selectedVehicle.IsPersistent && !selectedVehicle.IsAttached() && !Util.ThereIs(selectedVehicle.GetEntityAttachedTo()) && Util.SomethingIsBetweenPlayerAnd(selectedVehicle))
                 {
-                    Logger.Write("ReplacedVehicle: Replaceable vehicle found.", name);
+                    Logger.Write(false, "ReplacedVehicle: Replaceable vehicle found.", name);
                     Vector3 selectedPosition = selectedVehicle.Position;
                     float selectedHeading = selectedVehicle.Heading;
                     float selectedSpeed = selectedVehicle.Speed;
@@ -49,7 +49,7 @@ namespace YouAreNotAlone
                         return false;
                     }
 
-                    Logger.Write("ReplacedVehicle: Created vehicle.", name);
+                    Logger.Write(false, "ReplacedVehicle: Created vehicle.", name);
 
                     if (driverIsNeeded)
                     {
@@ -63,9 +63,9 @@ namespace YouAreNotAlone
                             spawnedPed.RelationshipGroup = Function.Call<int>(Hash.GET_HASH_KEY, "CIV" + spawnedPed.Gender.ToString().ToUpper());
                             spawnedPed.Task.CruiseWithVehicle(spawnedVehicle, 20.0f, (int)DrivingStyle.Normal);
                             spawnedPed.MarkAsNoLongerNeeded();
-                            Logger.Write("ReplacedVehicle: Created driver.", name);
+                            Logger.Write(false, "ReplacedVehicle: Created driver.", name);
                         }
-                        else Logger.Error("ReplacedVehicle: Couldn't create driver in replacing vehicle.", name);
+                        else Logger.Write(false, "ReplacedVehicle: Couldn't create driver in replacing vehicle.", name);
                     }
 
                     if (Util.GetRandomIntBelow(3) == 1)
@@ -73,26 +73,26 @@ namespace YouAreNotAlone
                         blipName = "Tuned ";
                         blipColor = BlipColor.Blue;
                         Util.Tune(spawnedVehicle, Util.GetRandomIntBelow(2) == 1, Util.GetRandomIntBelow(2) == 1, false);
-                        Logger.Write("ReplacedVehicle: Tune replacing vehicle.", name);
+                        Logger.Write(false, "ReplacedVehicle: Tune replacing vehicle.", name);
                     }
                     else
                     {
                         blipName = "";
                         blipColor = BlipColor.White;
-                        Logger.Write("ReplacedVehicle: Remain stock replacing vehicle.", name);
+                        Logger.Write(false, "ReplacedVehicle: Remain stock replacing vehicle.", name);
                     }
 
-                    if (!Util.BlipIsOn(spawnedVehicle))
-                    {
-                        Util.AddBlipOn(spawnedVehicle, 0.7f, BlipSprite.PersonalVehicleCar, blipColor, blipName + VehicleName.GetNameOf(spawnedVehicle.Model.Hash));
-                        Logger.Write("ReplacedVehicle: Create replacing vehicle successfully.", name);
-
-                        return true;
-                    }
-                    else
+                    if (Util.BlipIsOn(spawnedVehicle))
                     {
                         Logger.Error("ReplacedVehicle: Blip is already on replacing vehicle. Abort.", name);
                         Restore(true);
+                    }
+                    else
+                    {
+                        Util.AddBlipOn(spawnedVehicle, 0.7f, BlipSprite.PersonalVehicleCar, blipColor, blipName + VehicleInfo.GetNameOf(spawnedVehicle.Model.Hash));
+                        Logger.Write(false, "ReplacedVehicle: Create replacing vehicle successfully.", name);
+
+                        return true;
                     }
                 }
             }
@@ -104,14 +104,14 @@ namespace YouAreNotAlone
         {
             if (instantly)
             {
-                Logger.Write("ReplacedVehicle: Restore instantly.", name);
+                Logger.Write(false, "ReplacedVehicle: Restore instantly.", name);
 
                 if (Util.ThereIs(spawnedPed)) spawnedPed.Delete();
                 if (Util.ThereIs(spawnedVehicle)) spawnedVehicle.Delete();
             }
             else
             {
-                Logger.Write("ReplacedVehicle: Restore naturally.", name);
+                Logger.Write(false, "ReplacedVehicle: Restore naturally.", name);
                 Util.NaturallyRemove(spawnedPed);
                 Util.NaturallyRemove(spawnedVehicle);
             }
@@ -121,8 +121,7 @@ namespace YouAreNotAlone
         {
             if (!Util.ThereIs(spawnedVehicle) || !Util.WeCanEnter(spawnedVehicle) || !spawnedVehicle.IsInRangeOf(Game.Player.Character.Position, 200.0f))
             {
-                Logger.Write("ReplacedVehicle: Replaced vehicle need to be restored.", name);
-                Restore(false);
+                Logger.Write(false, "ReplacedVehicle: Replaced vehicle need to be restored.", name);
 
                 return true;
             }

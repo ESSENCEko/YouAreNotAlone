@@ -1,5 +1,4 @@
 ﻿using GTA;
-using GTA.Math;
 using GTA.Native;
 using System.Collections.Generic;
 
@@ -12,21 +11,31 @@ namespace YouAreNotAlone
 
         public EntitySet() { }
 
-        protected bool ReadyToGoWith(List<Ped> members)
+        protected bool SpawnedPedExistsIn(List<Ped> members)
         {
-            foreach (Ped p in members)
+            if (Util.ThereIs(spawnedPed) && Util.WeCanGiveTaskTo(spawnedPed)) return true;
+            else
             {
-                if (Util.ThereIs(p) && Util.WeCanGiveTaskTo(p) && !p.IsSittingInVehicle(spawnedVehicle))
+                spawnedPed = null;
+
+                if (Util.ThereIs(spawnedPed = members.Find(m => Util.ThereIs(m) && Util.WeCanGiveTaskTo(m))))
                 {
-                    Logger.Write("EntitySet: Someone is not sitting in vehicle. Wait.", "");
+                    Logger.Write(false, "EntitySet: Found driver.", "");
+
+                    return true;
+                }
+                else
+                {
+                    Logger.Write(false, "EntitySet: Couldn't find driver. Need to be restored.", "");
 
                     return false;
                 }
             }
+        }
 
-            Logger.Write("EntitySet: Ready to start.", "");
-
-            return true;
+        protected bool ReadyToGoWith(List<Ped> members)
+        {
+            return !Util.ThereIs(members.Find(p => Util.ThereIs(p) && Util.WeCanGiveTaskTo(p) && !p.IsSittingInVehicle(spawnedVehicle)));
         }
 
         protected bool VehicleSeatsCanBeSeatedBy(List<Ped> members)
@@ -42,12 +51,12 @@ namespace YouAreNotAlone
 
             if (Util.ThereIs(spawnedVehicle.Driver) && Util.WeCanGiveTaskTo(spawnedVehicle.Driver))
             {
-                Logger.Write("EntitySet: There is driver. Let it brake.", "");
+                Logger.Write(false, "EntitySet: There is driver. Let it brake.", "");
                 Function.Call(Hash.TASK_VEHICLE_TEMP_ACTION, spawnedVehicle.Driver, spawnedVehicle, 1, 1000);
             }
             else
             {
-                Logger.Write("EntitySet: No driver. Starts with driver seat.", "");
+                Logger.Write(false, "EntitySet: No driver. Starts with driver seat.", "");
                 startingSeat = -1;
             }
 
@@ -69,7 +78,7 @@ namespace YouAreNotAlone
                 }
             }
 
-            Logger.Write("EntitySet: Assigned seats successfully.", "");
+            Logger.Write(false, "EntitySet: Assigned seats successfully.", "");
 
             return true;
         }

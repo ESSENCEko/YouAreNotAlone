@@ -12,7 +12,7 @@ namespace YouAreNotAlone
         public EmergencyFire(string name, Entity target, string emergencyType) : base(name, target, emergencyType)
         {
             this.blipName += emergencyType == "FIREMAN" ? "Fire Fighter" : "Paramedic";
-            Util.CleanUp(this.relationship, DispatchManager.DispatchType.Cop);
+            Util.CleanUp(this.relationship, DispatchManager.DispatchType.CopGround);
             this.relationship = 0;
             this.targetPosition = target.Position;
         }
@@ -27,7 +27,7 @@ namespace YouAreNotAlone
 
                 if (!road.Position.Equals(Vector3.Zero))
                 {
-                    Logger.Write(blipName + ": Found proper road.", name);
+                    Logger.Write(false, blipName + ": Found proper road.", name);
 
                     break;
                 }
@@ -44,7 +44,7 @@ namespace YouAreNotAlone
 
             if (!Util.ThereIs(spawnedVehicle))
             {
-                Logger.Write(blipName + ": Couldn't create vehicle. Abort.", name);
+                Logger.Write(false, blipName + ": Couldn't create vehicle. Abort.", name);
 
                 return false;
             }
@@ -60,17 +60,23 @@ namespace YouAreNotAlone
                 }
             }
 
-            Logger.Write(blipName + ": Created members.", name);
+            Logger.Write(false, blipName + ": Created members.", name);
+
+            if (Util.ThereIs(members.Find(p => !Util.ThereIs(p))))
+            {
+                Logger.Error(blipName + ": There is a member who doesn't exist. Abort.", name);
+                Restore(true);
+
+                return false;
+            }
 
             foreach (Ped p in members)
             {
-                if (!Util.ThereIs(p))
-                {
-                    Logger.Error(blipName + ": There is a member who doesn't exist. Abort.", name);
-                    Restore(true);
-
-                    return false;
-                }
+                AddVarietyTo(p);
+                p.Weapons.RemoveAll();
+                p.RelationshipGroup = Function.Call<int>(Hash.GET_HASH_KEY, emergencyType);
+                p.AlwaysKeepTask = true;
+                p.BlockPermanentEvents = true;
 
                 if (emergencyType == "FIREMAN")
                 {
@@ -80,11 +86,7 @@ namespace YouAreNotAlone
                     p.IsFireProof = true;
                 }
 
-                AddVarietyTo(p);
-                p.RelationshipGroup = Function.Call<int>(Hash.GET_HASH_KEY, emergencyType);
-                p.AlwaysKeepTask = true;
-                p.BlockPermanentEvents = true;
-                Logger.Write(blipName + ": Characteristics are set.", name);
+                Logger.Write(false, blipName + ": Characteristics are set.", name);
             }
 
             if (Util.ThereIs(spawnedVehicle.Driver))
@@ -94,8 +96,7 @@ namespace YouAreNotAlone
             }
 
             spawnedVehicle.EngineRunning = true;
-            SetPedsOnDuty(true);
-            Logger.Write(blipName + ": Ready to dispatch.", name);
+            Logger.Write(false, blipName + ": Ready to dispatch.", name);
 
             return true;
         }
@@ -104,42 +105,27 @@ namespace YouAreNotAlone
         {
             if (instantly)
             {
-                Logger.Write(blipName + ": Restore instantly.", name);
+                Logger.Write(false, blipName + ": Restore instantly.", name);
 
-                foreach (Ped p in members)
-                {
-                    if (Util.ThereIs(p)) p.Delete();
-                }
+                foreach (Ped p in members.FindAll(m => Util.ThereIs(m))) p.Delete();
 
                 if (Util.ThereIs(spawnedVehicle)) spawnedVehicle.Delete();
             }
             else
             {
-                Logger.Write(blipName + ": Restore naturally.", name);
+                Logger.Write(false, blipName + ": Restore naturally.", name);
 
-                foreach (Ped p in members)
-                {
-                    if (Util.ThereIs(p) && p.IsPersistent)
-                    {
-                        p.AlwaysKeepTask = false;
-                        p.BlockPermanentEvents = false;
-                        Util.NaturallyRemove(p);
-                    }
-                }
+                foreach (Ped p in members) Util.NaturallyRemove(p);
 
-                if (Util.ThereIs(spawnedVehicle) && spawnedVehicle.IsPersistent)
-                {
-                    if (spawnedVehicle.HasSiren && spawnedVehicle.SirenActive) spawnedVehicle.SirenActive = false;
+                if (Util.ThereIs(spawnedVehicle) && spawnedVehicle.HasSiren && spawnedVehicle.SirenActive) spawnedVehicle.SirenActive = false;
 
-                    Util.NaturallyRemove(spawnedVehicle);
-                }
+                Util.NaturallyRemove(spawnedVehicle);
             }
 
             members.Clear();
         }
 
         protected override BlipSprite CurrentBlipSprite { get { return BlipSprite.Hospital; } }
-
         protected new abstract void SetPedsOnDuty(bool onVehicleDuty);
         protected abstract new bool TargetIsFound();
         private new void AddVarietyTo(Ped p)
@@ -191,48 +177,51 @@ namespace YouAreNotAlone
                 }
 
                 if (Util.WeCanGiveTaskTo(members[i])) alive++;
-                else if (Util.BlipIsOn(members[i])) members[i].CurrentBlip.Remove();
+                else
+                {
+                    Util.NaturallyRemove(members[i]);
+                    members.RemoveAt(i);
+                }
             }
 
-            Logger.Write(blipName + ": Alive members - " + alive.ToString(), name);
+            Logger.Write(false, blipName + ": Alive members - " + alive.ToString(), name);
 
-            if (!Util.ThereIs(spawnedVehicle) || !Util.WeCanEnter(spawnedVehicle) || alive < 1 || members.Count < 1)
+            if (!Util.ThereIs(spawnedVehicle) || alive < 1 || members.Count < 1)
             {
-                Logger.Write(blipName + ": Emergency fire need to be restored.", name);
-                Restore(false);
+                Logger.Write(false, blipName + ": Emergency fire need to be restored.", name);
 
                 return true;
             }
 
-            if (!TargetIsFound())
+            if (TargetIsFound())
             {
-                if (!spawnedVehicle.IsInRangeOf(Game.Player.Character.Position, 200.0f))
+                if (offDuty) offDuty = false;
+                if (spawnedVehicle.IsInRangeOf(Game.Player.Character.Position, 500.0f))
                 {
-                    Logger.Write(blipName + ": Target not found and too far from player. Time to be restored.", name);
-                    Restore(false);
-
-                    return true;
+                    Logger.Write(false, blipName + ": Target found. Time to be on duty.", name);
+                    SetPedsOnDuty(Util.WeCanEnter(spawnedVehicle) && !spawnedVehicle.IsInRangeOf(targetPosition, 30.0f));
+                    RefreshBlip(false);
                 }
                 else
                 {
-                    Logger.Write(blipName + ": Target not found. Time to be off duty.", name);
-                    SetPedsOffDuty();
+                    Logger.Write(false, blipName + ": Target found but too far from player. Time to be restored.", name);
+
+                    return true;
                 }
             }
             else
             {
-                if (offDuty) offDuty = false;
-                if (!spawnedVehicle.IsInRangeOf(Game.Player.Character.Position, 500.0f))
+                if (spawnedVehicle.IsInRangeOf(Game.Player.Character.Position, 200.0f))
                 {
-                    Logger.Write(blipName + ": Target found but too far from player. Time to be restored.", name);
-                    Restore(false);
-
-                    return true;
+                    Logger.Write(false, blipName + ": Target not found. Time to be off duty.", name);
+                    SetPedsOffDuty();
+                    RefreshBlip(true);
                 }
                 else
                 {
-                    Logger.Write(blipName + ": Target found. Time to be on duty.", name);
-                    SetPedsOnDuty(Util.WeCanEnter(spawnedVehicle) && !spawnedVehicle.IsInRangeOf(targetPosition, 30.0f));
+                    Logger.Write(false, blipName + ": Target not found and too far from player. Time to be restored.", name);
+
+                    return true;
                 }
             }
 

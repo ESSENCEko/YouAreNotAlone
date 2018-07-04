@@ -10,11 +10,13 @@ namespace YouAreNotAlone
         public EmergencyGround(string name, Entity target, string emergencyType) : base(name, target, emergencyType)
         {
             this.blipName += emergencyType + " Ground";
-            Logger.ForceWrite(blipName + ": Time to dispatch.", this.name);
+            Logger.Write(true, blipName + ": Time to dispatch.", this.name);
         }
 
         public override bool IsCreatedIn(Vector3 safePosition, List<string> models)
         {
+            if (relationship == 0) return false;
+
             Road road = new Road(Vector3.Zero, 0.0f);
 
             for (int cnt = 0; cnt < 5; cnt++)
@@ -23,7 +25,7 @@ namespace YouAreNotAlone
 
                 if (!road.Position.Equals(Vector3.Zero))
                 {
-                    Logger.Write(blipName + ": Found proper road.", name);
+                    Logger.Write(false, blipName + ": Found proper road.", name);
 
                     break;
                 }
@@ -38,7 +40,7 @@ namespace YouAreNotAlone
 
             spawnedVehicle = Util.Create(name, road.Position, road.Heading, false);
 
-            if (!Util.ThereIs(spawnedVehicle))
+            if (!Util.ThereIs(spawnedVehicle) || !TaskIsSet())
             {
                 Logger.Error(blipName + ": Couldn't create vehicle. Abort.", name);
 
@@ -78,24 +80,24 @@ namespace YouAreNotAlone
                 }
             }
 
-            Logger.Write(blipName + ": Created members.", name);
+            Logger.Write(false, blipName + ": Created members.", name);
+
+            if (Util.ThereIs(members.Find(p => !Util.ThereIs(p))))
+            {
+                Logger.Error(blipName + ": There is a member who doesn't exist. Abort.", name);
+                Restore(true);
+
+                return false;
+            }
 
             foreach (Ped p in members)
             {
-                if (!Util.ThereIs(p))
-                {
-                    Logger.Error(blipName + ": There is a member who doesn't exist. Abort.", name);
-                    Restore(true);
-
-                    return false;
-                }
-
                 switch (emergencyType)
                 {
                     case "ARMY":
                         {
+                            p.Weapons.Give(WeaponHash.CombatMG, 500, false, true);
                             p.Weapons.Give(WeaponHash.MachinePistol, 300, true, true);
-                            p.Weapons.Give(WeaponHash.CombatMG, 500, false, false);
                             p.ShootRate = 1000;
                             p.Armor = 100;
 
@@ -104,8 +106,8 @@ namespace YouAreNotAlone
 
                     case "FIB":
                         {
+                            p.Weapons.Give(WeaponHash.CarbineRifle, 300, false, true);
                             p.Weapons.Give(WeaponHash.MachinePistol, 300, true, true);
-                            p.Weapons.Give(WeaponHash.CarbineRifle, 300, false, false);
                             p.ShootRate = 900;
                             p.Armor = 50;
 
@@ -114,8 +116,8 @@ namespace YouAreNotAlone
 
                     case "LSPD":
                         {
+                            p.Weapons.Give(WeaponHash.PumpShotgun, 30, false, true);
                             p.Weapons.Give(WeaponHash.Pistol, 100, true, true);
-                            p.Weapons.Give(WeaponHash.PumpShotgun, 30, false, false);
                             p.ShootRate = 500;
                             p.Armor = 30;
 
@@ -138,8 +140,8 @@ namespace YouAreNotAlone
 
                             if (!p.Weapons.HasWeapon(WeaponHash.Pistol))
                             {
+                                p.Weapons.Give(WeaponHash.Pistol, 100, false, true);
                                 p.Weapons.Give(WeaponHash.SMG, 300, true, true);
-                                p.Weapons.Give(WeaponHash.Pistol, 100, false, false);
                             }
 
                             p.ShootRate = 700;
@@ -165,15 +167,14 @@ namespace YouAreNotAlone
                 Function.Call(Hash.SET_PED_AS_COP, p, false);
                 p.AlwaysKeepTask = true;
                 p.BlockPermanentEvents = true;
+                p.FiringPattern = FiringPattern.BurstFireDriveby;
 
                 p.RelationshipGroup = relationship;
-                p.NeverLeavesGroup = true;
-                Logger.Write(blipName + ": Characteristics are set.", name);
+                Logger.Write(false, blipName + ": Characteristics are set.", name);
             }
 
             spawnedVehicle.EngineRunning = true;
-            SetPedsOnDuty(true);
-            Logger.Write(blipName + ": Ready to dispatch.", name);
+            Logger.Write(false, blipName + ": Ready to dispatch.", name);
 
             return true;
         }

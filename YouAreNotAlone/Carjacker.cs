@@ -5,17 +5,21 @@ namespace YouAreNotAlone
     public class Carjacker : Criminal
     {
         private float radius;
+        private int lastVehicle;
         private int trycount;
 
         public Carjacker() : base(EventManager.EventType.Carjacker)
         {
             this.radius = 0.0f;
+            this.lastVehicle = 0;
             this.trycount = 0;
-            Logger.ForceWrite("Carjacker event selected.", "");
+            Logger.Write(true, "Carjacker event selected.", "");
         }
 
         public bool IsCreatedIn(float radius)
         {
+            if (relationship == 0) return false;
+
             Ped[] nearbyPeds = World.GetNearbyPeds(Game.Player.Character.Position, radius);
 
             if (nearbyPeds.Length < 1)
@@ -31,30 +35,29 @@ namespace YouAreNotAlone
             {
                 Ped selectedPed = nearbyPeds[Util.GetRandomIntBelow(nearbyPeds.Length)];
 
-                if (!Util.ThereIs(selectedPed) || selectedPed.IsPersistent || selectedPed.Equals(Game.Player.Character) || !selectedPed.IsHuman || selectedPed.IsDead)
+                if (!Util.ThereIs(selectedPed) || Util.BlipIsOn(selectedPed) || selectedPed.IsPersistent || selectedPed.Equals(Game.Player.Character) || !selectedPed.IsHuman || selectedPed.IsDead)
                 {
-                    Logger.Write("Carjacker: Couldn't use selected ped.", "");
+                    Logger.Write(false, "Carjacker: Couldn't use selected ped.", "");
 
                     continue;
                 }
 
-                Logger.Write("Carjacker: Found proper ped.", "");
+                Logger.Write(false, "Carjacker: Found proper ped.", "");
                 spawnedPed = selectedPed;
                 spawnedPed.IsPersistent = true;
                 spawnedPed.IsPriorityTargetForEnemies = true;
 
                 spawnedPed.AlwaysKeepTask = true;
                 spawnedPed.BlockPermanentEvents = true;
-                Logger.Write("Carjacker: Characteristics are set.", "");
+                Logger.Write(false, "Carjacker: Characteristics are set.", "");
 
-                if (!Util.BlipIsOn(spawnedPed))
-                {
-                    Util.AddBlipOn(spawnedPed, 0.7f, BlipSprite.Masks, BlipColor.White, "Carjacker");
-                    Logger.Write("Carjacker: Selected carjacker successfully.", "");
-                    FindNewVehicle();
+                if (spawnedPed.IsInVehicle()) lastVehicle = spawnedPed.CurrentVehicle.Handle;
 
-                    return true;
-                }
+                Util.AddBlipOn(spawnedPed, 0.7f, BlipSprite.Masks, BlipColor.White, "Carjacker");
+                Logger.Write(false, "Carjacker: Selected carjacker successfully.", "");
+                FindNewVehicle();
+
+                return true;
             }
 
             Logger.Error("Carjacker: Couldn't select carjacker. Abort.", "");
@@ -65,18 +68,18 @@ namespace YouAreNotAlone
 
         private void FindNewVehicle()
         {
-            Logger.Write("Carjacker: Finding new vehicle to jack.", "");
+            Logger.Write(false, "Carjacker: Finding new vehicle to jack.", "");
             trycount++;
 
             Util.NaturallyRemove(spawnedVehicle);
             spawnedVehicle = null;
-            Logger.Write("Carjacker: Unset previous vehicle.", "");
+            Logger.Write(false, "Carjacker: Unset previous vehicle.", "");
 
             Vehicle[] nearbyVehicles = World.GetNearbyVehicles(spawnedPed.Position, radius / 2);
 
             if (nearbyVehicles.Length < 1)
             {
-                Logger.Error("Carjacker: Couldn't find vehicles nearby. Abort finding.", "");
+                Logger.Write(false, "Carjacker: Couldn't find vehicles nearby. Abort finding.", "");
 
                 return;
             }
@@ -85,9 +88,9 @@ namespace YouAreNotAlone
             {
                 Vehicle v = nearbyVehicles[Util.GetRandomIntBelow(nearbyVehicles.Length)];
 
-                if (Util.ThereIs(v) && Util.WeCanEnter(v) && !Game.Player.Character.IsInVehicle(v) && !spawnedPed.IsInVehicle(v))
+                if (Util.ThereIs(v) && Util.WeCanEnter(v) && !spawnedPed.IsInVehicle(v) && v.Handle != lastVehicle && (Main.CriminalsCanFightWithPlayer || !Game.Player.Character.IsInVehicle(v)))
                 {
-                    Logger.Write("Carjacker: Found proper vehicle.", "");
+                    Logger.Write(false, "Carjacker: Found proper vehicle.", "");
                     spawnedVehicle = v;
 
                     break;
@@ -102,30 +105,28 @@ namespace YouAreNotAlone
             }
 
             spawnedVehicle.IsPersistent = true;
-
             TaskSequence ts = new TaskSequence();
-            ts.AddTask.ClearAll();
             ts.AddTask.EnterVehicle(spawnedVehicle, VehicleSeat.Driver, -1, 2.0f, 1);
             ts.AddTask.CruiseWithVehicle(spawnedVehicle, 100.0f, 262692); // 4 + 32 + 512 + 262144
             ts.Close();
 
             spawnedPed.Task.PerformSequence(ts);
             ts.Dispose();
-            Logger.Write("Carjacker: Jack new vehicle.", "");
+            Logger.Write(false, "Carjacker: Jack new vehicle.", "");
         }
 
         public override void Restore(bool instantly)
         {
             if (instantly)
             {
-                Logger.Write("Carjacker: Restore instantly.", "");
+                Logger.Write(false, "Carjacker: Restore instantly.", "");
 
                 if (Util.ThereIs(spawnedPed)) spawnedPed.Delete();
                 if (Util.ThereIs(spawnedVehicle)) spawnedVehicle.Delete();
             }
             else
             {
-                Logger.Write("Carjacker: Restore naturally.", "");
+                Logger.Write(false, "Carjacker: Restore naturally.", "");
                 Util.NaturallyRemove(spawnedPed);
                 Util.NaturallyRemove(spawnedVehicle);
             }
@@ -137,13 +138,12 @@ namespace YouAreNotAlone
         {
             if (!Util.ThereIs(spawnedPed) || trycount > 5 || spawnedPed.IsDead || !spawnedPed.IsInRangeOf(Game.Player.Character.Position, 500.0f))
             {
-                Logger.Write("Carjacker: Carjacker need to be restored.", "");
-                Restore(false);
+                Logger.Write(false, "Carjacker: Carjacker need to be restored.", "");
 
                 return true;
             }
 
-            if (!Util.ThereIs(spawnedVehicle) || !spawnedVehicle.IsInRangeOf(spawnedPed.Position, 100.0f) || !Util.WeCanEnter(spawnedVehicle)) FindNewVehicle();
+            if (!Util.ThereIs(spawnedVehicle) || !spawnedVehicle.IsInRangeOf(spawnedPed.Position, 50.0f) || !Util.WeCanEnter(spawnedVehicle) || spawnedPed.IsBeingJacked) FindNewVehicle();
             if (Util.ThereIs(spawnedVehicle) && spawnedPed.IsInVehicle(spawnedVehicle) && spawnedPed.RelationshipGroup != relationship) spawnedPed.RelationshipGroup = relationship;
 
             CheckDispatch();

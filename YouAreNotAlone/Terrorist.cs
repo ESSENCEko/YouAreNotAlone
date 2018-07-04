@@ -1,21 +1,26 @@
 ﻿using GTA;
 using GTA.Math;
 using GTA.Native;
+using System.Collections.Generic;
 
 namespace YouAreNotAlone
 {
     public class Terrorist : Criminal
     {
+        private List<Ped> members;
         private string name;
 
         public Terrorist(string name) : base(EventManager.EventType.Terrorist)
         {
+            this.members = new List<Ped>();
             this.name = name;
-            Logger.ForceWrite("Terrorist event selected.", this.name);
+            Logger.Write(true, "Terrorist event selected.", this.name);
         }
 
         public bool IsCreatedIn(float radius)
         {
+            if (relationship == 0) return false;
+
             Vector3 safePosition = Util.GetSafePositionIn(radius);
 
             if (safePosition.Equals(Vector3.Zero))
@@ -33,7 +38,7 @@ namespace YouAreNotAlone
 
                 if (!road.Position.Equals(Vector3.Zero))
                 {
-                    Logger.Write("Terrorist: Found proper road.", name);
+                    Logger.Write(false, "Terrorist: Found proper road.", name);
 
                     break;
                 }
@@ -55,46 +60,61 @@ namespace YouAreNotAlone
                 return false;
             }
 
-            spawnedPed = spawnedVehicle.CreatePedOnSeat(VehicleSeat.Driver, "g_m_m_chicold_01");
-
-            if (!Util.ThereIs(spawnedPed))
-            {
-                Logger.Error("Terrorist: Couldn't create driver. Abort.", name);
-                spawnedVehicle.Delete();
-
-                return false;
-            }
-
-            Logger.Write("Terrorist: Created vehicle and driver.", name);
+            Logger.Write(false, "Terrorist: Created vehicle and driver.", name);
             Script.Wait(50);
             Util.Tune(spawnedVehicle, false, false, false);
 
             if (name == "khanjali" && spawnedVehicle.GetMod(VehicleMod.Roof) != -1) spawnedVehicle.SetMod(VehicleMod.Roof, -1, false);
 
-            Function.Call(Hash.SET_PED_FLEE_ATTRIBUTES, spawnedPed, 0, false);
-            Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, spawnedPed, 17, true);
-            Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, spawnedPed, 46, true);
-            Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, spawnedPed, 5, true);
-
-            spawnedPed.RelationshipGroup = relationship;
-            spawnedPed.IsPriorityTargetForEnemies = true;
-            spawnedPed.CanBeShotInVehicle = false;
-
-            spawnedPed.AlwaysKeepTask = true;
-            spawnedPed.BlockPermanentEvents = true;
-            spawnedPed.Task.FightAgainstHatedTargets(400.0f);
-            Logger.Write("Terrorist: Characteristics are set.", name);
-
-            if (!Util.BlipIsOn(spawnedPed))
+            for (int i = -1; i < spawnedVehicle.PassengerSeats; i++)
             {
-                Util.AddBlipOn(spawnedPed, 0.7f, BlipSprite.Tank, BlipColor.Red, "Terrorist " + VehicleName.GetNameOf(spawnedVehicle.Model.Hash));
-                Logger.Write("Terrorist: Created terrorist successfully.", name);
+                if (spawnedVehicle.IsSeatFree((VehicleSeat)i))
+                {
+                    members.Add(spawnedVehicle.CreatePedOnSeat((VehicleSeat)i, "g_m_m_chicold_01"));
+                    Script.Wait(50);
+                }
+            }
+
+            Logger.Write(false, "Terrorist: Tuned vehicle and created members.", name);
+
+            if (Util.ThereIs(members.Find(p => !Util.ThereIs(p))))
+            {
+                Logger.Error("Terrorist: There is a member who doesn't exist. Abort.", name);
+                Restore(true);
+
+                return false;
+            }
+
+            foreach (Ped p in members)
+            {
+                Function.Call(Hash.SET_PED_FLEE_ATTRIBUTES, p, 0, false);
+                Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, p, 17, true);
+                Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, p, 46, true);
+                Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, p, 5, true);
+
+                p.RelationshipGroup = relationship;
+                p.IsPriorityTargetForEnemies = true;
+                p.CanBeShotInVehicle = false;
+
+                p.Weapons.Give(WeaponHash.MicroSMG, 100, true, true);
+                p.Weapons.Current.InfiniteAmmo = true;
+                p.FiringPattern = FiringPattern.BurstFireDriveby;
+
+                p.AlwaysKeepTask = true;
+                p.BlockPermanentEvents = true;
+                p.Task.FightAgainstHatedTargets(400.0f);
+                Logger.Write(false, "Terrorist: Characteristics are set.", name);
+            }
+
+            if (SpawnedPedExistsIn(members))
+            {
+                Logger.Write(false, "Driveby: Created driveby successfully.", name);
 
                 return true;
             }
             else
             {
-                Logger.Error("Terrorist: Blip is already on terrorist. Abort.", name);
+                Logger.Error("Driveby: Driver doesn't exist. Abort.", name);
                 Restore(true);
 
                 return false;
@@ -105,27 +125,52 @@ namespace YouAreNotAlone
         {
             if (instantly)
             {
-                Logger.Write("Terrorist: Restore instantly.", name);
+                Logger.Write(false, "Terrorist: Restore instantly.", name);
 
-                if (Util.ThereIs(spawnedPed)) spawnedPed.Delete();
+                foreach (Ped p in members.FindAll(m => Util.ThereIs(m))) p.Delete();
+
                 if (Util.ThereIs(spawnedVehicle)) spawnedVehicle.Delete();
             }
             else
             {
-                Logger.Write("Terrorist: Restore naturally.", name);
-                Util.NaturallyRemove(spawnedPed);
+                Logger.Write(false, "Terrorist: Restore naturally.", name);
+
+                foreach (Ped p in members) Util.NaturallyRemove(p);
+
                 Util.NaturallyRemove(spawnedVehicle);
             }
 
             if (relationship != 0) Util.CleanUp(relationship);
+
+            members.Clear();
         }
 
         public override bool ShouldBeRemoved()
         {
-            if (!Util.ThereIs(spawnedPed) || !Util.ThereIs(spawnedVehicle) || spawnedPed.IsDead || !spawnedPed.IsInRangeOf(Game.Player.Character.Position, 500.0f))
+            int alive = 0;
+
+            for (int i = members.Count - 1; i >= 0; i--)
             {
-                Logger.Write("Terrorist: Terrorist need to be restored.", name);
-                Restore(false);
+                if (!Util.ThereIs(members[i]))
+                {
+                    members.RemoveAt(i);
+
+                    continue;
+                }
+
+                if (Util.WeCanGiveTaskTo(members[i])) alive++;
+                else
+                {
+                    Util.NaturallyRemove(members[i]);
+                    members.RemoveAt(i);
+                }
+            }
+
+            Logger.Write(false, "Driveby: Alive members - " + alive.ToString(), name);
+
+            if (!Util.ThereIs(spawnedVehicle) || !SpawnedPedExistsIn(members) || alive < 1 || members.Count < 1 || !spawnedVehicle.IsInRangeOf(Game.Player.Character.Position, 500.0f))
+            {
+                Logger.Write(false, "Driveby: Driveby need to be restored.", name);
 
                 return true;
             }
@@ -133,17 +178,68 @@ namespace YouAreNotAlone
             CheckDispatch();
             CheckBlockable();
 
+            if (ReadyToGoWith(members))
+            {
+                if (!Util.BlipIsOn(spawnedVehicle)) Util.AddBlipOn(spawnedVehicle, 0.7f, BlipSprite.Tank, BlipColor.Red, "Terrorist " + VehicleInfo.GetNameOf(spawnedVehicle.Model.Hash));
+
+                foreach (Ped p in members.FindAll(m => Util.ThereIs(m) && Util.BlipIsOn(m))) p.CurrentBlip.Remove();
+
+                if (Util.ThereIs(spawnedVehicle.Driver))
+                {
+                    Logger.Write(false, "Terrorist: Time to driveby.", name);
+
+                    foreach (Ped p in members.FindAll(m => Util.ThereIs(m) && Util.WeCanGiveTaskTo(m) && !m.IsInCombat)) p.Task.FightAgainstHatedTargets(400.0f);
+                }
+                else
+                {
+                    Logger.Write(false, "Terrorist: There is no driver. Re-enter everyone.", name);
+
+                    foreach (Ped p in members.FindAll(m => Util.ThereIs(m) && Util.WeCanGiveTaskTo(m) && m.IsSittingInVehicle(spawnedVehicle)))
+                        p.Task.LeaveVehicle(spawnedVehicle, false);
+                }
+            }
+            else
+            {
+                if (VehicleSeatsCanBeSeatedBy(members)) Logger.Write(false, "Terrorist: Assigned seats successfully.", name);
+                else
+                {
+                    Logger.Write(false, "Terrorist: Something wrong with assigning seats. Re-enter everyone.", name);
+
+                    foreach (Ped p in members.FindAll(m => Util.ThereIs(m) && Util.WeCanGiveTaskTo(m) && m.IsSittingInVehicle(spawnedVehicle)))
+                        p.Task.LeaveVehicle(spawnedVehicle, false);
+                }
+
+                if (Util.ThereIs(spawnedVehicle) && Util.BlipIsOn(spawnedVehicle)) spawnedVehicle.CurrentBlip.Remove();
+
+                foreach (Ped p in members.FindAll(m => Util.ThereIs(m)))
+                {
+                    if (Util.WeCanGiveTaskTo(p))
+                    {
+                        if (!Util.BlipIsOn(p)) Util.AddBlipOn(p, 0.6f, BlipSprite.Tank, BlipColor.Red, "Terrorist member");
+                    }
+                    else if (Util.BlipIsOn(p)) p.CurrentBlip.Remove();
+                }
+            }
+
             return false;
         }
 
         private new void CheckDispatch()
         {
             if (dispatchCooldown < 15) dispatchCooldown++;
-            else if (!Util.AnyEmergencyIsNear(spawnedPed.Position, DispatchManager.DispatchType.Army, type))
+            else if (!Util.AnyEmergencyIsNear(spawnedPed.Position, DispatchManager.DispatchType.ArmyGround, type))
             {
-                Main.DispatchAgainst(spawnedPed, type);
-                Logger.Write("Dispatch against", type.ToString());
-                dispatchCooldown = 0;
+                if (Main.DispatchAgainst(spawnedPed, type))
+                {
+                    Logger.Write(false, "Dispatch against", type.ToString());
+                    dispatchCooldown = 0;
+                }
+                else if (++dispatchTry > 5)
+                {
+                    Logger.Write(false, "Couldn't dispatch aginst", type.ToString());
+                    dispatchCooldown = 0;
+                    dispatchTry = 0;
+                }
             }
         }
     }

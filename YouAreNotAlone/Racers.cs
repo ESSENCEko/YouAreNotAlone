@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace YouAreNotAlone
 {
-    public class Racers : Criminal
+    public class Racers : Criminal, ICheckable
     {
         private List<Racer> racers;
         private List<string> models;
@@ -16,7 +16,10 @@ namespace YouAreNotAlone
             this.models = models;
             this.safePosition = position;
             this.goal = goal;
-            Logger.ForceWrite("Racers event selected.", "");
+
+            Util.CleanUp(this.relationship);
+            this.relationship = 0;
+            Logger.Write(true, "Racers event selected.", "");
         }
 
         public bool IsCreatedIn(float radius)
@@ -39,7 +42,7 @@ namespace YouAreNotAlone
 
                     if (!road.Position.Equals(Vector3.Zero))
                     {
-                        Logger.Write("Racers: Found proper road.", "");
+                        Logger.Write(false, "Racers: Found proper road.", "");
 
                         break;
                     }
@@ -54,38 +57,37 @@ namespace YouAreNotAlone
                 }
                 else
                 {
-                    Logger.Write("Racers: Creating a racer.", "");
+                    Logger.Write(false, "Racers: Creating a racer.", "");
 
                     if (r.IsCreatedIn(radius, road)) racers.Add(r);
                     else r.Restore(true);
                 }
             }
 
-            foreach (Racer r in racers)
+            if (racers.Find(r => !r.Exists()) != null)
             {
-                if (!r.Exists())
-                {
-                    Logger.Write("Racers: There is a racer who doesn't exist. Abort.", "");
-                    Restore(true);
+                Logger.Write(false, "Racers: There is a racer who doesn't exist. Abort.", "");
+                Restore(true);
 
-                    return false;
-                }
+                return false;
             }
+            else
+            {
+                Logger.Write(false, "Racers: Created racers successfully.", "");
 
-            Logger.Write("Racers: Created racers successfully.", "");
-
-            return true;
+                return true;
+            }
         }
 
-        public void CheckNitroable()
+        public void CheckAbilityUsable()
         {
             foreach (Racer r in racers) r.CheckNitroable();
         }
 
         public override void Restore(bool instantly)
         {
-            if (instantly) Logger.Write("Racers: Restore instantly.", "");
-            else Logger.Write("Racers: Restore naturally.", "");
+            if (instantly) Logger.Write(false, "Racers: Restore instantly.", "");
+            else Logger.Write(false, "Racers: Restore naturally.", "");
 
             foreach (Racer r in racers) r.Restore(instantly);
 
@@ -96,16 +98,21 @@ namespace YouAreNotAlone
         {
             for (int i = racers.Count - 1; i >= 0; i--)
             {
-                if (racers[i].ShouldBeRemoved()) racers.RemoveAt(i);
+                if (racers[i].ShouldBeRemoved())
+                {
+                    racers[i].Restore(false);
+                    racers.RemoveAt(i);
+                }
             }
 
             if (racers.Count < 1)
             {
-                Logger.Write("Racers: Every racer is gone. Time to be disposed.", "");
+                Logger.Write(false, "Racers: Every racer is gone. Time to be disposed.", "");
 
                 return true;
             }
 
+            spawnedPed = null;
             float distance = float.MaxValue;
 
             foreach (Racer r in racers)

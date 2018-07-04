@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 
 namespace YouAreNotAlone
 {
-    public static class VehicleName
+    public static class VehicleInfo
     {
         private delegate IntPtr GetModelInfoDelegate(int hash, IntPtr indexPtr);
         private static IntPtr address = FindPattern("0F B7 05 ?? ?? ?? ?? 45 33 C9 4C 8B DA 66 85 C0 0F 84 ?? ?? ?? ?? 44 0F B7 C0 33 D2 8B C1 41 F7 F0 48 8B 05 ?? ?? ?? ?? 4C 8B 14 D0 EB 09 41 3B 0A 74 54");
@@ -16,14 +16,15 @@ namespace YouAreNotAlone
             GCHandle handle = GCHandle.Alloc(index, GCHandleType.Pinned);
             IntPtr modelInfo = GetModelInfo(hash, handle.AddrOfPinnedObject());
 
-            string displayName = GTA.Game.GetGXTEntry(Marshal.PtrToStringAnsi(modelInfo + 664));
-            string makeName = GTA.Game.GetGXTEntry(Marshal.PtrToStringAnsi(modelInfo + 676));
+            string displayName = Marshal.PtrToStringAnsi(modelInfo + 664);
+            string makeName = Marshal.PtrToStringAnsi(modelInfo + 676);
             handle.Free();
 
             string vehicleName = "";
 
-            if (makeName != "NULL") vehicleName += makeName + " ";
-            if (displayName != "NULL") vehicleName += displayName;
+            if (GTA.Game.GetGXTEntry(makeName) != "NULL") vehicleName += GTA.Game.GetGXTEntry(makeName) + " ";
+            if (GTA.Game.GetGXTEntry(displayName) == "NULL") vehicleName += displayName.ToUpper();
+            else vehicleName += GTA.Game.GetGXTEntry(displayName);
 
             return vehicleName;
         }

@@ -1,10 +1,9 @@
-﻿using GTA;
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace YouAreNotAlone
 {
-    public class EventManager : Script
+    public class EventManager : AdvancedScript
     {
         private static List<AdvancedEntity> aggressiveList;
         private static List<AdvancedEntity> carjackerList;
@@ -19,7 +18,6 @@ namespace YouAreNotAlone
 
         public enum EventType
         {
-            None,
             AggressiveDriver,
             Carjacker,
             Driveby,
@@ -46,75 +44,21 @@ namespace YouAreNotAlone
 
         public static bool ReplaceSlotIsAvailable() { return replacedList.Count < 5; }
 
-        public static void Add(AdvancedEntity en, EventType type)
+        public static bool Add(AdvancedEntity en, EventType type)
         {
             switch (type)
             {
-                case EventType.AggressiveDriver:
-                    {
-                        lock (aggressiveList) { aggressiveList.Add(en); }
-
-                        break;
-                    }
-
-                case EventType.Carjacker:
-                    {
-                        lock (carjackerList) { carjackerList.Add(en); }
-
-                        break;
-                    }
-
-                case EventType.Driveby:
-                    {
-                        lock (drivebyList) { drivebyList.Add(en); }
-
-                        break;
-                    }
-
-                case EventType.Fire:
-                    {
-                        lock (onFireList) { onFireList.Add(en); }
-
-                        break;
-                    }
-
-                case EventType.GangTeam:
-                    {
-                        lock (gangList) { gangList.Add(en); }
-
-                        break;
-                    }
-
-                case EventType.Massacre:
-                    {
-                        lock (massacreList) { massacreList.Add(en); }
-
-                        break;
-                    }
-
-                case EventType.Racer:
-                    {
-                        lock (racerList) { racerList.Add(en); }
-
-                        break;
-                    }
-
-                case EventType.ReplacedVehicle:
-                    {
-                        lock (replacedList) { replacedList.Add(en); }
-
-                        break;
-                    }
-
-                case EventType.Terrorist:
-                    {
-                        lock (terroristList) { terroristList.Add(en); }
-
-                        break;
-                    }
+                case EventType.AggressiveDriver: return SafelyAddTo(aggressiveList, en, type);
+                case EventType.Carjacker: return SafelyAddTo(carjackerList, en, type);
+                case EventType.Driveby: return SafelyAddTo(drivebyList, en, type);
+                case EventType.Fire: return SafelyAddTo(onFireList, en, type);
+                case EventType.GangTeam: return SafelyAddTo(gangList, en, type);
+                case EventType.Massacre: return SafelyAddTo(massacreList, en, type);
+                case EventType.Racer: return SafelyAddTo(racerList, en, type);
+                case EventType.ReplacedVehicle: return SafelyAddTo(replacedList, en, type);
+                case EventType.Terrorist: return SafelyAddTo(terroristList, en, type);
+                default: return false;
             }
-
-            Logger.Write("EventManager: Added new entity.", type.ToString());
         }
 
         public EventManager()
@@ -122,47 +66,29 @@ namespace YouAreNotAlone
             timeChecker = 0;
             Tick += OnTick;
 
-            Logger.ForceWrite("EventManager started.", "");
+            Logger.Write(true, "EventManager started.", "");
         }
 
         private void OnTick(Object sender, EventArgs e)
         {
             if (timeChecker == 100)
             {
-                CleanUp(aggressiveList);
-                CleanUp(carjackerList);
-                CleanUp(drivebyList);
-                CleanUp(gangList);
-                CleanUp(massacreList);
-                CleanUp(onFireList);
-                CleanUp(racerList);
-                CleanUp(replacedList);
-                CleanUp(terroristList);
+                SafelyCleanUp(aggressiveList, EventType.AggressiveDriver);
+                SafelyCleanUp(carjackerList, EventType.Carjacker);
+                SafelyCleanUp(drivebyList, EventType.Driveby);
+                SafelyCleanUp(gangList, EventType.GangTeam);
+                SafelyCleanUp(massacreList, EventType.Massacre);
+                SafelyCleanUp(onFireList, EventType.Fire);
+                SafelyCleanUp(racerList, EventType.Racer);
+                SafelyCleanUp(replacedList, EventType.ReplacedVehicle);
+                SafelyCleanUp(terroristList, EventType.Terrorist);
 
                 timeChecker = 0;
             }
             else timeChecker++;
 
-            lock (aggressiveList)
-            {
-                foreach (AggressiveDriver ad in aggressiveList) ad.CheckNitroable();
-            }
-
-            lock (racerList)
-            {
-                foreach (Racers r in racerList) r.CheckNitroable();
-            }
-        }
-
-        private void CleanUp(List<AdvancedEntity> l)
-        {
-            lock (l)
-            {
-                for (int i = l.Count - 1; i >= 0; i--)
-                {
-                    if (l[i].ShouldBeRemoved()) l.RemoveAt(i);
-                }
-            }
+            SafelyCheckAbilityOf(aggressiveList, EventType.AggressiveDriver);
+            SafelyCheckAbilityOf(racerList, EventType.Racer);
         }
     }
 }

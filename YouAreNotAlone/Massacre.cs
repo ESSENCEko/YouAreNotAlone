@@ -12,11 +12,13 @@ namespace YouAreNotAlone
         public Massacre() : base(EventManager.EventType.Massacre)
         {
             this.members = new List<Ped>();
-            Logger.ForceWrite("Massacre event selected.", "");
+            Logger.Write(true, "Massacre event selected.", "");
         }
 
         public bool IsCreatedIn(float radius, Vector3 safePosition)
         {
+            if (relationship == 0) return false;
+
             Vector3 position = World.GetNextPositionOnSidewalk(safePosition);
             int trycount = 0;
 
@@ -45,7 +47,7 @@ namespace YouAreNotAlone
                 }
             }
 
-            Logger.Write("Massacre: Anim/clip sets are loaded. Creating members.", "");
+            Logger.Write(false, "Massacre: Anim/clip sets are loaded. Creating members.", "");
 
             for (int i = 0; i < 4; i++)
             {
@@ -128,68 +130,61 @@ namespace YouAreNotAlone
                 p.IsFireProof = true;
                 p.CanSwitchWeapons = true;
                 p.Task.FightAgainstHatedTargets(400.0f);
-                Logger.Write("Massacre: Characteristics are set.", "");
+                Logger.Write(false, "Massacre: Characteristics are set.", "");
 
-                if (!Util.BlipIsOn(p))
-                {
-                    Util.AddBlipOn(p, 0.7f, BlipSprite.Rampage, BlipColor.White, "Massacre Squad");
-                    Logger.Write("Massacre: Create a member successfully.", "");
-                    members.Add(p);
-                }
-                else
+                if (Util.BlipIsOn(p))
                 {
                     Logger.Error("Massacre: Blip is already on the member. Delete this member to abort.", "");
                     p.Delete();
                 }
-            }
-
-            foreach (Ped p in members)
-            {
-                if (!Util.ThereIs(p))
+                else
                 {
-                    Logger.Error("Massacre: There is a member who doesn't exist. Abort.", "");
-                    Restore(true);
-
-                    return false;
+                    Util.AddBlipOn(p, 0.7f, BlipSprite.Rampage, BlipColor.White, "Massacre Squad");
+                    Logger.Write(false, "Massacre: Create a member successfully.", "");
+                    members.Add(p);
                 }
             }
 
-            Logger.Write("Massacre: Create massacre squad successfully.", "");
+            if (Util.ThereIs(members.Find(p => !Util.ThereIs(p))))
+            {
+                Logger.Error("Massacre: There is a member who doesn't exist. Abort.", "");
+                Restore(true);
 
-            return true;
+                return false;
+            }
+            else
+            {
+                Logger.Write(false, "Massacre: Create massacre squad successfully.", "");
+
+                return true;
+            }
         }
 
         public override void Restore(bool instantly)
         {
             if (instantly)
             {
-                Logger.Write("Massacre: Restore instanly.", "");
+                Logger.Write(false, "Massacre: Restore instanly.", "");
 
-                foreach (Ped p in members)
-                {
-                    if (Util.ThereIs(p)) p.Delete();
-                }
+                foreach (Ped p in members.FindAll(m => Util.ThereIs(m))) p.Delete();
             }
             else
             {
-                Logger.Write("Massacre: Restore naturally.", "");
+                Logger.Write(false, "Massacre: Restore naturally.", "");
 
                 foreach (Ped p in members) Util.NaturallyRemove(p);
             }
 
             if (relationship != 0) Util.CleanUp(relationship);
-
-            Function.Call(Hash.REMOVE_ANIM_SET, "anim_group_move_ballistic");
-            Function.Call(Hash.REMOVE_ANIM_SET, "move_strafe_ballistic");
-            Function.Call(Hash.REMOVE_CLIP_SET, "move_ballistic_minigun");
+            if (Function.Call<bool>(Hash.HAS_ANIM_SET_LOADED, "anim_group_move_ballistic")) Function.Call(Hash.REMOVE_ANIM_SET, "anim_group_move_ballistic");
+            if (Function.Call<bool>(Hash.HAS_ANIM_SET_LOADED, "move_strafe_ballistic")) Function.Call(Hash.REMOVE_ANIM_SET, "move_strafe_ballistic");
+            if (Function.Call<bool>(Hash.HAS_CLIP_SET_LOADED, "move_ballistic_minigun")) Function.Call(Hash.REMOVE_CLIP_SET, "move_ballistic_minigun");
 
             members.Clear();
         }
 
         public override bool ShouldBeRemoved()
         {
-            spawnedPed = null;
-
             for (int i = members.Count - 1; i >= 0; i--)
             {
                 if (!Util.ThereIs(members[i]))
@@ -201,25 +196,25 @@ namespace YouAreNotAlone
 
                 if (!Util.WeCanGiveTaskTo(members[i]) || !members[i].IsInRangeOf(Game.Player.Character.Position, 500.0f))
                 {
-                    Logger.Write("Massacre: Found a member who died or out of range. Need to be removed.", "");
+                    Logger.Write(false, "Massacre: Found a member who died or out of range. Need to be removed.", "");
                     Util.NaturallyRemove(members[i]);
                     members.RemoveAt(i);
 
                     continue;
                 }
 
-                spawnedPed = members[i];
+                if (!members[i].IsInCombat) members[i].Task.FightAgainstHatedTargets(400.0f);
             }
 
-            if (members.Count < 1)
+            spawnedPed = null;
+
+            if (members.Count > 0 && Util.ThereIs(spawnedPed = members.Find(p => Util.ThereIs(p) && Util.WeCanGiveTaskTo(p)))) CheckDispatch();
+            else
             {
-                Logger.Write("Massacre: Everyone is gone. Time to be disposed.", "");
-                Restore(false);
+                Logger.Write(false, "Massacre: Everyone is gone. Time to be disposed.", "");
 
                 return true;
             }
-
-            if (Util.ThereIs(spawnedPed)) CheckDispatch();
 
             return false;
         }

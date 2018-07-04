@@ -23,7 +23,7 @@ namespace YouAreNotAlone
             ts.AddTask.FightAgainstHatedTargets(200.0f);
             ts.AddTask.WanderAround();
             ts.Close();
-            Logger.ForceWrite("GangTeam event selected.", "");
+            Logger.Write(true, "GangTeam event selected.", "");
         }
 
         public bool IsCreatedIn(float radius, Vector3 safePosition, List<string> selectedModels, int teamID, BlipColor teamColor, string teamName)
@@ -37,7 +37,7 @@ namespace YouAreNotAlone
                 return false;
             }
 
-            Logger.Write("GangTeam: Creating members.", "");
+            Logger.Write(false, "GangTeam: Creating members.", "");
             this.relationship = teamID;
 
             for (int i = 0; i < 6; i++)
@@ -64,51 +64,47 @@ namespace YouAreNotAlone
                 p.AlwaysKeepTask = true;
                 p.BlockPermanentEvents = true;
                 p.Armor = Util.GetRandomIntBelow(100);
-                Logger.Write("GangTeam: Characteristics are set.", "");
+                Logger.Write(false, "GangTeam: Characteristics are set.", "");
 
-                if (!Util.BlipIsOn(p))
-                {
-                    Util.AddBlipOn(p, 0.7f, BlipSprite.Rampage, teamColor, teamName);
-                    Logger.Write("GangTeam: Create a member successfully.", "");
-                    members.Add(p);
-                }
-                else
+                if (Util.BlipIsOn(p))
                 {
                     Logger.Error("GangTeam: Blip is already on the member. Delete this member to abort.", "");
                     p.Delete();
                 }
-            }
-
-            foreach (Ped p in members)
-            {
-                if (!Util.ThereIs(p))
+                else
                 {
-                    Logger.Error("GangTeam: There is a member who doesn't exist. Abort.", "");
-                    Restore(true);
-
-                    return false;
+                    Util.AddBlipOn(p, 0.7f, BlipSprite.Rampage, teamColor, teamName);
+                    Logger.Write(false, "GangTeam: Create a member successfully.", "");
+                    members.Add(p);
                 }
             }
 
-            Logger.Write("GangTeam: Create gang team successfully.", "");
+            if (Util.ThereIs(members.Find(p => !Util.ThereIs(p))))
+            {
+                Logger.Error("GangTeam: There is a member who doesn't exist. Abort.", "");
+                Restore(true);
 
-            return true;
+                return false;
+            }
+            else
+            {
+                Logger.Write(false, "GangTeam: Create gang team successfully.", "");
+
+                return true;
+            }
         }
 
         public override void Restore(bool instantly)
         {
             if (instantly)
             {
-                Logger.Write("GangTeam: Restore instanly.", "");
+                Logger.Write(false, "GangTeam: Restore instanly.", "");
 
-                foreach (Ped p in members)
-                {
-                    if (Util.ThereIs(p)) p.Delete();
-                }
+                foreach (Ped p in members.FindAll(m => Util.ThereIs(m))) p.Delete();
             }
             else
             {
-                Logger.Write("GangTeam: Restore naturally.", "");
+                Logger.Write(false, "GangTeam: Restore naturally.", "");
 
                 foreach (Ped p in members) Util.NaturallyRemove(p);
             }
@@ -121,18 +117,13 @@ namespace YouAreNotAlone
 
         public void PerformTask()
         {
-            Logger.Write("GangTeam: Let's fight with hated targets.", "");
+            Logger.Write(false, "GangTeam: Let's fight with hated targets.", "");
 
-            foreach (Ped p in members)
-            {
-                if (Util.ThereIs(p) && Util.WeCanGiveTaskTo(p)) p.Task.PerformSequence(ts);
-            }
+            foreach (Ped p in members.FindAll(m => Util.ThereIs(m) && Util.WeCanGiveTaskTo(m))) p.Task.PerformSequence(ts);
         }
 
         public override bool ShouldBeRemoved()
         {
-            spawnedPed = null;
-
             for (int i = members.Count - 1; i >= 0; i--)
             {
                 if (!Util.ThereIs(members[i]))
@@ -144,27 +135,26 @@ namespace YouAreNotAlone
 
                 if (!Util.WeCanGiveTaskTo(members[i]) || !members[i].IsInRangeOf(Game.Player.Character.Position, 500.0f))
                 {
-                    Logger.Write("GangTeam: Found a member who died or out of range. Need to be removed.", "");
+                    Logger.Write(false, "GangTeam: Found a member who died or out of range. Need to be removed.", "");
                     Util.NaturallyRemove(members[i]);
                     members.RemoveAt(i);
 
                     continue;
                 }
 
-                if (!members[i].IsInCombat && Util.AnyEmergencyIsNear(members[i].Position, DispatchManager.DispatchType.Cop, EventManager.EventType.None) && Util.WeCanGiveTaskTo(members[i])) members[i].Task.PerformSequence(ts);
-
-                spawnedPed = members[i];
+                if (!members[i].IsInCombat && Util.ThereIs(new List<Ped>(World.GetNearbyPeds(members[i], 100.0f)).Find(p => Util.ThereIs(p) && Util.WeCanGiveTaskTo(p) && World.GetRelationshipBetweenGroups(relationship, p.RelationshipGroup).Equals(Relationship.Hate))))
+                    members[i].Task.PerformSequence(ts);
             }
 
-            if (members.Count < 1)
+            spawnedPed = null;
+
+            if (members.Count > 0 && Util.ThereIs(spawnedPed = members.Find(p => Util.ThereIs(p) && Util.WeCanGiveTaskTo(p)))) CheckDispatch();
+            else
             {
-                Logger.Write("GangTeam: Everyone is gone. Time to be disposed.", "");
-                Restore(false);
+                Logger.Write(false, "GangTeam: Everyone is gone. Time to be disposed.", "");
 
                 return true;
             }
-
-            if (Util.ThereIs(spawnedPed)) CheckDispatch();
 
             return false;
         }

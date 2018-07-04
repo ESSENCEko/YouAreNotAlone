@@ -41,15 +41,14 @@ namespace YouAreNotAlone
             }.FindAll(s => spawnedVehicle.HasBone(s));
         }
 
-        private bool CanSafelyUseNitroBetween(Vector3 v1, Vector3 v2)
+        private bool PedCanSafelyUseNitroBetween(Vector3 v1, Vector3 v2)
         {
             return !World.Raycast(v1, v1 + v2, IntersectOptions.Everything, spawnedVehicle).DitHitAnything;
         }
 
         public void CheckNitroable()
         {
-            if (!nitroCooldown && nitroAmount > 0 && spawnedVehicle.Speed > 20.0f && spawnedVehicle.Acceleration > 0
-                && CanSafelyUseNitroBetween(spawnedVehicle.Position, spawnedVehicle.ForwardVector * 15.0f))
+            if (!nitroCooldown && nitroAmount > 0 && spawnedVehicle.Speed > 20.0f && spawnedVehicle.Acceleration > 0 && PedCanSafelyUseNitroBetween(spawnedVehicle.Position, spawnedVehicle.ForwardVector * 15.0f))
             {
                 spawnedVehicle.EnginePowerMultiplier = 10.0f;
                 spawnedVehicle.EngineTorqueMultiplier = 10.0f;

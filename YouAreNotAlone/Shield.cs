@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace YouAreNotAlone
 {
-    public class Shield : AdvancedEntity
+    public class Shield : AdvancedEntity, ICheckable
     {
         private List<string> shieldModels;
         private Ped owner;
@@ -15,12 +15,12 @@ namespace YouAreNotAlone
         private Vector3 position;
         private Vector3 rotation;
 
-        public Shield(Ped p)
+        public Shield(Ped owner)
         {
             this.shieldModels = new List<string> { "prop_ballistic_shield", "prop_riot_shield" };
-            this.owner = p;
+            this.owner = owner;
             this.attached = false;
-            this.boneIndex = Function.Call<int>(Hash.GET_PED_BONE_INDEX, owner, 61163);
+            this.boneIndex = Function.Call<int>(Hash.GET_PED_BONE_INDEX, this.owner, 61163);
             this.position = new Vector3(0.21f, -0.11f, -0.038f);
             this.rotation = new Vector3(60.0f, 170.0f, 10.0f);
         }
@@ -56,7 +56,7 @@ namespace YouAreNotAlone
             Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, owner, 0, false);
             attached = false;
 
-            Logger.Write("Shield: Created shield successfully.", "");
+            Logger.Write(false, "Shield: Created shield successfully.", "");
 
             return true;
         }
@@ -65,13 +65,13 @@ namespace YouAreNotAlone
         {
             if (instantly)
             {
-                Logger.Write("Shield: Restore instantly.", "");
+                Logger.Write(false, "Shield: Restore instantly.", "");
 
                 if (Util.ThereIs(shield)) shield.Delete();
             }
             else
             {
-                Logger.Write("Shield: Restore naturally.", "");
+                Logger.Write(false, "Shield: Restore naturally.", "");
                 Util.NaturallyRemove(shield);
             }
         }
@@ -80,8 +80,7 @@ namespace YouAreNotAlone
         {
             if (!Util.ThereIs(shield) || !Util.ThereIs(owner) || !shield.IsInRangeOf(Game.Player.Character.Position, 500.0f))
             {
-                Logger.Write("Shield: Shield need to be restored.", "");
-                Restore(false);
+                Logger.Write(false, "Shield: Shield need to be restored.", "");
 
                 return true;
             }
@@ -89,7 +88,7 @@ namespace YouAreNotAlone
             return false;
         }
 
-        public void CheckShieldable()
+        public void CheckAbilityUsable()
         {
             if (owner.IsInVehicle() || owner.IsGettingIntoAVehicle) Detach(false);
             else if (owner.IsDead) Detach(true);
@@ -103,7 +102,7 @@ namespace YouAreNotAlone
                 shield.AttachTo(owner, boneIndex, position, rotation);
                 shield.IsVisible = true;
                 attached = true;
-                Logger.Write("Shield: Attached to owner.", "");
+                Logger.Write(false, "Shield: Attached to owner.", "");
             }
         }
 
@@ -114,7 +113,7 @@ namespace YouAreNotAlone
                 shield.Detach();
                 shield.IsVisible = shouldBeVisible;
                 attached = false;
-                Logger.Write("Shield: Detached from owner.", "");
+                Logger.Write(false, "Shield: Detached from owner.", "");
             }
         }
     }

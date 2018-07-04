@@ -4,18 +4,20 @@ using GTA.Native;
 
 namespace YouAreNotAlone
 {
-    public class AggressiveDriver : Nitroable
+    public class AggressiveDriver : Nitroable, ICheckable
     {
         private string name;
 
         public AggressiveDriver(string name) : base(EventManager.EventType.AggressiveDriver)
         {
             this.name = name;
-            Logger.ForceWrite("AggressiveDriver event selected.", this.name);
+            Logger.Write(true, "AggressiveDriver event selected.", this.name);
         }
 
         public bool IsCreatedIn(float radius)
         {
+            if (relationship == 0) return false;
+
             Vector3 safePosition = Util.GetSafePositionIn(radius);
 
             if (safePosition.Equals(Vector3.Zero))
@@ -33,7 +35,7 @@ namespace YouAreNotAlone
 
                 if (!road.Position.Equals(Vector3.Zero))
                 {
-                    Logger.Write("AggressiveDriver: Found proper road.", name);
+                    Logger.Write(false, "AggressiveDriver: Found proper road.", name);
 
                     break;
                 }
@@ -65,34 +67,35 @@ namespace YouAreNotAlone
                 return false;
             }
 
-            Logger.Write("AggressiveDriver: Created vehicle and driver successfully.", name);
+            Logger.Write(false, "AggressiveDriver: Created vehicle and driver successfully.", name);
             Script.Wait(50);
             Function.Call(Hash.SET_DRIVER_ABILITY, spawnedPed, 1.0f);
             Function.Call(Hash.SET_DRIVER_AGGRESSIVENESS, spawnedPed, 1.0f);
+
             SetExhausts();
             Util.Tune(spawnedVehicle, true, true, true);
-            Logger.Write("AggressiveDriver: Tuned aggressive vehicle.", name);
+            Logger.Write(false, "AggressiveDriver: Tuned aggressive vehicle.", name);
 
             spawnedPed.RelationshipGroup = relationship;
             spawnedPed.IsPriorityTargetForEnemies = true;
             spawnedPed.AlwaysKeepTask = true;
             spawnedPed.BlockPermanentEvents = true;
             spawnedPed.Task.CruiseWithVehicle(spawnedVehicle, 100.0f, 262692); // 4 + 32 + 512 + 262144
-            Logger.Write("AggressiveDriver: Characteristics are set.", name);
+            Logger.Write(false, "AggressiveDriver: Characteristics are set.", name);
 
-            if (!Util.BlipIsOn(spawnedPed))
-            {
-                Util.AddBlipOn(spawnedPed, 0.7f, BlipSprite.PersonalVehicleCar, BlipColor.Green, "Aggressive " + VehicleName.GetNameOf(spawnedVehicle.Model.Hash));
-                Logger.Write("AggressiveDriver: Created aggressive driver successfully.", name);
-
-                return true;
-            }
-            else
+            if (Util.BlipIsOn(spawnedPed))
             {
                 Logger.Error("AggressiveDriver: Blip is already on aggressive driver. Abort.", name);
                 Restore(true);
 
                 return false;
+            }
+            else
+            {
+                Util.AddBlipOn(spawnedPed, 0.7f, BlipSprite.PersonalVehicleCar, BlipColor.Green, "Aggressive " + VehicleInfo.GetNameOf(spawnedVehicle.Model.Hash));
+                Logger.Write(false, "AggressiveDriver: Created aggressive driver successfully.", name);
+
+                return true;
             }
         }
 
@@ -100,14 +103,14 @@ namespace YouAreNotAlone
         {
             if (instantly)
             {
-                Logger.Write("AggressiveDriver: Restore instantly.", name);
+                Logger.Write(false, "AggressiveDriver: Restore instantly.", name);
 
                 if (Util.ThereIs(spawnedPed)) spawnedPed.Delete();
                 if (Util.ThereIs(spawnedVehicle)) spawnedVehicle.Delete();
             }
             else
             {
-                Logger.Write("AggressiveDriver: Restore naturally.", name);
+                Logger.Write(false, "AggressiveDriver: Restore naturally.", name);
                 Util.NaturallyRemove(spawnedPed);
                 Util.NaturallyRemove(spawnedVehicle);
             }
@@ -119,8 +122,7 @@ namespace YouAreNotAlone
         {
             if (!Util.ThereIs(spawnedPed) || !Util.ThereIs(spawnedVehicle) || spawnedPed.IsDead || !spawnedPed.IsInRangeOf(Game.Player.Character.Position, 500.0f))
             {
-                Logger.Write("AggressiveDriver: Aggressive driver need to be restored.", name);
-                Restore(false);
+                Logger.Write(false, "AggressiveDriver: Aggressive driver need to be restored.", name);
 
                 return true;
             }
@@ -131,6 +133,11 @@ namespace YouAreNotAlone
             CheckBlockable();
 
             return false;
+        }
+
+        public void CheckAbilityUsable()
+        {
+            CheckNitroable();
         }
     }
 }

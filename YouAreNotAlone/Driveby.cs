@@ -14,11 +14,13 @@ namespace YouAreNotAlone
         {
             this.members = new List<Ped>();
             this.name = name;
-            Logger.ForceWrite("Driveby event selected.", this.name);
+            Logger.Write(true, "Driveby event selected.", this.name);
         }
 
         public bool IsCreatedIn(float radius, List<string> selectedModels)
         {
+            if (relationship == 0) return false;
+
             Vector3 safePosition = Util.GetSafePositionIn(radius);
 
             if (safePosition.Equals(Vector3.Zero) || selectedModels == null)
@@ -36,7 +38,7 @@ namespace YouAreNotAlone
 
                 if (!road.Position.Equals(Vector3.Zero))
                 {
-                    Logger.Write("Driveby: Found proper road.", name);
+                    Logger.Write(false, "Driveby: Found proper road.", name);
 
                     break;
                 }
@@ -57,8 +59,15 @@ namespace YouAreNotAlone
 
                 return false;
             }
+            else if (spawnedVehicle.PassengerSeats < 1)
+            {
+                Logger.Error("Driveby: Passenger seats are needed but there isn't. Abort.", name);
+                Restore(true);
 
-            Logger.Write("Driveby: Created vehicle successfully.", name);
+                return false;
+            }
+
+            Logger.Write(false, "Driveby: Created vehicle successfully.", name);
             List<WeaponHash> drivebyWeaponList = new List<WeaponHash> { WeaponHash.MicroSMG, WeaponHash.Pistol, WeaponHash.APPistol, WeaponHash.CombatPistol, WeaponHash.MachinePistol, WeaponHash.MiniSMG, WeaponHash.Revolver, WeaponHash.RevolverMk2, WeaponHash.DoubleActionRevolver };
             Util.Tune(spawnedVehicle, false, (Util.GetRandomIntBelow(3) == 1), false);
 
@@ -71,18 +80,18 @@ namespace YouAreNotAlone
                 }
             }
 
-            Logger.Write("Driveby: Tuned vehicle and created members.", name);
+            Logger.Write(false, "Driveby: Tuned vehicle and created members.", name);
+
+            if (Util.ThereIs(members.Find(p => !Util.ThereIs(p))))
+            {
+                Logger.Error("Driveby: There is a member who doesn't exist. Abort.", name);
+                Restore(true);
+
+                return false;
+            }
 
             foreach (Ped p in members)
             {
-                if (!Util.ThereIs(p))
-                {
-                    Logger.Error("Driveby: There is a member who doesn't exist. Abort.", name);
-                    Restore(true);
-
-                    break;
-                }
-
                 Function.Call(Hash.SET_PED_FLEE_ATTRIBUTES, p, 0, false);
                 Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, p, 17, true);
                 Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, p, 46, true);
@@ -99,12 +108,12 @@ namespace YouAreNotAlone
                 p.RelationshipGroup = relationship;
                 p.IsPriorityTargetForEnemies = true;
                 p.FiringPattern = FiringPattern.BurstFireDriveby;
-                Logger.Write("Driveby: Characteristics are set.", name);
+                Logger.Write(false, "Driveby: Characteristics are set.", name);
             }
 
-            if (SpawnedPedExists())
+            if (SpawnedPedExistsIn(members))
             {
-                Logger.Write("Driveby: Created driveby successfully.", name);
+                Logger.Write(false, "Driveby: Created driveby successfully.", name);
 
                 return true;
             }
@@ -121,18 +130,15 @@ namespace YouAreNotAlone
         {
             if (instantly)
             {
-                Logger.Write("Driveby: Restore instanly.", name);
+                Logger.Write(false, "Driveby: Restore instanly.", name);
 
-                foreach (Ped p in members)
-                {
-                    if (Util.ThereIs(p)) p.Delete();
-                }
+                foreach (Ped p in members.FindAll(m => Util.ThereIs(m))) p.Delete();
 
                 if (Util.ThereIs(spawnedVehicle)) spawnedVehicle.Delete();
             }
             else
             {
-                Logger.Write("Driveby: Restore naturally.", name);
+                Logger.Write(false, "Driveby: Restore naturally.", name);
 
                 foreach (Ped p in members) Util.NaturallyRemove(p);
 
@@ -142,32 +148,6 @@ namespace YouAreNotAlone
             if (relationship != 0) Util.CleanUp(relationship);
 
             members.Clear();
-        }
-
-        private bool SpawnedPedExists()
-        {
-            if (Util.ThereIs(spawnedPed) && Util.WeCanGiveTaskTo(spawnedPed)) return true;
-            else
-            {
-                spawnedPed = null;
-
-                foreach (Ped p in members)
-                {
-                    if (Util.ThereIs(p) && Util.WeCanGiveTaskTo(p))
-                    {
-                        if (!Util.BlipIsOn(p)) Util.AddBlipOn(p, 0.7f, BlipSprite.GunCar, BlipColor.White, "Driveby " + VehicleName.GetNameOf(spawnedVehicle.Model.Hash));
-
-                        Logger.Write("Driveby: Found driver and added blip on it.", name);
-                        spawnedPed = p;
-
-                        return true;
-                    }
-                }
-
-                Logger.Error("Driveby: Couldn't find driver. Need to be restored.", name);
-
-                return false;
-            }
         }
 
         public override bool ShouldBeRemoved()
@@ -184,15 +164,18 @@ namespace YouAreNotAlone
                 }
 
                 if (Util.WeCanGiveTaskTo(members[i])) alive++;
-                else if (Util.BlipIsOn(members[i])) members[i].CurrentBlip.Remove();
+                else
+                {
+                    Util.NaturallyRemove(members[i]);
+                    members.RemoveAt(i);
+                }
             }
 
-            Logger.Write("Driveby: Alive members - " + alive.ToString(), name);
+            Logger.Write(false, "Driveby: Alive members - " + alive.ToString(), name);
 
-            if (!Util.ThereIs(spawnedVehicle) || !SpawnedPedExists() || alive < 1 || members.Count < 1 || !spawnedVehicle.IsInRangeOf(Game.Player.Character.Position, 500.0f))
+            if (!Util.ThereIs(spawnedVehicle) || !SpawnedPedExistsIn(members) || alive < 1 || members.Count < 1 || !spawnedVehicle.IsInRangeOf(Game.Player.Character.Position, 500.0f))
             {
-                Logger.Write("Driveby: Driveby need to be restored.", name);
-                Restore(false);
+                Logger.Write(false, "Driveby: Driveby need to be restored.", name);
 
                 return true;
             }
@@ -202,57 +185,64 @@ namespace YouAreNotAlone
 
             if (!Util.WeCanEnter(spawnedVehicle))
             {
-                Logger.Write("Driveby: Couldn't let members enter vehicle. Time to fight on foot.", name);
+                Logger.Write(false, "Driveby: Couldn't let members enter vehicle. Time to fight on foot.", name);
 
-                foreach (Ped p in members)
+                foreach (Ped p in members.FindAll(m => Util.ThereIs(m) && Util.WeCanGiveTaskTo(m)))
                 {
-                    if (Util.ThereIs(p) && Util.WeCanGiveTaskTo(p))
-                    {
-                        if (p.IsSittingInVehicle(spawnedVehicle)) p.Task.LeaveVehicle(spawnedVehicle, false);
-                        else if (!p.IsInCombat) p.Task.FightAgainstHatedTargets(400.0f);
-                    }
+                    if (p.IsSittingInVehicle(spawnedVehicle)) p.Task.LeaveVehicle(spawnedVehicle, false);
+                    else if (!p.IsInCombat) p.Task.FightAgainstHatedTargets(400.0f);
                 }
+
+                if (Util.BlipIsOn(spawnedVehicle)) spawnedVehicle.CurrentBlip.Remove();
             }
             else if (ReadyToGoWith(members))
             {
+                if (!Util.BlipIsOn(spawnedVehicle)) Util.AddBlipOn(spawnedVehicle, 0.7f, BlipSprite.GunCar, BlipColor.White, "Driveby " + VehicleInfo.GetNameOf(spawnedVehicle.Model.Hash));
+
+                foreach (Ped p in members.FindAll(m => Util.ThereIs(m) && Util.BlipIsOn(m))) p.CurrentBlip.Remove();
+
                 if (Util.ThereIs(spawnedVehicle.Driver))
                 {
-                    Logger.Write("Driveby: Time to driveby.", name);
+                    Logger.Write(false, "Driveby: Time to driveby.", name);
 
-                    foreach (Ped p in members)
+                    foreach (Ped p in members.FindAll(m => Util.ThereIs(m) && Util.WeCanGiveTaskTo(m)))
                     {
-                        if (Util.ThereIs(p) && Util.WeCanGiveTaskTo(p))
+                        if (p.Equals(spawnedVehicle.Driver))
                         {
-                            if (p.Equals(spawnedVehicle.Driver))
-                            {
-                                if (!Function.Call<bool>(Hash.GET_IS_TASK_ACTIVE, p, 151)) p.Task.CruiseWithVehicle(spawnedVehicle, 20.0f, 262692); // 4 + 32 + 512 + 262144
-                            }
-                            else if (!p.IsInCombat) p.Task.FightAgainstHatedTargets(400.0f);
+                            if (!Function.Call<bool>(Hash.GET_IS_TASK_ACTIVE, p, 151)) p.Task.CruiseWithVehicle(spawnedVehicle, 20.0f, 262692); // 4 + 32 + 512 + 262144
                         }
+                        else if (!p.IsInCombat) p.Task.FightAgainstHatedTargets(400.0f);
                     }
                 }
                 else
                 {
-                    Logger.Write("Driveby: There is no driver. Re-enter everyone.", name);
+                    Logger.Write(false, "Driveby: There is no driver. Re-enter everyone.", name);
 
-                    foreach (Ped p in members)
-                    {
-                        if (Util.ThereIs(p) && Util.WeCanGiveTaskTo(p) && p.IsSittingInVehicle(spawnedVehicle)) p.Task.LeaveVehicle(spawnedVehicle, false);
-                    }
+                    foreach (Ped p in members.FindAll(m => Util.ThereIs(m) && Util.WeCanGiveTaskTo(m) && m.IsSittingInVehicle(spawnedVehicle)))
+                        p.Task.LeaveVehicle(spawnedVehicle, false);
                 }
             }
             else
             {
-                if (!VehicleSeatsCanBeSeatedBy(members))
+                if (VehicleSeatsCanBeSeatedBy(members)) Logger.Write(false, "Driveby: Assigned seats successfully.", name);
+                else
                 {
-                    Logger.Write("Driveby: Something wrong with assigning seats. Re-enter everyone.", name);
+                    Logger.Write(false, "Driveby: Something wrong with assigning seats. Re-enter everyone.", name);
 
-                    foreach (Ped p in members)
-                    {
-                        if (Util.ThereIs(p) && Util.WeCanGiveTaskTo(p) && p.IsSittingInVehicle(spawnedVehicle)) p.Task.LeaveVehicle(spawnedVehicle, false);
-                    }
+                    foreach (Ped p in members.FindAll(m => Util.ThereIs(m) && Util.WeCanGiveTaskTo(m) && m.IsSittingInVehicle(spawnedVehicle)))
+                        p.Task.LeaveVehicle(spawnedVehicle, false);
                 }
-                else Logger.Write("Driveby: Assigned seats successfully.", name);
+
+                if (Util.ThereIs(spawnedVehicle) && Util.BlipIsOn(spawnedVehicle)) spawnedVehicle.CurrentBlip.Remove();
+
+                foreach (Ped p in members.FindAll(m => Util.ThereIs(m)))
+                {
+                    if (Util.WeCanGiveTaskTo(p))
+                    {
+                        if (!Util.BlipIsOn(p)) Util.AddBlipOn(p, 0.6f, BlipSprite.GunCar, BlipColor.White, "Driveby member");
+                    }
+                    else if (Util.BlipIsOn(p)) p.CurrentBlip.Remove();
+                }
             }
 
             return false;

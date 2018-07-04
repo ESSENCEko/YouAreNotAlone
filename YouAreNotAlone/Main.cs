@@ -231,7 +231,7 @@ namespace YouAreNotAlone
                 "firetruk"
             };
 
-            Logger.Write("Main: Added default models.", "");
+            Logger.Write(false, "Main: Added default models.", "");
             CheckDLCs();
             SetUp();
         }
@@ -240,7 +240,7 @@ namespace YouAreNotAlone
         {
             if (Function.Call<bool>(Hash.IS_DLC_PRESENT, Function.Call<int>(Hash.GET_HASH_KEY, "mpapartment")))
             {
-                Logger.Write("Main: Found MPApartment.", "");
+                Logger.Write(false, "Main: Found MPApartment.", "");
                 racerCarNames.Add("verlierer2");
                 drivebyCarNames.Add("baller3");
                 armyHeliNames.Add("valkyrie2");
@@ -248,7 +248,7 @@ namespace YouAreNotAlone
 
             if (Function.Call<bool>(Hash.IS_DLC_PRESENT, Function.Call<int>(Hash.GET_HASH_KEY, "mpassault")))
             {
-                Logger.Write("Main: Found MPAssault.", "");
+                Logger.Write(false, "Main: Found MPAssault.", "");
                 racerCarNames.Add("dominator3");
                 racerCarNames.Add("ellie");
                 racerCarNames.Add("entity2");
@@ -263,7 +263,7 @@ namespace YouAreNotAlone
 
             if (Function.Call<bool>(Hash.IS_DLC_PRESENT, Function.Call<int>(Hash.GET_HASH_KEY, "mpbiker")))
             {
-                Logger.Write("Main: Found MPBiker.", "");
+                Logger.Write(false, "Main: Found MPBiker.", "");
                 racerBikeNames.Add("defiler");
                 racerBikeNames.Add("hakuchou2");
                 racerBikeNames.Add("shotaro");
@@ -275,7 +275,7 @@ namespace YouAreNotAlone
 
             if (Function.Call<bool>(Hash.IS_DLC_PRESENT, Function.Call<int>(Hash.GET_HASH_KEY, "mpbusiness2")))
             {
-                Logger.Write("Main: Found MPBusiness2.", "");
+                Logger.Write(false, "Main: Found MPBusiness2.", "");
                 racerCarNames.Add("zentorno");
                 drivebyCarNames.Add("huntley");
                 drivebyCarNames.Add("thrust");
@@ -283,7 +283,7 @@ namespace YouAreNotAlone
 
             if (Function.Call<bool>(Hash.IS_DLC_PRESENT, Function.Call<int>(Hash.GET_HASH_KEY, "mpchristmas2017")))
             {
-                Logger.Write("Main: Found MPChristmans2017.", "");
+                Logger.Write(false, "Main: Found MPChristmans2017.", "");
                 racerCarNames.Add("autarch");
                 racerCarNames.Add("comet5");
                 racerCarNames.Add("deluxo");
@@ -305,7 +305,7 @@ namespace YouAreNotAlone
 
             if (Function.Call<bool>(Hash.IS_DLC_PRESENT, Function.Call<int>(Hash.GET_HASH_KEY, "mpexecutive")))
             {
-                Logger.Write("Main: Found MPExecutive.", "");
+                Logger.Write(false, "Main: Found MPExecutive.", "");
                 racerCarNames.Add("fmj");
                 racerCarNames.Add("pfister811");
                 racerCarNames.Add("prototipo");
@@ -315,7 +315,7 @@ namespace YouAreNotAlone
 
             if (Function.Call<bool>(Hash.IS_DLC_PRESENT, Function.Call<int>(Hash.GET_HASH_KEY, "mpgunrunning")))
             {
-                Logger.Write("Main: Found MPGunrunning.", "");
+                Logger.Write(false, "Main: Found MPGunrunning.", "");
                 racerCarNames.Add("ardent");
                 racerCarNames.Add("cheetah2");
                 racerCarNames.Add("torero");
@@ -328,7 +328,7 @@ namespace YouAreNotAlone
 
             if (Function.Call<bool>(Hash.IS_DLC_PRESENT, Function.Call<int>(Hash.GET_HASH_KEY, "mpheist")))
             {
-                Logger.Write("Main: Found MPHeist.", "");
+                Logger.Write(false, "Main: Found MPHeist.", "");
                 racerBikeNames.Add("lectro");
                 drivebyCarNames.Add("enduro");
                 fibModels.Add("s_m_m_fibsec_01");
@@ -343,7 +343,7 @@ namespace YouAreNotAlone
 
             if (Function.Call<bool>(Hash.IS_DLC_PRESENT, Function.Call<int>(Hash.GET_HASH_KEY, "mpimportexport")))
             {
-                Logger.Write("Main: Found MPImportExport.", "");
+                Logger.Write(false, "Main: Found MPImportExport.", "");
                 racerCarNames.Add("comet3");
                 racerCarNames.Add("elegy");
                 racerCarNames.Add("italigtb");
@@ -360,14 +360,14 @@ namespace YouAreNotAlone
 
             if (Function.Call<bool>(Hash.IS_DLC_PRESENT, Function.Call<int>(Hash.GET_HASH_KEY, "mpjanuary2016")))
             {
-                Logger.Write("Main: Found MPJanuary2016.", "");
+                Logger.Write(false, "Main: Found MPJanuary2016.", "");
                 racerCarNames.Add("banshee2");
                 racerCarNames.Add("sultanrs");
             }
 
             if (Function.Call<bool>(Hash.IS_DLC_PRESENT, Function.Call<int>(Hash.GET_HASH_KEY, "mplowrider")))
             {
-                Logger.Write("Main: Found MPLowrider.", "");
+                Logger.Write(false, "Main: Found MPLowrider.", "");
                 drivebyCarNames.Add("buccaneer2");
                 drivebyCarNames.Add("chino2");
                 drivebyCarNames.Add("voodoo");
@@ -378,7 +378,7 @@ namespace YouAreNotAlone
 
             if (Function.Call<bool>(Hash.IS_DLC_PRESENT, Function.Call<int>(Hash.GET_HASH_KEY, "mplowrider2")))
             {
-                Logger.Write("Main: Found MPLowrider2.", "");
+                Logger.Write(false, "Main: Found MPLowrider2.", "");
                 drivebyCarNames.Add("faction3");
                 drivebyCarNames.Add("sabregt2");
                 drivebyCarNames.Add("virgo2");
@@ -386,21 +386,21 @@ namespace YouAreNotAlone
 
             if (Function.Call<bool>(Hash.IS_DLC_PRESENT, Function.Call<int>(Hash.GET_HASH_KEY, "mplts")))
             {
-                Logger.Write("Main: Found MPLTS.", "");
+                Logger.Write(false, "Main: Found MPLTS.", "");
                 racerBikeNames.Add("hakuchou");
                 drivebyCarNames.Add("innovation");
             }
 
             if (Function.Call<bool>(Hash.IS_DLC_PRESENT, Function.Call<int>(Hash.GET_HASH_KEY, "mpluxe")))
             {
-                Logger.Write("Main: Found MPLuxe.", "");
+                Logger.Write(false, "Main: Found MPLuxe.", "");
                 racerCarNames.Add("feltzer3");
                 racerCarNames.Add("osiris");
             }
 
             if (Function.Call<bool>(Hash.IS_DLC_PRESENT, Function.Call<int>(Hash.GET_HASH_KEY, "mpluxe2")))
             {
-                Logger.Write("Main: Found MPLuxe2.", "");
+                Logger.Write(false, "Main: Found MPLuxe2.", "");
                 racerCarNames.Add("t20");
                 drivebyCarNames.Add("chino");
                 drivebyCarNames.Add("vindicator");
@@ -408,7 +408,7 @@ namespace YouAreNotAlone
 
             if (Function.Call<bool>(Hash.IS_DLC_PRESENT, Function.Call<int>(Hash.GET_HASH_KEY, "mpsmuggler")))
             {
-                Logger.Write("Main: Found MPSmuggler.", "");
+                Logger.Write(false, "Main: Found MPSmuggler.", "");
                 racerCarNames.Add("cyclone");
                 racerCarNames.Add("rapidgt3");
                 racerCarNames.Add("visione");
@@ -417,7 +417,7 @@ namespace YouAreNotAlone
 
             if (Function.Call<bool>(Hash.IS_DLC_PRESENT, Function.Call<int>(Hash.GET_HASH_KEY, "mpspecialraces")))
             {
-                Logger.Write("Main: Found MPSpecialRaces.", "");
+                Logger.Write(false, "Main: Found MPSpecialRaces.", "");
                 racerCarNames.Add("gp1");
                 racerCarNames.Add("infernus2");
                 racerCarNames.Add("turismo2");
@@ -425,7 +425,7 @@ namespace YouAreNotAlone
 
             if (Function.Call<bool>(Hash.IS_DLC_PRESENT, Function.Call<int>(Hash.GET_HASH_KEY, "mpstunt")))
             {
-                Logger.Write("Main: Found MPStunt.", "");
+                Logger.Write(false, "Main: Found MPStunt.", "");
                 racerCarNames.Add("le7b");
                 racerCarNames.Add("sheava");
                 racerCarNames.Add("tyrus");
@@ -435,13 +435,13 @@ namespace YouAreNotAlone
 
             if (Function.Call<bool>(Hash.IS_DLC_PRESENT, Function.Call<int>(Hash.GET_HASH_KEY, "spupgrade")))
             {
-                Logger.Write("Main: Found SPUpgrade.", "");
+                Logger.Write(false, "Main: Found SPUpgrade.", "");
                 drivebyCarNames.Add("stalion");
             }
 
             if (Function.Call<bool>(Hash.IS_DLC_PRESENT, Function.Call<int>(Hash.GET_HASH_KEY, "pres")))
             {
-                Logger.Write("Main: Found IVPack.", "");
+                Logger.Write(false, "Main: Found IVPack.", "");
                 racerCarNames.Add("cheetah3");
                 racerCarNames.Add("sentinel4");
                 racerCarNames.Add("supergt");
@@ -462,17 +462,18 @@ namespace YouAreNotAlone
 
             if (Function.Call<bool>(Hash.IS_DLC_PRESENT, Function.Call<int>(Hash.GET_HASH_KEY, "wov")))
             {
-                Logger.Write("Main: Found World of Variety.", "");
+                Logger.Write(false, "Main: Found World of Variety.", "");
                 copModels[3].Add("s_m_y_bcop_01");
                 copCarNames[1].Add("sheriff3");
                 copHeliNames.Add("shemav");
+                swatHeliNames.Add("fibmav");
                 swatModels.Add("s_m_y_swat_02");
                 swatModels.Add("s_m_y_swat_04");
             }
 
             if (Function.Call<bool>(Hash.IS_DLC_PRESENT, Function.Call<int>(Hash.GET_HASH_KEY, "vwe")))
             {
-                Logger.Write("Main: Found Vanillaworks Extended.", "");
+                Logger.Write(false, "Main: Found Vanillaworks Extended.", "");
                 racerCarNames.Add("blista4");
                 racerCarNames.Add("cheetah4");
                 racerCarNames.Add("comet6");
@@ -503,7 +504,7 @@ namespace YouAreNotAlone
 
             if (Function.Call<bool>(Hash.IS_DLC_PRESENT, Function.Call<int>(Hash.GET_HASH_KEY, "dw")))
             {
-                Logger.Write("Main: Found Dispatchworks.", "");
+                Logger.Write(false, "Main: Found Dispatchworks.", "");
                 copCarNames[1].Add("bcso4");
                 copCarNames[1].Add("bcso5");
                 copCarNames[1].Add("bcso6");
@@ -567,7 +568,7 @@ namespace YouAreNotAlone
 
             if (Function.Call<bool>(Hash.IS_DLC_PRESENT, Function.Call<int>(Hash.GET_HASH_KEY, "dov")))
             {
-                Logger.Write("Main: Found Dispatch of Variety.", "");
+                Logger.Write(false, "Main: Found Dispatch of Variety.", "");
                 armyCarNames.Add("dovnapc");
                 copModels[2].Add("d_o_v_dick_01");
                 copModels[3].Add("d_o_v_npatrol_01");
@@ -587,6 +588,8 @@ namespace YouAreNotAlone
                 copCarNames[1].Add("dovsheranch");
                 copCarNames[1].Add("dovshestan");
                 copCarNames[1].Add("dovshetrans");
+                copHeliNames.Add("dovpolmav");
+                copHeliNames.Add("dovshemav");
                 fibCarNames.Add("dovfibkur");
                 fibCarNames.Add("dovfibranch");
                 fibCarNames.Add("dovfibwash");
@@ -608,7 +611,7 @@ namespace YouAreNotAlone
 
                 if (doc != null)
                 {
-                    Logger.Write("Main: Found XML file.", "");
+                    Logger.Write(false, "Main: Found XML file.", "");
 
                     break;
                 }
@@ -616,7 +619,7 @@ namespace YouAreNotAlone
 
             if (doc == null)
             {
-                Logger.Write("Main: Couldn't find XML file.", "");
+                Logger.Write(false, "Main: Couldn't find XML file.", "");
 
                 return;
             }
@@ -635,60 +638,65 @@ namespace YouAreNotAlone
             {
                 string spawnName = e.GetAttribute("name");
 
-                if (((Model)spawnName).IsValid && (((Model)spawnName).IsCar || ((Model)spawnName).IsBicycle || ((Model)spawnName).IsBike || ((Model)spawnName).IsQuadbike)) addOnCarNames.Add(spawnName);
+                if (((Model)spawnName).IsInCdImage && (((Model)spawnName).IsCar || ((Model)spawnName).IsBicycle || ((Model)spawnName).IsBike || ((Model)spawnName).IsQuadbike)) addOnCarNames.Add(spawnName);
             }
 
             foreach (XmlElement e in element.SelectNodes("//RaceCar/spawn"))
             {
                 string spawnName = e.GetAttribute("name");
 
-                if (((Model)spawnName).IsValid && ((Model)spawnName).IsCar) racerCarNames.Add(spawnName);
+                if (((Model)spawnName).IsInCdImage && ((Model)spawnName).IsCar) racerCarNames.Add(spawnName);
             }
 
             foreach (XmlElement e in element.SelectNodes("//RaceBike/spawn"))
             {
                 string spawnName = e.GetAttribute("name");
 
-                if (((Model)spawnName).IsValid && (((Model)spawnName).IsBike || ((Model)spawnName).IsQuadbike)) racerBikeNames.Add(spawnName);
+                if (((Model)spawnName).IsInCdImage && (((Model)spawnName).IsBike || ((Model)spawnName).IsQuadbike)) racerBikeNames.Add(spawnName);
             }
 
             foreach (XmlElement e in element.SelectNodes("//Driveby/spawn"))
             {
                 string spawnName = e.GetAttribute("name");
 
-                if (((Model)spawnName).IsValid && (((Model)spawnName).IsCar || ((Model)spawnName).IsBike || ((Model)spawnName).IsQuadbike)) drivebyCarNames.Add(spawnName);
+                if (((Model)spawnName).IsInCdImage && (((Model)spawnName).IsCar || ((Model)spawnName).IsBike || ((Model)spawnName).IsQuadbike)) drivebyCarNames.Add(spawnName);
             }
 
-            Logger.Write("Main: Completed setting.", "");
+            Logger.Write(false, "Main: Completed setting.", "");
         }
 
-        public static void DispatchAgainst(Entity target, EventManager.EventType type)
+        public static bool DispatchAgainst(Entity target, EventManager.EventType type)
         {
-            if (NoDispatch) return;
+            if (NoDispatch) return false;
 
-            Vector3 safePosition = Util.GetSafePositionNear(target.Position + target.ForwardVector * 100.0f);
+            Vector3 safePosition = Util.GetSafePositionNear(target.Position + target.ForwardVector * 70.0f);
 
-            if (safePosition.Equals(Vector3.Zero)) return;
+            if (safePosition.Equals(Vector3.Zero)) return false;
+
+            int minOfSuccess = 0, success = 0;
 
             switch (type)
             {
                 case EventManager.EventType.AggressiveDriver:
                 case EventManager.EventType.Racer:
                     {
+                        minOfSuccess = 1;
+
                         for (int i = 0; i < 2; i++)
                         {
                             int selectedType = Util.GetRandomIntBelow(copCarNames.Count);
                             EmergencyGround lspd = new EmergencyGround(copCarNames[selectedType][Util.GetRandomIntBelow(copCarNames[selectedType].Count)], target, "LSPD");
 
-                            if (lspd.IsCreatedIn(safePosition, copModels[selectedType])) DispatchManager.Add(lspd, DispatchManager.DispatchType.Cop);
+                            if (lspd.IsCreatedIn(safePosition, copModels[selectedType]) && DispatchManager.Add(lspd, DispatchManager.DispatchType.CopGround)) success++;
                             else lspd.Restore(true);
                         }
 
                         if (target.Model.IsPed && ((Ped)target).IsSittingInVehicle() && ((Ped)target).CurrentVehicle.Model.IsCar)
                         {
+                            minOfSuccess = 2;
                             EmergencyHeli lspdheli = new EmergencyHeli(copHeliNames[Util.GetRandomIntBelow(copHeliNames.Count)], target, "LSPD");
 
-                            if (lspdheli.IsCreatedIn(safePosition, copModels[Util.GetRandomIntBelow(copModels.Count)])) DispatchManager.Add(lspdheli, DispatchManager.DispatchType.CopHeli);
+                            if (lspdheli.IsCreatedIn(safePosition, copModels[Util.GetRandomIntBelow(copModels.Count)]) && DispatchManager.Add(lspdheli, DispatchManager.DispatchType.CopHeli)) success++;
                             else lspdheli.Restore(true);
                         }
 
@@ -700,7 +708,7 @@ namespace YouAreNotAlone
                         int selectedType = Util.GetRandomIntBelow(copCarNames.Count);
                         EmergencyGround lspd = new EmergencyGround(copCarNames[selectedType][Util.GetRandomIntBelow(copCarNames[selectedType].Count)], target, "LSPD");
 
-                        if (lspd.IsCreatedIn(safePosition, copModels[selectedType])) DispatchManager.Add(lspd, DispatchManager.DispatchType.Cop);
+                        if (lspd.IsCreatedIn(safePosition, copModels[selectedType]) && DispatchManager.Add(lspd, DispatchManager.DispatchType.CopGround)) success++;
                         else lspd.Restore(true);
 
                         break;
@@ -708,25 +716,28 @@ namespace YouAreNotAlone
 
                 case EventManager.EventType.Driveby:
                     {
+                        minOfSuccess = 1;
+
                         for (int i = 0; i < 2; i++)
                         {
                             int selectedType = Util.GetRandomIntBelow(copCarNames.Count);
                             EmergencyGround lspd = new EmergencyGround(copCarNames[selectedType][Util.GetRandomIntBelow(copCarNames[selectedType].Count)], target, "LSPD");
 
-                            if (lspd.IsCreatedIn(safePosition, copModels[selectedType])) DispatchManager.Add(lspd, DispatchManager.DispatchType.Cop);
+                            if (lspd.IsCreatedIn(safePosition, copModels[selectedType]) && DispatchManager.Add(lspd, DispatchManager.DispatchType.CopGround)) success++;
                             else lspd.Restore(true);
                         }
 
-                        EmergencyGround swat = new EmergencyGround(swatCarNames[Util.GetRandomIntBelow(swatCarNames.Count)], target, "SWAT");
-
-                        if (swat.IsCreatedIn(safePosition, swatModels)) DispatchManager.Add(swat, DispatchManager.DispatchType.Cop);
-                        else swat.Restore(true);
-
                         if (target.Model.IsPed && ((Ped)target).IsSittingInVehicle() && ((Ped)target).CurrentVehicle.Model.IsCar)
                         {
+                            minOfSuccess = 3;
+                            EmergencyGround swat = new EmergencyGround(swatCarNames[Util.GetRandomIntBelow(swatCarNames.Count)], target, "SWAT");
+
+                            if (swat.IsCreatedIn(safePosition, swatModels) && DispatchManager.Add(swat, DispatchManager.DispatchType.CopGround)) success++;
+                            else swat.Restore(true);
+
                             EmergencyHeli swatheli = new EmergencyHeli(swatHeliNames[Util.GetRandomIntBelow(swatHeliNames.Count)], target, "SWAT");
 
-                            if (swatheli.IsCreatedIn(safePosition, swatModels)) DispatchManager.Add(swatheli, DispatchManager.DispatchType.CopHeli);
+                            if (swatheli.IsCreatedIn(safePosition, swatModels) && DispatchManager.Add(swatheli, DispatchManager.DispatchType.CopHeli)) success++;
                             else swatheli.Restore(true);
                         }
 
@@ -737,12 +748,12 @@ namespace YouAreNotAlone
                     {
                         Firefighter ff = new Firefighter(fireCarNames[Util.GetRandomIntBelow(fireCarNames.Count)], target);
 
-                        if (ff.IsCreatedIn(safePosition, fireModels)) DispatchManager.Add(ff, DispatchManager.DispatchType.Emergency);
+                        if (ff.IsCreatedIn(safePosition, fireModels) && DispatchManager.Add(ff, DispatchManager.DispatchType.Emergency)) success++;
                         else ff.Restore(true);
 
                         Paramedic pm = new Paramedic(emCarNames[Util.GetRandomIntBelow(emCarNames.Count)], target);
 
-                        if (pm.IsCreatedIn(safePosition, emModels)) DispatchManager.Add(pm, DispatchManager.DispatchType.Emergency);
+                        if (pm.IsCreatedIn(safePosition, emModels) && DispatchManager.Add(pm, DispatchManager.DispatchType.Emergency)) success++;
                         else pm.Restore(true);
 
                         break;
@@ -750,12 +761,14 @@ namespace YouAreNotAlone
 
                 case EventManager.EventType.GangTeam:
                     {
+                        minOfSuccess = 2;
+
                         for (int i = 0; i < 3; i++)
                         {
                             int selectedType = Util.GetRandomIntBelow(copCarNames.Count);
                             EmergencyGround lspd = new EmergencyGround(copCarNames[selectedType][Util.GetRandomIntBelow(copCarNames[selectedType].Count)], target, "LSPD");
 
-                            if (lspd.IsCreatedIn(safePosition, copModels[selectedType])) DispatchManager.Add(lspd, DispatchManager.DispatchType.Cop);
+                            if (lspd.IsCreatedIn(safePosition, copModels[selectedType]) && DispatchManager.Add(lspd, DispatchManager.DispatchType.CopGround)) success++;
                             else lspd.Restore(true);
                         }
 
@@ -764,21 +777,23 @@ namespace YouAreNotAlone
 
                 case EventManager.EventType.Massacre:
                     {
+                        minOfSuccess = 4;
+
                         for (int i = 0; i < 2; i++)
                         {
                             EmergencyGround fib = new EmergencyGround(fibCarNames[Util.GetRandomIntBelow(fibCarNames.Count)], target, "FIB");
 
-                            if (fib.IsCreatedIn(safePosition, fibModels)) DispatchManager.Add(fib, DispatchManager.DispatchType.Cop);
+                            if (fib.IsCreatedIn(safePosition, fibModels) && DispatchManager.Add(fib, DispatchManager.DispatchType.CopGround)) success++;
                             else fib.Restore(true);
 
                             EmergencyGround swat = new EmergencyGround(swatCarNames[Util.GetRandomIntBelow(swatCarNames.Count)], target, "SWAT");
 
-                            if (swat.IsCreatedIn(safePosition, swatModels)) DispatchManager.Add(swat, DispatchManager.DispatchType.Cop);
+                            if (swat.IsCreatedIn(safePosition, swatModels) && DispatchManager.Add(swat, DispatchManager.DispatchType.CopGround)) success++;
                             else swat.Restore(true);
 
                             EmergencyHeli swatheli = new EmergencyHeli(swatHeliNames[Util.GetRandomIntBelow(swatHeliNames.Count)], target, "SWAT");
 
-                            if (swatheli.IsCreatedIn(safePosition, swatModels)) DispatchManager.Add(swatheli, DispatchManager.DispatchType.CopHeli);
+                            if (swatheli.IsCreatedIn(safePosition, swatModels) && DispatchManager.Add(swatheli, DispatchManager.DispatchType.CopHeli)) success++;
                             else swatheli.Restore(true);
                         }
 
@@ -787,11 +802,13 @@ namespace YouAreNotAlone
 
                 case EventManager.EventType.Terrorist:
                     {
+                        minOfSuccess = 4;
+
                         for (int i = 0; i < 4; i++)
                         {
                             EmergencyGround army = new EmergencyGround(armyCarNames[Util.GetRandomIntBelow(armyCarNames.Count)], target, "ARMY");
 
-                            if (army.IsCreatedIn(safePosition, armyModels)) DispatchManager.Add(army, DispatchManager.DispatchType.Army);
+                            if (army.IsCreatedIn(safePosition, armyModels) && DispatchManager.Add(army, DispatchManager.DispatchType.ArmyGround)) success++;
                             else army.Restore(true);
                         }
 
@@ -799,20 +816,23 @@ namespace YouAreNotAlone
                         {
                             EmergencyHeli armyheli = new EmergencyHeli(armyHeliNames[Util.GetRandomIntBelow(armyHeliNames.Count)], target, "ARMY");
 
-                            if (armyheli.IsCreatedIn(safePosition, armyModels)) DispatchManager.Add(armyheli, DispatchManager.DispatchType.ArmyHeli);
+                            if (armyheli.IsCreatedIn(safePosition, armyModels) && DispatchManager.Add(armyheli, DispatchManager.DispatchType.ArmyHeli)) success++;
                             else armyheli.Restore(true);
                         }
 
                         break;
                     }
             }
+
+            if (success >= minOfSuccess) return true;
+            else return false;
         }
 
         public static bool BlockRoadAgainst(Entity target, EventManager.EventType type)
         {
             if (NoDispatch) return true;
 
-            Vector3 safePosition = Util.GetSafePositionNear(target.Position + target.ForwardVector * 70.0f);
+            Vector3 safePosition = Util.GetSafePositionNear(target.Position + target.ForwardVector * 50.0f);
 
             if (safePosition.Equals(Vector3.Zero)) return false;
 
@@ -824,12 +844,7 @@ namespace YouAreNotAlone
                         int selectedType = Util.GetRandomIntBelow(copCarNames.Count - 1);
                         EmergencyBlock lspdblock = new EmergencyBlock(copCarNames[selectedType][Util.GetRandomIntBelow(copCarNames[selectedType].Count)], target, "LSPD");
 
-                        if (lspdblock.IsCreatedIn(safePosition, copModels[selectedType]))
-                        {
-                            DispatchManager.Add(lspdblock, DispatchManager.DispatchType.CopRoadBlock);
-
-                            return true;
-                        }
+                        if (lspdblock.IsCreatedIn(safePosition, copModels[selectedType])) return DispatchManager.Add(lspdblock, DispatchManager.DispatchType.CopRoadBlock);
                         else lspdblock.Restore(true);
 
                         break;
@@ -839,12 +854,7 @@ namespace YouAreNotAlone
                     {
                         EmergencyBlock swatblock = new EmergencyBlock(swatCarNames[Util.GetRandomIntBelow(swatCarNames.Count)], target, "SWAT");
 
-                        if (swatblock.IsCreatedIn(safePosition, swatModels))
-                        {
-                            DispatchManager.Add(swatblock, DispatchManager.DispatchType.CopRoadBlock);
-
-                            return true;
-                        }
+                        if (swatblock.IsCreatedIn(safePosition, swatModels)) return DispatchManager.Add(swatblock, DispatchManager.DispatchType.CopRoadBlock);
                         else swatblock.Restore(true);
 
                         break;
@@ -854,12 +864,7 @@ namespace YouAreNotAlone
                     {
                         EmergencyBlock armyblock = new EmergencyBlock(armyCarNames[Util.GetRandomIntBelow(armyCarNames.Count)], target, "ARMY");
 
-                        if (armyblock.IsCreatedIn(safePosition, armyModels))
-                        {
-                            DispatchManager.Add(armyblock, DispatchManager.DispatchType.ArmyRoadBlock);
-
-                            return true;
-                        }
+                        if (armyblock.IsCreatedIn(safePosition, armyModels)) return DispatchManager.Add(armyblock, DispatchManager.DispatchType.ArmyRoadBlock);
                         else armyblock.Restore(true);
 
                         break;
@@ -875,7 +880,7 @@ namespace YouAreNotAlone
             eventTimeChecker = 0;
             Interval = 15000;
             Tick += OnTick;
-            Logger.Write("YouAreNotAlone started.", "");
+            Logger.Write(false, "YouAreNotAlone started.", "");
         }
 
         private void OnTick(Object sender, EventArgs e)
@@ -886,10 +891,8 @@ namespace YouAreNotAlone
                 {
                     ReplacedVehicle rv = new ReplacedVehicle(addOnCarNames[Util.GetRandomIntBelow(addOnCarNames.Count)]);
 
-                    if (rv.IsCreatedIn(radius))
+                    if (rv.IsCreatedIn(radius) && EventManager.Add(rv, EventManager.EventType.ReplacedVehicle))
                     {
-                        EventManager.Add(rv, EventManager.EventType.ReplacedVehicle);
-
                         if (!NoMinimapFlash) Function.Call(Hash.FLASH_MINIMAP_DISPLAY);
                     }
                     else rv.Restore(true);
@@ -905,10 +908,8 @@ namespace YouAreNotAlone
                         {
                             Carjacker cj = new Carjacker();
 
-                            if (cj.IsCreatedIn(radius))
+                            if (cj.IsCreatedIn(radius) && EventManager.Add(cj, EventManager.EventType.Carjacker))
                             {
-                                EventManager.Add(cj, EventManager.EventType.Carjacker);
-
                                 if (!NoMinimapFlash) Function.Call(Hash.FLASH_MINIMAP_DISPLAY);
                             }
                             else cj.Restore(true);
@@ -920,10 +921,8 @@ namespace YouAreNotAlone
                         {
                             AggressiveDriver ad = new AggressiveDriver(racerCarNames[Util.GetRandomIntBelow(racerCarNames.Count)]);
 
-                            if (ad.IsCreatedIn(radius))
+                            if (ad.IsCreatedIn(radius) && EventManager.Add(ad, EventManager.EventType.AggressiveDriver))
                             {
-                                EventManager.Add(ad, EventManager.EventType.AggressiveDriver);
-
                                 if (!NoMinimapFlash) Function.Call(Hash.FLASH_MINIMAP_DISPLAY);
                             }
                             else ad.Restore(true);
@@ -935,10 +934,8 @@ namespace YouAreNotAlone
                         {
                             OnFire of = new OnFire();
 
-                            if (of.IsCreatedIn(radius, true))
+                            if (of.IsCreatedIn(radius, true) && EventManager.Add(of, EventManager.EventType.Fire))
                             {
-                                EventManager.Add(of, EventManager.EventType.Fire);
-
                                 if (!NoMinimapFlash) Function.Call(Hash.FLASH_MINIMAP_DISPLAY);
                             }
                             else of.Restore(true);
@@ -950,10 +947,8 @@ namespace YouAreNotAlone
                         {
                             OnFire of = new OnFire();
 
-                            if (of.IsCreatedIn(radius, false))
+                            if (of.IsCreatedIn(radius, false) && EventManager.Add(of, EventManager.EventType.Fire))
                             {
-                                EventManager.Add(of, EventManager.EventType.Fire);
-
                                 if (!NoMinimapFlash) Function.Call(Hash.FLASH_MINIMAP_DISPLAY);
                             }
                             else of.Restore(true);
@@ -996,11 +991,9 @@ namespace YouAreNotAlone
                             World.SetRelationshipBetweenGroups(Relationship.Hate, relationshipA, relationshipB);
 
                             if (teamA.IsCreatedIn(radius, road.Position.Around(5.0f), gangModels[teamANum], relationshipA, BlipColor.Green, "A Team")
-                                && teamB.IsCreatedIn(radius, road.Position.Around(5.0f), gangModels[teamBNum], relationshipB, BlipColor.Red, "B Team"))
+                                && teamB.IsCreatedIn(radius, road.Position.Around(5.0f), gangModels[teamBNum], relationshipB, BlipColor.Red, "B Team")
+                                && EventManager.Add(teamA, EventManager.EventType.GangTeam) && EventManager.Add(teamB, EventManager.EventType.GangTeam))
                             {
-                                EventManager.Add(teamA, EventManager.EventType.GangTeam);
-                                EventManager.Add(teamB, EventManager.EventType.GangTeam);
-
                                 teamA.PerformTask();
                                 teamB.PerformTask();
 
@@ -1034,10 +1027,8 @@ namespace YouAreNotAlone
 
                             Massacre ms = new Massacre();
 
-                            if (ms.IsCreatedIn(radius, road.Position))
+                            if (ms.IsCreatedIn(radius, road.Position) && EventManager.Add(ms, EventManager.EventType.Massacre))
                             {
-                                EventManager.Add(ms, EventManager.EventType.Massacre);
-
                                 if (!NoMinimapFlash) Function.Call(Hash.FLASH_MINIMAP_DISPLAY);
                             }
                             else ms.Restore(true);
@@ -1059,10 +1050,8 @@ namespace YouAreNotAlone
                             if (Util.GetRandomIntBelow(4) == 1) r = new Racers(racerBikeNames, safePosition, goal);
                             else r = new Racers(racerCarNames, safePosition, goal);
 
-                            if (r.IsCreatedIn(radius))
+                            if (r.IsCreatedIn(radius) && EventManager.Add(r, EventManager.EventType.Racer))
                             {
-                                EventManager.Add(r, EventManager.EventType.Racer);
-
                                 if (!NoMinimapFlash) Function.Call(Hash.FLASH_MINIMAP_DISPLAY);
                             }
                             else r.Restore(true);
@@ -1074,10 +1063,8 @@ namespace YouAreNotAlone
                         {
                             Driveby db = new Driveby(drivebyCarNames[Util.GetRandomIntBelow(drivebyCarNames.Count)]);
 
-                            if (db.IsCreatedIn(radius, gangModels[Util.GetRandomIntBelow(gangModels.Count)]))
+                            if (db.IsCreatedIn(radius, gangModels[Util.GetRandomIntBelow(gangModels.Count)]) && EventManager.Add(db, EventManager.EventType.Driveby))
                             {
-                                EventManager.Add(db, EventManager.EventType.Driveby);
-
                                 if (!NoMinimapFlash) Function.Call(Hash.FLASH_MINIMAP_DISPLAY);
                             }
                             else db.Restore(true);
@@ -1089,10 +1076,8 @@ namespace YouAreNotAlone
                         {
                             Terrorist tr = new Terrorist(terroristCarNames[Util.GetRandomIntBelow(terroristCarNames.Count)]);
 
-                            if (tr.IsCreatedIn(radius))
+                            if (tr.IsCreatedIn(radius) && EventManager.Add(tr, EventManager.EventType.Terrorist))
                             {
-                                EventManager.Add(tr, EventManager.EventType.Terrorist);
-
                                 if (!NoMinimapFlash) Function.Call(Hash.FLASH_MINIMAP_DISPLAY);
                             }
                             else tr.Restore(true);
