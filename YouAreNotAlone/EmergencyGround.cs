@@ -82,7 +82,7 @@ namespace YouAreNotAlone
 
             Logger.Write(false, blipName + ": Created members.", name);
 
-            if (Util.ThereIs(members.Find(p => !Util.ThereIs(p))))
+            if (members.Find(p => !Util.ThereIs(p)) != null)
             {
                 Logger.Error(blipName + ": There is a member who doesn't exist. Abort.", name);
                 Restore(true);
@@ -92,6 +92,17 @@ namespace YouAreNotAlone
 
             foreach (Ped p in members)
             {
+                AddVarietyTo(p);
+                Util.SetCombatAttributesOf(p);
+
+                Function.Call(Hash.SET_DRIVER_ABILITY, p, 1.0f);
+                Function.Call(Hash.SET_DRIVER_AGGRESSIVENESS, p, 1.0f);
+                Function.Call(Hash.SET_PED_AS_COP, p, false);
+
+                p.AlwaysKeepTask = true;
+                p.BlockPermanentEvents = true;
+                p.FiringPattern = FiringPattern.BurstFireDriveby;
+
                 switch (emergencyType)
                 {
                     case "ARMY":
@@ -130,11 +141,7 @@ namespace YouAreNotAlone
                             {
                                 Shield s = new Shield(p);
 
-                                if (s.IsCreatedIn(p.Position.Around(5.0f)))
-                                {
-                                    DispatchManager.Add(s, DispatchManager.DispatchType.Shield);
-                                    p.Weapons.Give(WeaponHash.Pistol, 100, true, true);
-                                }
+                                if (s.IsCreatedIn(p.Position.Around(5.0f)) && DispatchManager.Add(s, DispatchManager.DispatchType.Shield)) p.Weapons.Give(WeaponHash.Pistol, 100, true, true);
                                 else s.Restore(true);
                             }
 
@@ -153,22 +160,6 @@ namespace YouAreNotAlone
 
                 p.Weapons.Current.InfiniteAmmo = true;
                 p.CanSwitchWeapons = true;
-                AddVarietyTo(p);
-
-                Function.Call(Hash.SET_PED_FLEE_ATTRIBUTES, p, 0, false);
-                Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, p, 17, true);
-                Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, p, 52, true);
-                Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, p, 46, true);
-                Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, p, 5, true);
-
-                Function.Call(Hash.SET_DRIVER_ABILITY, p, 1.0f);
-                Function.Call(Hash.SET_DRIVER_AGGRESSIVENESS, p, 1.0f);
-
-                Function.Call(Hash.SET_PED_AS_COP, p, false);
-                p.AlwaysKeepTask = true;
-                p.BlockPermanentEvents = true;
-                p.FiringPattern = FiringPattern.BurstFireDriveby;
-
                 p.RelationshipGroup = relationship;
                 Logger.Write(false, blipName + ": Characteristics are set.", name);
             }

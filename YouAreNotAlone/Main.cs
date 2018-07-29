@@ -46,6 +46,10 @@ namespace YouAreNotAlone
 
         static Main()
         {
+            Logger.Init();
+            Util.Init();
+            VehicleInfo.Init();
+
             NoDispatch = false;
             CriminalsCanFightWithPlayer = false;
             DispatchesCanFightWithPlayer = false;
@@ -53,7 +57,6 @@ namespace YouAreNotAlone
             NoBlipOnCriminal = false;
             NoBlipOnDispatch = false;
             NoLog = true;
-            Logger.Init();
 
             addOnCarNames = new List<string>();
             racerCarNames = new List<string>
@@ -259,6 +262,13 @@ namespace YouAreNotAlone
                 racerCarNames.Add("taipan");
                 racerCarNames.Add("tezeract");
                 racerCarNames.Add("tyrant");
+            }
+
+            if (Function.Call<bool>(Hash.IS_DLC_PRESENT, Function.Call<int>(Hash.GET_HASH_KEY, "mpbattle")))
+            {
+                Logger.Write(false, "Main: Found MPBattle.", "");
+                racerCarNames.Add("swinger");
+                armyCarNames.Add("menacer");
             }
 
             if (Function.Call<bool>(Hash.IS_DLC_PRESENT, Function.Call<int>(Hash.GET_HASH_KEY, "mpbiker")))
@@ -824,8 +834,7 @@ namespace YouAreNotAlone
                     }
             }
 
-            if (success >= minOfSuccess) return true;
-            else return false;
+            return success >= minOfSuccess;
         }
 
         public static bool BlockRoadAgainst(Entity target, EventManager.EventType type)

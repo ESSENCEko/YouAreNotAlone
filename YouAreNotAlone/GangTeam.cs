@@ -54,13 +54,10 @@ namespace YouAreNotAlone
                 if (Util.GetRandomIntBelow(3) == 0) p.Weapons.Give(closeWeapons[Util.GetRandomIntBelow(closeWeapons.Count)], 1, true, true);
                 else p.Weapons.Give(standoffWeapons[Util.GetRandomIntBelow(standoffWeapons.Count)], 300, true, true);
 
-                Function.Call(Hash.SET_PED_FLEE_ATTRIBUTES, spawnedPed, 0, false);
-                Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, p, 17, true);
-                Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, p, 46, true);
-                Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, p, 5, true);
-
+                Util.SetCombatAttributesOf(p);
                 p.RelationshipGroup = relationship;
                 p.IsPriorityTargetForEnemies = true;
+
                 p.AlwaysKeepTask = true;
                 p.BlockPermanentEvents = true;
                 p.Armor = Util.GetRandomIntBelow(100);
@@ -79,18 +76,18 @@ namespace YouAreNotAlone
                 }
             }
 
-            if (Util.ThereIs(members.Find(p => !Util.ThereIs(p))))
+            if (members.Find(p => !Util.ThereIs(p)) == null)
+            {
+                Logger.Write(false, "GangTeam: Create gang team successfully.", "");
+
+                return true;
+            }
+            else
             {
                 Logger.Error("GangTeam: There is a member who doesn't exist. Abort.", "");
                 Restore(true);
 
                 return false;
-            }
-            else
-            {
-                Logger.Write(false, "GangTeam: Create gang team successfully.", "");
-
-                return true;
             }
         }
 
@@ -146,9 +143,7 @@ namespace YouAreNotAlone
                     members[i].Task.PerformSequence(ts);
             }
 
-            spawnedPed = null;
-
-            if (members.Count > 0 && Util.ThereIs(spawnedPed = members.Find(p => Util.ThereIs(p) && Util.WeCanGiveTaskTo(p)))) CheckDispatch();
+            if (members.Count > 0 && SpawnedPedExistsIn(members)) CheckDispatch();
             else
             {
                 Logger.Write(false, "GangTeam: Everyone is gone. Time to be disposed.", "");

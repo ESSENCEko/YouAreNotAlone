@@ -62,7 +62,7 @@ namespace YouAreNotAlone
 
             Logger.Write(false, blipName + ": Created members.", name);
 
-            if (Util.ThereIs(members.Find(p => !Util.ThereIs(p))))
+            if (members.Find(p => !Util.ThereIs(p)) != null)
             {
                 Logger.Error(blipName + ": There is a member who doesn't exist. Abort.", name);
                 Restore(true);

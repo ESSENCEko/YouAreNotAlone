@@ -99,7 +99,7 @@ namespace YouAreNotAlone
 
             if (!Util.ThereIs(spawnedVehicle) || !Util.WeCanGiveTaskTo(spawnedPed))
             {
-                Logger.Error("Carjacker: Couldn't find proper vehicle. Abort finding.", "");
+                Logger.Write(false, "Carjacker: Couldn't find proper vehicle. Abort finding.", "");
 
                 return;
             }

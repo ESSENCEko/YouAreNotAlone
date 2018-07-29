@@ -107,11 +107,9 @@ namespace YouAreNotAlone
                         break;
                 }
 
-                Function.Call(Hash.SET_PED_FLEE_ATTRIBUTES, p, 0, false);
+                Util.SetCombatAttributesOf(p);
                 Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, p, 0, false);
-                Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, p, 17, true);
-                Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, p, 46, true);
-                Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, p, 5, true);
+                Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, p, 1, false);
 
                 Function.Call(Hash.SET_PED_PATH_CAN_USE_CLIMBOVERS, p, false);
                 Function.Call(Hash.SET_PED_PATH_CAN_USE_LADDERS, p, false);
@@ -125,6 +123,7 @@ namespace YouAreNotAlone
                 p.FiringPattern = FiringPattern.FullAuto;
                 p.ShootRate = 1000;
                 p.CanRagdoll = false;
+                p.CanPlayGestures = false;
                 p.CanWrithe = false;
 
                 p.IsFireProof = true;
@@ -145,18 +144,18 @@ namespace YouAreNotAlone
                 }
             }
 
-            if (Util.ThereIs(members.Find(p => !Util.ThereIs(p))))
+            if (members.Find(p => !Util.ThereIs(p)) == null)
+            {
+                Logger.Write(false, "Massacre: Create massacre squad successfully.", "");
+
+                return true;
+            }
+            else
             {
                 Logger.Error("Massacre: There is a member who doesn't exist. Abort.", "");
                 Restore(true);
 
                 return false;
-            }
-            else
-            {
-                Logger.Write(false, "Massacre: Create massacre squad successfully.", "");
-
-                return true;
             }
         }
 
@@ -206,9 +205,7 @@ namespace YouAreNotAlone
                 if (!members[i].IsInCombat) members[i].Task.FightAgainstHatedTargets(400.0f);
             }
 
-            spawnedPed = null;
-
-            if (members.Count > 0 && Util.ThereIs(spawnedPed = members.Find(p => Util.ThereIs(p) && Util.WeCanGiveTaskTo(p)))) CheckDispatch();
+            if (members.Count > 0 && SpawnedPedExistsIn(members)) CheckDispatch();
             else
             {
                 Logger.Write(false, "Massacre: Everyone is gone. Time to be disposed.", "");

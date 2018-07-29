@@ -9,47 +9,71 @@ namespace YouAreNotAlone
 {
     public static class Util
     {
-        private static Array vehicleColors = Enum.GetValues(typeof(VehicleColor));
-        private static Array mods = Enum.GetValues(typeof(VehicleMod));
-        private static Array neonColors = Enum.GetValues(typeof(KnownColor));
-        private static Array neonLights = Enum.GetValues(typeof(VehicleNeonLight));
-        private static Array tints = Enum.GetValues(typeof(VehicleWindowTint));
+        private static Array vehicleColors;
+        private static Array mods;
+        private static Array neonColors;
+        private static Array neonLights;
+        private static Array tints;
 
-        private static Random dice = new Random();
-        private static int[] wheelTypes = { 0, 1, 2, 3, 4, 5, 7, 8, 9 };
-        private static int[] wheelColors = { 0, 1, 2, 8, 11, 27, 30, 33, 35, 36, 37, 41, 45, 53, 55, 56, 64, 70, 81, 82, 87, 88, 89, 90, 91, 95, 99, 109, 115, 122, 125, 134, 135, 136, 138, 140, 142, 145, 151, 153, 154, 156 };
+        private static Random dice;
+        private static int[] wheelTypes;
+        private static int[] wheelColors;
 
-        private static List<int> oldRelationships = new List<int>
+        private static List<int> oldRelationships;
+        private static List<int> criminalRelationships;
+        private static List<int> copRelationships;
+        private static List<int> armyRelationships;
+
+        private static int playerID;
+        private static int pedCriminal;
+        private static int pedTerrorist;
+        private static int count;
+
+        public static void Init()
         {
-            Function.Call<int>(Hash.GET_HASH_KEY, "CIVMALE"),
-            Function.Call<int>(Hash.GET_HASH_KEY, "CIVFEMALE"),
-            Function.Call<int>(Hash.GET_HASH_KEY, "SECURITY_GUARD"),
-            Function.Call<int>(Hash.GET_HASH_KEY, "AMBIENT_GANG_LOST"),
-            Function.Call<int>(Hash.GET_HASH_KEY, "AMBIENT_GANG_MEXICAN"),
-            Function.Call<int>(Hash.GET_HASH_KEY, "AMBIENT_GANG_FAMILY"),
-            Function.Call<int>(Hash.GET_HASH_KEY, "AMBIENT_GANG_BALLAS"),
-            Function.Call<int>(Hash.GET_HASH_KEY, "AMBIENT_GANG_MARABUNTE"),
-            Function.Call<int>(Hash.GET_HASH_KEY, "AMBIENT_GANG_CULT"),
-            Function.Call<int>(Hash.GET_HASH_KEY, "AMBIENT_GANG_SALVA"),
-            Function.Call<int>(Hash.GET_HASH_KEY, "AMBIENT_GANG_WEICHENG"),
-            Function.Call<int>(Hash.GET_HASH_KEY, "AMBIENT_GANG_HILLBILLY"),
-            Function.Call<int>(Hash.GET_HASH_KEY, "GANG_1"),
-            Function.Call<int>(Hash.GET_HASH_KEY, "GANG_2"),
-            Function.Call<int>(Hash.GET_HASH_KEY, "GANG_9"),
-            Function.Call<int>(Hash.GET_HASH_KEY, "GANG_10"),
-            Function.Call<int>(Hash.GET_HASH_KEY, "DEALER"),
-            Function.Call<int>(Hash.GET_HASH_KEY, "PRIVATE_SECURITY"),
-            Function.Call<int>(Hash.GET_HASH_KEY, "PRISONER"),
-            Function.Call<int>(Hash.GET_HASH_KEY, "FIREMAN"),
-            Function.Call<int>(Hash.GET_HASH_KEY, "MEDIC")
-        };
-        private static List<int> criminalRelationships = new List<int>();
-        private static List<int> copRelationships = new List<int> { Function.Call<int>(Hash.GET_HASH_KEY, "COP") };
-        private static List<int> armyRelationships = new List<int> { Function.Call<int>(Hash.GET_HASH_KEY, "ARMY") };
-        private static int playerID = Function.Call<int>(Hash.GET_HASH_KEY, "PLAYER");
-        private static int pedCriminal = World.AddRelationshipGroup("PED_AGAINST_COP");
-        private static int pedTerrorist = World.AddRelationshipGroup("PED_AGAINST_ARMY");
-        private static int count = 0;
+            vehicleColors = Enum.GetValues(typeof(VehicleColor));
+            mods = Enum.GetValues(typeof(VehicleMod));
+            neonColors = Enum.GetValues(typeof(KnownColor));
+            neonLights = Enum.GetValues(typeof(VehicleNeonLight));
+            tints = Enum.GetValues(typeof(VehicleWindowTint));
+
+            dice = new Random();
+            wheelTypes = new int[] { 0, 1, 2, 3, 4, 5, 7, 8, 9 };
+            wheelColors = new int[] { 0, 1, 2, 8, 11, 27, 30, 33, 35, 36, 37, 41, 45, 53, 55, 56, 64, 70, 81, 82, 87, 88, 89, 90, 91, 95, 99, 109, 115, 122, 125, 134, 135, 136, 138, 140, 142, 145, 151, 153, 154, 156 };
+
+            oldRelationships = new List<int>
+            {
+                Function.Call<int>(Hash.GET_HASH_KEY, "CIVMALE"),
+                Function.Call<int>(Hash.GET_HASH_KEY, "CIVFEMALE"),
+                Function.Call<int>(Hash.GET_HASH_KEY, "SECURITY_GUARD"),
+                Function.Call<int>(Hash.GET_HASH_KEY, "AMBIENT_GANG_LOST"),
+                Function.Call<int>(Hash.GET_HASH_KEY, "AMBIENT_GANG_MEXICAN"),
+                Function.Call<int>(Hash.GET_HASH_KEY, "AMBIENT_GANG_FAMILY"),
+                Function.Call<int>(Hash.GET_HASH_KEY, "AMBIENT_GANG_BALLAS"),
+                Function.Call<int>(Hash.GET_HASH_KEY, "AMBIENT_GANG_MARABUNTE"),
+                Function.Call<int>(Hash.GET_HASH_KEY, "AMBIENT_GANG_CULT"),
+                Function.Call<int>(Hash.GET_HASH_KEY, "AMBIENT_GANG_SALVA"),
+                Function.Call<int>(Hash.GET_HASH_KEY, "AMBIENT_GANG_WEICHENG"),
+                Function.Call<int>(Hash.GET_HASH_KEY, "AMBIENT_GANG_HILLBILLY"),
+                Function.Call<int>(Hash.GET_HASH_KEY, "GANG_1"),
+                Function.Call<int>(Hash.GET_HASH_KEY, "GANG_2"),
+                Function.Call<int>(Hash.GET_HASH_KEY, "GANG_9"),
+                Function.Call<int>(Hash.GET_HASH_KEY, "GANG_10"),
+                Function.Call<int>(Hash.GET_HASH_KEY, "DEALER"),
+                Function.Call<int>(Hash.GET_HASH_KEY, "PRIVATE_SECURITY"),
+                Function.Call<int>(Hash.GET_HASH_KEY, "PRISONER"),
+                Function.Call<int>(Hash.GET_HASH_KEY, "FIREMAN"),
+                Function.Call<int>(Hash.GET_HASH_KEY, "MEDIC")
+            };
+            criminalRelationships = new List<int>();
+            copRelationships = new List<int> { Function.Call<int>(Hash.GET_HASH_KEY, "COP") };
+            armyRelationships = new List<int> { Function.Call<int>(Hash.GET_HASH_KEY, "ARMY") };
+
+            playerID = Function.Call<int>(Hash.GET_HASH_KEY, "PLAYER");
+            pedCriminal = World.AddRelationshipGroup("PED_AGAINST_COP");
+            pedTerrorist = World.AddRelationshipGroup("PED_AGAINST_ARMY");
+            count = 0;
+        }
 
         public static int GetRandomIntBelow(int maxValue)
         {
@@ -429,9 +453,7 @@ namespace YouAreNotAlone
                     break;
             }
 
-            return dispatchType.Equals(DispatchManager.DispatchType.ArmyGround) ?
-                (nearbyPeds.FindAll(p => ThereIs(p) && WeCanGiveTaskTo(p) && armyRelationships.Contains(p.RelationshipGroup))).Count > max :
-                (nearbyPeds.FindAll(p => ThereIs(p) && WeCanGiveTaskTo(p) && copRelationships.Contains(p.RelationshipGroup))).Count > max;
+            return (nearbyPeds.FindAll(p => ThereIs(p) && WeCanGiveTaskTo(p) && dispatchType.Equals(DispatchManager.DispatchType.ArmyGround) ? armyRelationships.Contains(p.RelationshipGroup) : copRelationships.Contains(p.RelationshipGroup))).Count > max;
         }
 
         public static Road GetNextPositionOnStreetWithHeading(Vector3 position)
@@ -500,6 +522,20 @@ namespace YouAreNotAlone
 
                 p.RelationshipGroup = pedCriminal;
             }
+        }
+
+        public static void SetCombatAttributesOf(Ped p)
+        {
+            Function.Call(Hash.SET_PED_FLEE_ATTRIBUTES, p, 0, false);
+            Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, p, 0, true);
+            Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, p, 1, true);
+            Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, p, 2, true);
+            Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, p, 3, true);
+            Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, p, 5, true);
+            Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, p, 17, true);
+            Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, p, 20, true);
+            Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, p, 46, true);
+            Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, p, 52, true);
         }
     }
 }
