@@ -21,8 +21,8 @@ namespace YouAreNotAlone
             GCHandle handle = GCHandle.Alloc(index, GCHandleType.Pinned);
             IntPtr modelInfo = GetModelInfo(hash, handle.AddrOfPinnedObject());
 
-            string displayName = Marshal.PtrToStringAnsi(modelInfo + 664);
-            string makeName = Marshal.PtrToStringAnsi(modelInfo + 676);
+            string displayName = (int)GTA.Game.Version < (int)GTA.GameVersion.VER_1_0_1290_1_STEAM ? Marshal.PtrToStringAnsi(modelInfo + 624) : Marshal.PtrToStringAnsi(modelInfo + 664);
+            string makeName = (int)GTA.Game.Version < (int)GTA.GameVersion.VER_1_0_1290_1_STEAM ? Marshal.PtrToStringAnsi(modelInfo + 636) : Marshal.PtrToStringAnsi(modelInfo + 676);
             handle.Free();
 
             string vehicleName = "";

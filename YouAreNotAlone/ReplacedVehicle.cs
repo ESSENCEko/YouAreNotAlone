@@ -44,9 +44,10 @@ namespace YouAreNotAlone
 
                     if (!Util.ThereIs(spawnedVehicle))
                     {
-                        Logger.Error("ReplacedVehicle: Couldn't create selected vehicle. Abort.", name);
+                        Logger.Write(false, "ReplacedVehicle: Couldn't create selected vehicle. Abort.", name);
+                        Restore(true);
 
-                        return false;
+                        continue;
                     }
 
                     Logger.Write(false, "ReplacedVehicle: Created vehicle.", name);
@@ -96,6 +97,8 @@ namespace YouAreNotAlone
                     }
                 }
             }
+
+            Restore(true);
 
             return false;
         }
