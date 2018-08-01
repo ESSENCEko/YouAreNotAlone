@@ -9,11 +9,13 @@ namespace YouAreNotAlone
     {
         private List<Ped> members;
         private string name;
+        private string blipName;
 
         public Driveby(string name) : base(EventManager.EventType.Driveby)
         {
             this.members = new List<Ped>();
             this.name = name;
+            this.blipName = "";
             Logger.Write(true, "Driveby event selected.", this.name);
         }
 
@@ -111,6 +113,7 @@ namespace YouAreNotAlone
             if (SpawnedPedExistsIn(members))
             {
                 Logger.Write(false, "Driveby: Created driveby successfully.", name);
+                blipName = VehicleInfo.GetNameOf(spawnedVehicle.Model.Hash);
 
                 return true;
             }
@@ -194,7 +197,7 @@ namespace YouAreNotAlone
             }
             else if (ReadyToGoWith(members))
             {
-                if (!Util.BlipIsOn(spawnedVehicle)) Util.AddBlipOn(spawnedVehicle, 0.7f, BlipSprite.GunCar, BlipColor.White, "Driveby " + VehicleInfo.GetNameOf(spawnedVehicle.Model.Hash));
+                if (!Util.BlipIsOn(spawnedVehicle)) Util.AddBlipOn(spawnedVehicle, 0.7f, BlipSprite.GunCar, BlipColor.White, "Driveby " + blipName);
 
                 foreach (Ped p in members.FindAll(m => Util.ThereIs(m) && Util.BlipIsOn(m))) p.CurrentBlip.Remove();
 

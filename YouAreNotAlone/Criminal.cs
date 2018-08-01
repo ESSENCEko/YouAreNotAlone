@@ -31,7 +31,7 @@
                 }
                 else if (++dispatchTry > 5)
                 {
-                    Logger.Write(false, "Couldn't dispatch aginst", type.ToString());
+                    Logger.Write(false, "Couldn't dispatch against", type.ToString());
                     dispatchCooldown = 0;
                     dispatchTry = 0;
                 }
@@ -48,7 +48,7 @@
             }
             else if (++blockTry > 5)
             {
-                Logger.Write(false, "Couldn't block road aginst", type.ToString());
+                Logger.Write(false, "Couldn't block road against", type.ToString());
                 blockCooldown = 0;
                 blockTry = 0;
             }

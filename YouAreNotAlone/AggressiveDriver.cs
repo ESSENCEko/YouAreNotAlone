@@ -7,10 +7,12 @@ namespace YouAreNotAlone
     public class AggressiveDriver : Nitroable, ICheckable
     {
         private string name;
+        private string blipName;
 
         public AggressiveDriver(string name) : base(EventManager.EventType.AggressiveDriver)
         {
             this.name = name;
+            this.blipName = "";
             Logger.Write(true, "AggressiveDriver event selected.", this.name);
         }
 
@@ -92,8 +94,8 @@ namespace YouAreNotAlone
             }
             else
             {
-                Util.AddBlipOn(spawnedPed, 0.7f, BlipSprite.PersonalVehicleCar, BlipColor.Green, "Aggressive " + VehicleInfo.GetNameOf(spawnedVehicle.Model.Hash));
                 Logger.Write(false, "AggressiveDriver: Created aggressive driver successfully.", name);
+                blipName += VehicleInfo.GetNameOf(spawnedVehicle.Model.Hash);
 
                 return true;
             }
@@ -128,6 +130,16 @@ namespace YouAreNotAlone
             }
 
             if (spawnedVehicle.IsUpsideDown && spawnedVehicle.IsStopped && !spawnedVehicle.PlaceOnGround()) spawnedVehicle.PlaceOnNextStreet();
+            if (spawnedPed.IsSittingInVehicle(spawnedVehicle))
+            {
+                if (!Util.BlipIsOn(spawnedVehicle)) Util.AddBlipOn(spawnedVehicle, 0.7f, BlipSprite.PersonalVehicleCar, BlipColor.Green, "Aggressive " + blipName);
+                if (Util.BlipIsOn(spawnedPed)) spawnedPed.CurrentBlip.Remove();
+            }
+            else
+            {
+                if (Util.BlipIsOn(spawnedVehicle)) spawnedVehicle.CurrentBlip.Remove();
+                if (!Util.BlipIsOn(spawnedPed)) Util.AddBlipOn(spawnedPed, 0.6f, BlipSprite.PersonalVehicleCar, BlipColor.Green, "Aggressive Driver");
+            }
 
             CheckDispatch();
             CheckBlockable();

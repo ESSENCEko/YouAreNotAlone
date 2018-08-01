@@ -93,7 +93,7 @@ namespace YouAreNotAlone
 
         public void CheckAbilityUsable()
         {
-            foreach (Vehicle v in new List<Vehicle>(World.GetNearbyVehicles(stinger.Position, 20.0f)).FindAll(veh => Util.ThereIs(veh) && veh.IsTouching(stinger) && veh.CanTiresBurst))
+            foreach (Vehicle v in new List<Vehicle>(World.GetNearbyVehicles(stinger.Position, 20.0f)).FindAll(veh => Util.ThereIs(veh) && veh.CanTiresBurst))
             {
                 foreach (Wheel w in System.Enum.GetValues(typeof(Wheel)))
                 {
@@ -104,6 +104,8 @@ namespace YouAreNotAlone
 
         private bool StingerAreaContains(Vector3 v3)
         {
+            if (v3.Z < stinger.Position.Z) return false;
+
             bool result = false;
 
             for (int i = 0, j = 3; i < 4; j = i++)

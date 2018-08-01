@@ -48,15 +48,15 @@ namespace YouAreNotAlone
         {
             switch (type)
             {
-                case EventType.AggressiveDriver: return SafelyAddTo(aggressiveList, en, type);
-                case EventType.Carjacker: return SafelyAddTo(carjackerList, en, type);
-                case EventType.Driveby: return SafelyAddTo(drivebyList, en, type);
-                case EventType.Fire: return SafelyAddTo(onFireList, en, type);
-                case EventType.GangTeam: return SafelyAddTo(gangList, en, type);
-                case EventType.Massacre: return SafelyAddTo(massacreList, en, type);
-                case EventType.Racer: return SafelyAddTo(racerList, en, type);
-                case EventType.ReplacedVehicle: return SafelyAddTo(replacedList, en, type);
-                case EventType.Terrorist: return SafelyAddTo(terroristList, en, type);
+                case EventType.AggressiveDriver: return SafelyAddTo(aggressiveList, en, "EventManager", type);
+                case EventType.Carjacker: return SafelyAddTo(carjackerList, en, "EventManager", type);
+                case EventType.Driveby: return SafelyAddTo(drivebyList, en, "EventManager", type);
+                case EventType.Fire: return SafelyAddTo(onFireList, en, "EventManager", type);
+                case EventType.GangTeam: return SafelyAddTo(gangList, en, "EventManager", type);
+                case EventType.Massacre: return SafelyAddTo(massacreList, en, "EventManager", type);
+                case EventType.Racer: return SafelyAddTo(racerList, en, "EventManager", type);
+                case EventType.ReplacedVehicle: return SafelyAddTo(replacedList, en, "EventManager", type);
+                case EventType.Terrorist: return SafelyAddTo(terroristList, en, "EventManager", type);
                 default: return false;
             }
         }

@@ -46,15 +46,15 @@ namespace YouAreNotAlone
         {
             switch (type)
             {
-                case DispatchType.ArmyGround: return SafelyAddTo(armyGroundList, en, type);
-                case DispatchType.ArmyHeli: return SafelyAddTo(armyHeliList, en, type);
-                case DispatchType.ArmyRoadBlock: return SafelyAddTo(armyRoadblockList, en, type);
-                case DispatchType.CopGround: return SafelyAddTo(copGroundList, en, type);
-                case DispatchType.CopHeli: return SafelyAddTo(copHeliList, en, type);
-                case DispatchType.CopRoadBlock: return SafelyAddTo(copRoadblockList, en, type);
-                case DispatchType.Emergency: return SafelyAddTo(emList, en, type);
-                case DispatchType.Shield: return SafelyAddTo(shieldList, en, type);
-                case DispatchType.Stinger: return SafelyAddTo(stingerList, en, type);
+                case DispatchType.ArmyGround: return SafelyAddTo(armyGroundList, en, "DispatchManager", type);
+                case DispatchType.ArmyHeli: return SafelyAddTo(armyHeliList, en, "DispatchManager", type);
+                case DispatchType.ArmyRoadBlock: return SafelyAddTo(armyRoadblockList, en, "DispatchManager", type);
+                case DispatchType.CopGround: return SafelyAddTo(copGroundList, en, "DispatchManager", type);
+                case DispatchType.CopHeli: return SafelyAddTo(copHeliList, en, "DispatchManager", type);
+                case DispatchType.CopRoadBlock: return SafelyAddTo(copRoadblockList, en, "DispatchManager", type);
+                case DispatchType.Emergency: return SafelyAddTo(emList, en, "DispatchManager", type);
+                case DispatchType.Shield: return SafelyAddTo(shieldList, en, "DispatchManager", type);
+                case DispatchType.Stinger: return SafelyAddTo(stingerList, en, "DispatchManager", type);
                 default: return false;
             }
         }

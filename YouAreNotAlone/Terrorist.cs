@@ -9,11 +9,13 @@ namespace YouAreNotAlone
     {
         private List<Ped> members;
         private string name;
+        private string blipName;
 
         public Terrorist(string name) : base(EventManager.EventType.Terrorist)
         {
             this.members = new List<Ped>();
             this.name = name;
+            this.blipName = "";
             Logger.Write(true, "Terrorist event selected.", this.name);
         }
 
@@ -105,6 +107,7 @@ namespace YouAreNotAlone
             if (SpawnedPedExistsIn(members))
             {
                 Logger.Write(false, "Terrorist: Created terrorists successfully.", name);
+                blipName += VehicleInfo.GetNameOf(spawnedVehicle.Model.Hash);
 
                 return true;
             }
@@ -176,7 +179,7 @@ namespace YouAreNotAlone
 
             if (ReadyToGoWith(members))
             {
-                if (!Util.BlipIsOn(spawnedVehicle)) Util.AddBlipOn(spawnedVehicle, 0.7f, BlipSprite.Tank, BlipColor.Red, "Terrorist " + VehicleInfo.GetNameOf(spawnedVehicle.Model.Hash));
+                if (!Util.BlipIsOn(spawnedVehicle)) Util.AddBlipOn(spawnedVehicle, 0.7f, BlipSprite.Tank, BlipColor.Red, "Terrorist " + blipName);
 
                 foreach (Ped p in members.FindAll(m => Util.ThereIs(m) && Util.BlipIsOn(m))) p.CurrentBlip.Remove();
 
@@ -232,7 +235,7 @@ namespace YouAreNotAlone
                 }
                 else if (++dispatchTry > 5)
                 {
-                    Logger.Write(false, "Couldn't dispatch aginst", type.ToString());
+                    Logger.Write(false, "Couldn't dispatch against", type.ToString());
                     dispatchCooldown = 0;
                     dispatchTry = 0;
                 }

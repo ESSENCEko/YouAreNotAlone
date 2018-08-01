@@ -5,9 +5,9 @@ using System.Threading;
 
 namespace YouAreNotAlone
 {
-    public class AdvancedScript : Script
+    public abstract class AdvancedScript : Script
     {
-        protected static bool SafelyAddTo(List<AdvancedEntity> list, AdvancedEntity item, Enum type)
+        protected static bool SafelyAddTo(List<AdvancedEntity> list, AdvancedEntity item, string name, Enum type)
         {
             if (list == null || item == null) return false;
 
@@ -26,7 +26,7 @@ namespace YouAreNotAlone
             {
                 if (lockTaken)
                 {
-                    Logger.Write(false, "DispatchManager: Successfully added new entity.", type.ToString());
+                    Logger.Write(false, name + ": Successfully added new entity.", type.ToString());
                     Monitor.Exit(list);
                 }
             }
