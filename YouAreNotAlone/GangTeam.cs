@@ -30,7 +30,7 @@ namespace YouAreNotAlone
         {
             Vector3 position = World.GetNextPositionOnSidewalk(safePosition);
 
-            if (position.Equals(Vector3.Zero) || selectedModels == null)
+            if (position.Equals(Vector3.Zero) || selectedModels == null || teamName == null)
             {
                 Logger.Error("GangTeam: Couldn't find safe position or selected models. Abort.", "");
 

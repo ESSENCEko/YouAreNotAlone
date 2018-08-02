@@ -19,86 +19,81 @@ namespace YouAreNotAlone
 
         public override bool IsCreatedIn(Vector3 safePosition, List<string> models)
         {
-            Road road = new Road(Vector3.Zero, 0.0f);
+            if (models == null) return false;
 
             for (int cnt = 0; cnt < 5; cnt++)
             {
-                road = Util.GetNextPositionOnStreetWithHeadingToChase(safePosition.Around(50.0f), targetPosition);
+                Road road = Util.GetNextPositionOnStreetWithHeadingToChase(safePosition.Around(50.0f), targetPosition);
 
-                if (!road.Position.Equals(Vector3.Zero))
+                if (road != null)
                 {
                     Logger.Write(false, blipName + ": Found proper road.", name);
+                    spawnedVehicle = Util.Create(name, road.Position, road.Heading, false);
 
-                    break;
+                    if (!Util.ThereIs(spawnedVehicle))
+                    {
+                        Logger.Write(false, blipName + ": Couldn't create vehicle.", name);
+                        Restore(true);
+
+                        continue;
+                    }
+
+                    int max = emergencyType == "FIREMAN" ? 3 : 1;
+
+                    for (int i = -1; i < spawnedVehicle.PassengerSeats && i < max; i++)
+                    {
+                        if (spawnedVehicle.IsSeatFree((VehicleSeat)i))
+                        {
+                            members.Add(spawnedVehicle.CreatePedOnSeat((VehicleSeat)i, models[Util.GetRandomIntBelow(models.Count)]));
+                            Script.Wait(50);
+                        }
+                    }
+
+                    Logger.Write(false, blipName + ": Created members.", name);
+
+                    if (members.Find(p => !Util.ThereIs(p)) != null)
+                    {
+                        Logger.Write(false, blipName + ": There is a member who doesn't exist.", name);
+                        Restore(true);
+
+                        continue;
+                    }
+
+                    foreach (Ped p in members)
+                    {
+                        AddVarietyTo(p);
+                        p.Weapons.RemoveAll();
+                        p.RelationshipGroup = Function.Call<int>(Hash.GET_HASH_KEY, emergencyType);
+                        p.AlwaysKeepTask = true;
+                        p.BlockPermanentEvents = true;
+
+                        if (emergencyType == "FIREMAN")
+                        {
+                            p.Weapons.Give(WeaponHash.FireExtinguisher, 100, true, true);
+                            p.Weapons.Current.InfiniteAmmo = true;
+                            p.CanSwitchWeapons = true;
+                            p.IsFireProof = true;
+                        }
+
+                        Logger.Write(false, blipName + ": Characteristics are set.", name);
+                    }
+
+                    if (Util.ThereIs(spawnedVehicle.Driver))
+                    {
+                        Function.Call(Hash.SET_DRIVER_ABILITY, spawnedVehicle.Driver, 1.0f);
+                        Function.Call(Hash.SET_DRIVER_AGGRESSIVENESS, spawnedVehicle.Driver, 1.0f);
+                    }
+
+                    spawnedVehicle.EngineRunning = true;
+                    Logger.Write(false, blipName + ": Ready to dispatch.", name);
+
+                    return true;
                 }
             }
 
-            if (road.Position.Equals(Vector3.Zero))
-            {
-                Logger.Error(blipName + ": Couldn't find proper road. Abort.", name);
+            Logger.Error(blipName + ": Couldn't find proper road. Abort.", name);
 
-                return false;
-            }
-
-            spawnedVehicle = Util.Create(name, road.Position, road.Heading, false);
-
-            if (!Util.ThereIs(spawnedVehicle))
-            {
-                Logger.Write(false, blipName + ": Couldn't create vehicle. Abort.", name);
-
-                return false;
-            }
-
-            int max = emergencyType == "FIREMAN" ? 3 : 1;
-
-            for (int i = -1; i < spawnedVehicle.PassengerSeats && i < max; i++)
-            {
-                if (spawnedVehicle.IsSeatFree((VehicleSeat)i))
-                {
-                    members.Add(spawnedVehicle.CreatePedOnSeat((VehicleSeat)i, models[Util.GetRandomIntBelow(models.Count)]));
-                    Script.Wait(50);
-                }
-            }
-
-            Logger.Write(false, blipName + ": Created members.", name);
-
-            if (members.Find(p => !Util.ThereIs(p)) != null)
-            {
-                Logger.Error(blipName + ": There is a member who doesn't exist. Abort.", name);
-                Restore(true);
-
-                return false;
-            }
-
-            foreach (Ped p in members)
-            {
-                AddVarietyTo(p);
-                p.Weapons.RemoveAll();
-                p.RelationshipGroup = Function.Call<int>(Hash.GET_HASH_KEY, emergencyType);
-                p.AlwaysKeepTask = true;
-                p.BlockPermanentEvents = true;
-
-                if (emergencyType == "FIREMAN")
-                {
-                    p.Weapons.Give(WeaponHash.FireExtinguisher, 100, true, true);
-                    p.Weapons.Current.InfiniteAmmo = true;
-                    p.CanSwitchWeapons = true;
-                    p.IsFireProof = true;
-                }
-
-                Logger.Write(false, blipName + ": Characteristics are set.", name);
-            }
-
-            if (Util.ThereIs(spawnedVehicle.Driver))
-            {
-                Function.Call(Hash.SET_DRIVER_ABILITY, spawnedVehicle.Driver, 1.0f);
-                Function.Call(Hash.SET_DRIVER_AGGRESSIVENESS, spawnedVehicle.Driver, 1.0f);
-            }
-
-            spawnedVehicle.EngineRunning = true;
-            Logger.Write(false, blipName + ": Ready to dispatch.", name);
-
-            return true;
+            return false;
         }
 
         public override void Restore(bool instantly)
@@ -133,6 +128,8 @@ namespace YouAreNotAlone
 
         private new void AddVarietyTo(Ped p)
         {
+            if (!Util.ThereIs(p)) return;
+
             if (emergencyType == "FIREMAN")
             {
                 switch (Util.GetRandomIntBelow(3))

@@ -972,47 +972,46 @@ namespace YouAreNotAlone
 
                             if (safePosition.Equals(Vector3.Zero)) break;
 
-                            Road road = new Road(Vector3.Zero, 0.0f);
-
                             for (int cnt = 0; cnt < 5; cnt++)
                             {
-                                road = Util.GetNextPositionOnStreetWithHeading(safePosition.Around(50.0f));
+                                Road road = Util.GetNextPositionOnStreetWithHeading(safePosition.Around(50.0f));
 
-                                if (!road.Position.Equals(Vector3.Zero)) break;
-                            }
+                                if (road != null)
+                                {
+                                    GangTeam teamA = new GangTeam();
+                                    GangTeam teamB = new GangTeam();
 
-                            if (road.Position.Equals(Vector3.Zero)) break;
+                                    int teamANum = Util.GetRandomIntBelow(gangModels.Count);
+                                    int teamBNum = -1;
 
-                            GangTeam teamA = new GangTeam();
-                            GangTeam teamB = new GangTeam();
+                                    while (teamBNum == -1 || teamANum == teamBNum) teamBNum = Util.GetRandomIntBelow(gangModels.Count);
 
-                            int teamANum = Util.GetRandomIntBelow(gangModels.Count);
-                            int teamBNum = -1;
+                                    if (teamANum == -1 || teamBNum == -1) continue;
 
-                            while (teamBNum == -1 || teamANum == teamBNum) teamBNum = Util.GetRandomIntBelow(gangModels.Count);
+                                    int relationshipA = Util.NewRelationshipOf(EventManager.EventType.GangTeam);
+                                    int relationshipB = Util.NewRelationshipOf(EventManager.EventType.GangTeam);
 
-                            if (teamANum == -1 || teamBNum == -1) break;
+                                    if (relationshipA == 0 || relationshipB == 0) continue;
 
-                            int relationshipA = Util.NewRelationshipOf(EventManager.EventType.GangTeam);
-                            int relationshipB = Util.NewRelationshipOf(EventManager.EventType.GangTeam);
+                                    World.SetRelationshipBetweenGroups(Relationship.Hate, relationshipA, relationshipB);
 
-                            if (relationshipA == 0 || relationshipB == 0) break;
+                                    if (teamA.IsCreatedIn(radius, road.Position.Around(5.0f), gangModels[teamANum], relationshipA, BlipColor.Green, "A Team")
+                                        && teamB.IsCreatedIn(radius, road.Position.Around(5.0f), gangModels[teamBNum], relationshipB, BlipColor.Red, "B Team")
+                                        && EventManager.Add(teamA, EventManager.EventType.GangTeam) && EventManager.Add(teamB, EventManager.EventType.GangTeam))
+                                    {
+                                        teamA.PerformTask();
+                                        teamB.PerformTask();
 
-                            World.SetRelationshipBetweenGroups(Relationship.Hate, relationshipA, relationshipB);
+                                        if (!NoMinimapFlash) Function.Call(Hash.FLASH_MINIMAP_DISPLAY);
 
-                            if (teamA.IsCreatedIn(radius, road.Position.Around(5.0f), gangModels[teamANum], relationshipA, BlipColor.Green, "A Team")
-                                && teamB.IsCreatedIn(radius, road.Position.Around(5.0f), gangModels[teamBNum], relationshipB, BlipColor.Red, "B Team")
-                                && EventManager.Add(teamA, EventManager.EventType.GangTeam) && EventManager.Add(teamB, EventManager.EventType.GangTeam))
-                            {
-                                teamA.PerformTask();
-                                teamB.PerformTask();
-
-                                if (!NoMinimapFlash) Function.Call(Hash.FLASH_MINIMAP_DISPLAY);
-                            }
-                            else
-                            {
-                                teamA.Restore(true);
-                                teamB.Restore(true);
+                                        break;
+                                    }
+                                    else
+                                    {
+                                        teamA.Restore(true);
+                                        teamB.Restore(true);
+                                    }
+                                }
                             }
 
                             break;
@@ -1024,24 +1023,23 @@ namespace YouAreNotAlone
 
                             if (safePosition.Equals(Vector3.Zero)) break;
 
-                            Road road = new Road(Vector3.Zero, 0.0f);
-
                             for (int cnt = 0; cnt < 5; cnt++)
                             {
-                                road = Util.GetNextPositionOnStreetWithHeading(safePosition.Around(50.0f));
+                                Road road = Util.GetNextPositionOnStreetWithHeading(safePosition.Around(50.0f));
 
-                                if (!road.Position.Equals(Vector3.Zero)) break;
+                                if (road != null)
+                                {
+                                    Massacre ms = new Massacre();
+
+                                    if (ms.IsCreatedIn(radius, road.Position) && EventManager.Add(ms, EventManager.EventType.Massacre))
+                                    {
+                                        if (!NoMinimapFlash) Function.Call(Hash.FLASH_MINIMAP_DISPLAY);
+
+                                        break;
+                                    }
+                                    else ms.Restore(true);
+                                }
                             }
-
-                            if (road.Position.Equals(Vector3.Zero)) break;
-
-                            Massacre ms = new Massacre();
-
-                            if (ms.IsCreatedIn(radius, road.Position) && EventManager.Add(ms, EventManager.EventType.Massacre))
-                            {
-                                if (!NoMinimapFlash) Function.Call(Hash.FLASH_MINIMAP_DISPLAY);
-                            }
-                            else ms.Restore(true);
 
                             break;
                         }

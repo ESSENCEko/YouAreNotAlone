@@ -22,7 +22,7 @@ namespace YouAreNotAlone
             wheel_rm2 = 40442
         }
 
-        public Stinger(Vehicle owner) { this.owner = owner; }
+        public Stinger(Vehicle owner) => this.owner = owner;
 
         public bool IsCreatedIn(Vector3 position)
         {
@@ -104,7 +104,7 @@ namespace YouAreNotAlone
 
         private bool StingerAreaContains(Vector3 v3)
         {
-            if (v3.Z < stinger.Position.Z) return false;
+            if (v3.Equals(Vector3.Zero) || v3.Z < stinger.Position.Z) return false;
 
             bool result = false;
 

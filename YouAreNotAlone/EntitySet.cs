@@ -13,6 +13,8 @@ namespace YouAreNotAlone
 
         protected bool SpawnedPedExistsIn(List<Ped> members)
         {
+            if (members == null || members.Count < 1) return false;
+
             if (Util.WeCanGiveTaskTo(spawnedPed)) return true;
             else
             {
@@ -33,10 +35,12 @@ namespace YouAreNotAlone
             }
         }
 
-        protected bool ReadyToGoWith(List<Ped> members) => !Util.ThereIs(members.Find(p => Util.WeCanGiveTaskTo(p) && !p.IsSittingInVehicle(spawnedVehicle)));
+        protected bool ReadyToGoWith(List<Ped> members) => members != null && members.Count > 0 && !Util.ThereIs(members.Find(p => Util.WeCanGiveTaskTo(p) && !p.IsSittingInVehicle(spawnedVehicle)));
 
         protected bool VehicleSeatsCanBeSeatedBy(List<Ped> members)
         {
+            if (members == null || members.Count < 1) return false;
+
             if (!Util.ThereIs(spawnedVehicle))
             {
                 Logger.Error("EntitySet: Vehicle doesn't exist. Abort to assign seats.", "");

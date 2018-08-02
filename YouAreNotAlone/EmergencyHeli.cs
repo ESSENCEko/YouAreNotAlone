@@ -15,7 +15,7 @@ namespace YouAreNotAlone
 
         public override bool IsCreatedIn(Vector3 safePosition, List<string> models)
         {
-            if (relationship == 0) return false;
+            if (relationship == 0 || models == null || !Util.ThereIs(target)) return false;
 
             Vector3 position = World.GetNextPositionOnStreet(safePosition.Around(10.0f));
 

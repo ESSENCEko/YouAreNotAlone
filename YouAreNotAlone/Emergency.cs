@@ -260,6 +260,8 @@ namespace YouAreNotAlone
 
         protected void AddVarietyTo(Ped p)
         {
+            if (!Util.ThereIs(p)) return;
+
             int n = 0;
 
             if ((n = Function.Call<int>(Hash.GET_NUMBER_OF_PED_DRAWABLE_VARIATIONS, p, 8)) > 0 && Util.GetRandomIntBelow(2) == 1)

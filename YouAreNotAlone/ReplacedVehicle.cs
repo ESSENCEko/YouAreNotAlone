@@ -122,7 +122,7 @@ namespace YouAreNotAlone
 
         public override bool ShouldBeRemoved()
         {
-            if (!Util.ThereIs(spawnedVehicle) || !Util.WeCanEnter(spawnedVehicle) || !spawnedVehicle.IsInRangeOf(Game.Player.Character.Position, 200.0f))
+            if (!Util.WeCanEnter(spawnedVehicle) || !spawnedVehicle.IsInRangeOf(Game.Player.Character.Position, 200.0f))
             {
                 Logger.Write(false, "ReplacedVehicle: Replaced vehicle need to be restored.", name);
 

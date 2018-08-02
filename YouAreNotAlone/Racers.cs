@@ -24,9 +24,9 @@ namespace YouAreNotAlone
 
         public bool IsCreatedIn(float radius)
         {
-            if (models == null || safePosition.Equals(Vector3.Zero) || goal.Equals(Vector3.Zero))
+            if (models == null || goal.Equals(Vector3.Zero))
             {
-                Logger.Error("Racers: Couldn't find models or safe position or goal. Abort.", "");
+                Logger.Error("Racers: Couldn't find models or goal. Abort.", "");
 
                 return false;
             }
@@ -34,33 +34,23 @@ namespace YouAreNotAlone
             for (int i = 0; i < 4; i++)
             {
                 Racer r = new Racer(models[Util.GetRandomIntBelow(models.Count)], goal);
-                Road road = new Road(Vector3.Zero, 0.0f);
 
                 for (int cnt = 0; cnt < 5; cnt++)
                 {
-                    road = Util.GetNextPositionOnStreetWithHeadingToChase(safePosition.Around(50.0f), goal);
+                    Road road = Util.GetNextPositionOnStreetWithHeadingToChase(safePosition.Around(50.0f), goal);
 
-                    if (!road.Position.Equals(Vector3.Zero))
+                    if (road != null)
                     {
-                        Logger.Write(false, "Racers: Found proper road.", "");
+                        Logger.Write(false, "Racers: Found proper road. Creating a racer.", "");
 
-                        break;
+                        if (r.IsCreatedIn(radius, road))
+                        {
+                            racers.Add(r);
+
+                            break;
+                        }
+                        else r.Restore(true);
                     }
-                }
-
-                if (road.Position.Equals(Vector3.Zero))
-                {
-                    Logger.Error("Racers: Couldn't find proper road. Abort.", "");
-                    Restore(true);
-
-                    return false;
-                }
-                else
-                {
-                    Logger.Write(false, "Racers: Creating a racer.", "");
-
-                    if (r.IsCreatedIn(radius, road)) racers.Add(r);
-                    else r.Restore(true);
                 }
             }
 

@@ -35,7 +35,7 @@ namespace YouAreNotAlone
             {
                 Ped selectedPed = nearbyPeds[Util.GetRandomIntBelow(nearbyPeds.Length)];
 
-                if (!Util.ThereIs(selectedPed) || Util.BlipIsOn(selectedPed) || selectedPed.IsPersistent || selectedPed.Equals(Game.Player.Character) || !selectedPed.IsHuman || selectedPed.IsDead)
+                if (!Util.WeCanGiveTaskTo(selectedPed) || Util.BlipIsOn(selectedPed) || selectedPed.IsPersistent || selectedPed.Equals(Game.Player.Character) || !selectedPed.IsHuman)
                 {
                     Logger.Write(false, "Carjacker: Couldn't use selected ped.", "");
 
@@ -88,7 +88,7 @@ namespace YouAreNotAlone
             {
                 Vehicle v = nearbyVehicles[Util.GetRandomIntBelow(nearbyVehicles.Length)];
 
-                if (Util.ThereIs(v) && Util.WeCanEnter(v) && !spawnedPed.IsInVehicle(v) && v.Handle != lastVehicle && (Main.CriminalsCanFightWithPlayer || !Game.Player.Character.IsInVehicle(v)))
+                if (Util.WeCanEnter(v) && !spawnedPed.IsInVehicle(v) && v.Handle != lastVehicle && (Main.CriminalsCanFightWithPlayer || !Game.Player.Character.IsInVehicle(v)))
                 {
                     Logger.Write(false, "Carjacker: Found proper vehicle.", "");
                     spawnedVehicle = v;
@@ -136,14 +136,14 @@ namespace YouAreNotAlone
 
         public override bool ShouldBeRemoved()
         {
-            if (!Util.ThereIs(spawnedPed) || trycount > 5 || spawnedPed.IsDead || !spawnedPed.IsInRangeOf(Game.Player.Character.Position, 500.0f))
+            if (!Util.WeCanGiveTaskTo(spawnedPed) || trycount > 5 || !spawnedPed.IsInRangeOf(Game.Player.Character.Position, 500.0f))
             {
                 Logger.Write(false, "Carjacker: Carjacker need to be restored.", "");
 
                 return true;
             }
 
-            if (!Util.ThereIs(spawnedVehicle) || !spawnedVehicle.IsInRangeOf(spawnedPed.Position, 50.0f) || !Util.WeCanEnter(spawnedVehicle) || spawnedPed.IsBeingJacked) FindNewVehicle();
+            if (!Util.WeCanEnter(spawnedVehicle) || !spawnedVehicle.IsInRangeOf(spawnedPed.Position, 50.0f) || spawnedPed.IsBeingJacked) FindNewVehicle();
             if (Util.ThereIs(spawnedVehicle) && spawnedPed.IsInVehicle(spawnedVehicle) && spawnedPed.RelationshipGroup != relationship) spawnedPed.RelationshipGroup = relationship;
 
             CheckDispatch();

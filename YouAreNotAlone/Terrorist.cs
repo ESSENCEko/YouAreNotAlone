@@ -32,92 +32,83 @@ namespace YouAreNotAlone
                 return false;
             }
 
-            Road road = new Road(Vector3.Zero, 0.0f);
-
             for (int cnt = 0; cnt < 5; cnt++)
             {
-                road = Util.GetNextPositionOnStreetWithHeading(safePosition.Around(50.0f));
+                Road road = Util.GetNextPositionOnStreetWithHeading(safePosition.Around(50.0f));
 
-                if (!road.Position.Equals(Vector3.Zero))
+                if (road != null)
                 {
                     Logger.Write(false, "Terrorist: Found proper road.", name);
+                    spawnedVehicle = Util.Create(name, road.Position, road.Heading, true);
 
-                    break;
-                }
-            }
+                    if (!Util.ThereIs(spawnedVehicle))
+                    {
+                        Logger.Write(false, "Terrorist: Couldn't create vehicle.", name);
+                        Restore(true);
 
-            if (road.Position.Equals(Vector3.Zero))
-            {
-                Logger.Error("Terrorist: Couldn't find proper road. Abort.", name);
+                        continue;
+                    }
 
-                return false;
-            }
-
-            spawnedVehicle = Util.Create(name, road.Position, road.Heading, true);
-
-            if (!Util.ThereIs(spawnedVehicle))
-            {
-                Logger.Error("Terrorist: Couldn't create vehicle. Abort.", name);
-
-                return false;
-            }
-
-            Logger.Write(false, "Terrorist: Created vehicle and driver.", name);
-            Script.Wait(50);
-            Util.Tune(spawnedVehicle, false, false, false);
-
-            if (name == "khanjali" && spawnedVehicle.GetMod(VehicleMod.Roof) != -1) spawnedVehicle.SetMod(VehicleMod.Roof, -1, false);
-
-            for (int i = -1; i < spawnedVehicle.PassengerSeats; i++)
-            {
-                if (spawnedVehicle.IsSeatFree((VehicleSeat)i))
-                {
-                    members.Add(spawnedVehicle.CreatePedOnSeat((VehicleSeat)i, "g_m_m_chicold_01"));
+                    Logger.Write(false, "Terrorist: Created vehicle and driver.", name);
                     Script.Wait(50);
+                    Util.Tune(spawnedVehicle, false, false, false);
+
+                    if (name == "khanjali" && spawnedVehicle.GetMod(VehicleMod.Roof) != -1) spawnedVehicle.SetMod(VehicleMod.Roof, -1, false);
+
+                    for (int i = -1; i < spawnedVehicle.PassengerSeats; i++)
+                    {
+                        if (spawnedVehicle.IsSeatFree((VehicleSeat)i))
+                        {
+                            members.Add(spawnedVehicle.CreatePedOnSeat((VehicleSeat)i, "g_m_m_chicold_01"));
+                            Script.Wait(50);
+                        }
+                    }
+
+                    Logger.Write(false, "Terrorist: Tuned vehicle and created members.", name);
+
+                    if (members.Find(p => !Util.ThereIs(p)) != null)
+                    {
+                        Logger.Write(false, "Terrorist: There is a member who doesn't exist.", name);
+                        Restore(true);
+
+                        continue;
+                    }
+
+                    foreach (Ped p in members)
+                    {
+                        Util.SetCombatAttributesOf(p);
+                        p.RelationshipGroup = relationship;
+                        p.IsPriorityTargetForEnemies = true;
+                        p.CanBeShotInVehicle = false;
+
+                        p.Weapons.Give(WeaponHash.MicroSMG, 100, true, true);
+                        p.Weapons.Current.InfiniteAmmo = true;
+                        p.FiringPattern = FiringPattern.BurstFireDriveby;
+
+                        p.AlwaysKeepTask = true;
+                        p.BlockPermanentEvents = true;
+                        p.Task.FightAgainstHatedTargets(400.0f);
+                        Logger.Write(false, "Terrorist: Characteristics are set.", name);
+                    }
+
+                    if (SpawnedPedExistsIn(members))
+                    {
+                        Logger.Write(false, "Terrorist: Created terrorists successfully.", name);
+                        blipName += VehicleInfo.GetNameOf(spawnedVehicle.Model.Hash);
+
+                        return true;
+                    }
+                    else
+                    {
+                        Logger.Write(false, "Terrorist: Driver doesn't exist.", name);
+                        Restore(true);
+                    }
                 }
             }
 
-            Logger.Write(false, "Terrorist: Tuned vehicle and created members.", name);
+            Logger.Error("Terrorist: Couldn't find proper road. Abort.", name);
 
-            if (members.Find(p => !Util.ThereIs(p)) != null)
-            {
-                Logger.Error("Terrorist: There is a member who doesn't exist. Abort.", name);
-                Restore(true);
-
-                return false;
-            }
-
-            foreach (Ped p in members)
-            {
-                Util.SetCombatAttributesOf(p);
-                p.RelationshipGroup = relationship;
-                p.IsPriorityTargetForEnemies = true;
-                p.CanBeShotInVehicle = false;
-
-                p.Weapons.Give(WeaponHash.MicroSMG, 100, true, true);
-                p.Weapons.Current.InfiniteAmmo = true;
-                p.FiringPattern = FiringPattern.BurstFireDriveby;
-
-                p.AlwaysKeepTask = true;
-                p.BlockPermanentEvents = true;
-                p.Task.FightAgainstHatedTargets(400.0f);
-                Logger.Write(false, "Terrorist: Characteristics are set.", name);
-            }
-
-            if (SpawnedPedExistsIn(members))
-            {
-                Logger.Write(false, "Terrorist: Created terrorists successfully.", name);
-                blipName += VehicleInfo.GetNameOf(spawnedVehicle.Model.Hash);
-
-                return true;
-            }
-            else
-            {
-                Logger.Error("Terrorist: Driver doesn't exist. Abort.", name);
-                Restore(true);
-
-                return false;
-            }
+            return false;
         }
 
         public override void Restore(bool instantly)

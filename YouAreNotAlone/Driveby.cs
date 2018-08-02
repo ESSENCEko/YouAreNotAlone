@@ -21,109 +21,100 @@ namespace YouAreNotAlone
 
         public bool IsCreatedIn(float radius, List<string> selectedModels)
         {
-            if (relationship == 0) return false;
+            if (relationship == 0 || selectedModels == null) return false;
 
             Vector3 safePosition = Util.GetSafePositionIn(radius);
 
-            if (safePosition.Equals(Vector3.Zero) || selectedModels == null)
+            if (safePosition.Equals(Vector3.Zero))
             {
-                Logger.Error("Driveby: Couldn't find safe position or selected models. Abort.", name);
+                Logger.Error("Driveby: Couldn't find safe position. Abort.", name);
 
                 return false;
             }
-
-            Road road = new Road(Vector3.Zero, 0.0f);
 
             for (int cnt = 0; cnt < 5; cnt++)
             {
-                road = Util.GetNextPositionOnStreetWithHeading(safePosition.Around(50.0f));
+                Road road = Util.GetNextPositionOnStreetWithHeading(safePosition.Around(50.0f));
 
-                if (!road.Position.Equals(Vector3.Zero))
+                if (road != null)
                 {
                     Logger.Write(false, "Driveby: Found proper road.", name);
+                    spawnedVehicle = Util.Create(name, road.Position, road.Heading, true);
 
-                    break;
+                    if (!Util.ThereIs(spawnedVehicle))
+                    {
+                        Logger.Write(false, "Driveby: Couldn't create vehicle. Abort.", name);
+                        Restore(true);
+
+                        continue;
+                    }
+                    else if (spawnedVehicle.PassengerSeats < 1)
+                    {
+                        Logger.Write(false, "Driveby: Passenger seats are needed but there isn't.", name);
+                        Restore(true);
+
+                        return false;
+                    }
+
+                    Logger.Write(false, "Driveby: Created vehicle successfully.", name);
+                    List<WeaponHash> drivebyWeaponList = new List<WeaponHash> { WeaponHash.MicroSMG, WeaponHash.Pistol, WeaponHash.APPistol, WeaponHash.CombatPistol, WeaponHash.MachinePistol, WeaponHash.MiniSMG, WeaponHash.Revolver, WeaponHash.RevolverMk2, WeaponHash.DoubleActionRevolver };
+                    Util.Tune(spawnedVehicle, false, (Util.GetRandomIntBelow(3) == 1), false);
+
+                    for (int i = -1; i < spawnedVehicle.PassengerSeats; i++)
+                    {
+                        if (spawnedVehicle.IsSeatFree((VehicleSeat)i))
+                        {
+                            members.Add(spawnedVehicle.CreatePedOnSeat((VehicleSeat)i, selectedModels[Util.GetRandomIntBelow(selectedModels.Count)]));
+                            Script.Wait(50);
+                        }
+                    }
+
+                    Logger.Write(false, "Driveby: Tuned vehicle and created members.", name);
+
+                    if (members.Find(p => !Util.ThereIs(p)) != null)
+                    {
+                        Logger.Write(false, "Driveby: There is a member who doesn't exist.", name);
+                        Restore(true);
+
+                        continue;
+                    }
+
+                    foreach (Ped p in members)
+                    {
+                        Util.SetCombatAttributesOf(p);
+                        Function.Call(Hash.SET_DRIVER_ABILITY, p, 1.0f);
+                        Function.Call(Hash.SET_DRIVER_AGGRESSIVENESS, p, 1.0f);
+
+                        p.AlwaysKeepTask = true;
+                        p.BlockPermanentEvents = true;
+                        p.Weapons.Give(drivebyWeaponList[Util.GetRandomIntBelow(drivebyWeaponList.Count)], 100, true, true);
+                        p.Weapons.Current.InfiniteAmmo = true;
+
+                        p.ShootRate = 1000;
+                        p.RelationshipGroup = relationship;
+                        p.IsPriorityTargetForEnemies = true;
+                        p.FiringPattern = FiringPattern.BurstFireDriveby;
+                        Logger.Write(false, "Driveby: Characteristics are set.", name);
+                    }
+
+                    if (SpawnedPedExistsIn(members))
+                    {
+                        Logger.Write(false, "Driveby: Created driveby successfully.", name);
+                        blipName = VehicleInfo.GetNameOf(spawnedVehicle.Model.Hash);
+
+                        return true;
+                    }
+                    else
+                    {
+                        Logger.Write(false, "Driveby: Driver doesn't exist.", name);
+                        Restore(true);
+                    }
                 }
             }
 
-            if (road.Position.Equals(Vector3.Zero))
-            {
-                Logger.Error("Driveby: Couldn't find proper road. Abort.", name);
+            Logger.Error("Driveby: Couldn't find proper road. Abort.", name);
 
-                return false;
-            }
-
-            spawnedVehicle = Util.Create(name, road.Position, road.Heading, true);
-
-            if (!Util.ThereIs(spawnedVehicle))
-            {
-                Logger.Error("Driveby: Couldn't create vehicle. Abort.", name);
-
-                return false;
-            }
-            else if (spawnedVehicle.PassengerSeats < 1)
-            {
-                Logger.Error("Driveby: Passenger seats are needed but there isn't. Abort.", name);
-                Restore(true);
-
-                return false;
-            }
-
-            Logger.Write(false, "Driveby: Created vehicle successfully.", name);
-            List<WeaponHash> drivebyWeaponList = new List<WeaponHash> { WeaponHash.MicroSMG, WeaponHash.Pistol, WeaponHash.APPistol, WeaponHash.CombatPistol, WeaponHash.MachinePistol, WeaponHash.MiniSMG, WeaponHash.Revolver, WeaponHash.RevolverMk2, WeaponHash.DoubleActionRevolver };
-            Util.Tune(spawnedVehicle, false, (Util.GetRandomIntBelow(3) == 1), false);
-
-            for (int i = -1; i < spawnedVehicle.PassengerSeats; i++)
-            {
-                if (spawnedVehicle.IsSeatFree((VehicleSeat)i))
-                {
-                    members.Add(spawnedVehicle.CreatePedOnSeat((VehicleSeat)i, selectedModels[Util.GetRandomIntBelow(selectedModels.Count)]));
-                    Script.Wait(50);
-                }
-            }
-
-            Logger.Write(false, "Driveby: Tuned vehicle and created members.", name);
-
-            if (members.Find(p => !Util.ThereIs(p)) != null)
-            {
-                Logger.Error("Driveby: There is a member who doesn't exist. Abort.", name);
-                Restore(true);
-
-                return false;
-            }
-
-            foreach (Ped p in members)
-            {
-                Util.SetCombatAttributesOf(p);
-                Function.Call(Hash.SET_DRIVER_ABILITY, p, 1.0f);
-                Function.Call(Hash.SET_DRIVER_AGGRESSIVENESS, p, 1.0f);
-
-                p.AlwaysKeepTask = true;
-                p.BlockPermanentEvents = true;
-                p.Weapons.Give(drivebyWeaponList[Util.GetRandomIntBelow(drivebyWeaponList.Count)], 100, true, true);
-                p.Weapons.Current.InfiniteAmmo = true;
-
-                p.ShootRate = 1000;
-                p.RelationshipGroup = relationship;
-                p.IsPriorityTargetForEnemies = true;
-                p.FiringPattern = FiringPattern.BurstFireDriveby;
-                Logger.Write(false, "Driveby: Characteristics are set.", name);
-            }
-
-            if (SpawnedPedExistsIn(members))
-            {
-                Logger.Write(false, "Driveby: Created driveby successfully.", name);
-                blipName = VehicleInfo.GetNameOf(spawnedVehicle.Model.Hash);
-
-                return true;
-            }
-            else
-            {
-                Logger.Error("Driveby: Driver doesn't exist. Abort.", name);
-                Restore(true);
-
-                return false;
-            }
+            return false;
         }
 
         public override void Restore(bool instantly)

@@ -38,7 +38,7 @@ namespace YouAreNotAlone
                 "exhaust_16"
             }.FindAll(s => spawnedVehicle.HasBone(s));
 
-        private bool PedCanSafelyUseNitroBetween(Vector3 v1, Vector3 v2) => !World.Raycast(v1, v1 + v2, IntersectOptions.Everything, spawnedVehicle).DitHitAnything;
+        private bool PedCanSafelyUseNitroBetween(Vector3 v1, Vector3 v2) => !v1.Equals(Vector3.Zero) && !v2.Equals(Vector3.Zero) && !World.Raycast(v1, v1 + v2, IntersectOptions.Everything, spawnedVehicle).DitHitAnything;
 
         public void CheckNitroable()
         {

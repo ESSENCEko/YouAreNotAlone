@@ -77,9 +77,9 @@ namespace YouAreNotAlone
 
         public static int GetRandomIntBelow(int maxValue) => dice.Next(maxValue);
 
-        public static bool ThereIs(Entity en) => (en != null && en.Exists());
+        public static bool ThereIs(Entity en) => en != null && en.Exists();
 
-        public static bool BlipIsOn(Entity en) => (ThereIs(en) && en.CurrentBlip != null && en.CurrentBlip.Exists());
+        public static bool BlipIsOn(Entity en) => ThereIs(en) && en.CurrentBlip != null && en.CurrentBlip.Exists();
 
         public static bool SomethingIsBetweenPlayerAnd(Entity en)
         {
@@ -94,7 +94,7 @@ namespace YouAreNotAlone
 
         public static bool SomethingIsBetweenPlayerPositionAnd(Vector3 position)
         {
-            if (Game.Player.Character.IsInRangeOf(position, 50.0f)) return false;
+            if (position.Equals(Vector3.Zero) || Game.Player.Character.IsInRangeOf(position, 50.0f)) return false;
             else
             {
                 RaycastResult r = World.Raycast(GameplayCamera.Position, position, IntersectOptions.Map);
@@ -117,11 +117,14 @@ namespace YouAreNotAlone
 
         public static Vector3 GetSafePositionNear(Vector3 position)
         {
-            for (int i = 0; i < 20; i++)
+            if (!position.Equals(Vector3.Zero))
             {
-                Vector3 v3 = position.Around(100.0f);
+                for (int i = 0; i < 20; i++)
+                {
+                    Vector3 v3 = position.Around(100.0f);
 
-                if (SomethingIsBetweenPlayerPositionAnd(v3)) return v3;
+                    if (SomethingIsBetweenPlayerPositionAnd(v3)) return v3;
+                }
             }
 
             return Vector3.Zero;
@@ -140,29 +143,25 @@ namespace YouAreNotAlone
 
         public static void AddBlipOn(Entity en, float scale, BlipSprite bs, BlipColor bc, string bn)
         {
-            if (Main.NoBlipOnCriminal) return;
-            if (ThereIs(en))
-            {
-                en.AddBlip();
-                en.CurrentBlip.Scale = scale;
-                en.CurrentBlip.Sprite = bs;
-                en.CurrentBlip.Color = bc;
-                en.CurrentBlip.Name = bn;
-                en.CurrentBlip.IsShortRange = true;
-            }
+            if (Main.NoBlipOnCriminal || !ThereIs(en)) return;
+
+            en.AddBlip();
+            en.CurrentBlip.Scale = scale;
+            en.CurrentBlip.Sprite = bs;
+            en.CurrentBlip.Color = bc;
+            en.CurrentBlip.Name = bn;
+            en.CurrentBlip.IsShortRange = true;
         }
 
         public static void AddEmergencyBlipOn(Entity en, float scale, BlipSprite bs, string bn)
         {
-            if (Main.NoBlipOnDispatch) return;
-            if (ThereIs(en))
-            {
-                en.AddBlip();
-                en.CurrentBlip.Scale = scale;
-                en.CurrentBlip.Sprite = bs;
-                en.CurrentBlip.Name = bn;
-                en.CurrentBlip.IsShortRange = true;
-            }
+            if (Main.NoBlipOnDispatch || !ThereIs(en)) return;
+
+            en.AddBlip();
+            en.CurrentBlip.Scale = scale;
+            en.CurrentBlip.Sprite = bs;
+            en.CurrentBlip.Name = bn;
+            en.CurrentBlip.IsShortRange = true;
         }
 
         public static Ped Create(Model m, Vector3 v3)
@@ -204,51 +203,50 @@ namespace YouAreNotAlone
 
         public static void Tune(Vehicle v, bool withNeons, bool withWheels, bool withTireSmoke)
         {
-            if (ThereIs(v))
+            if (!ThereIs(v)) return;
+
+            v.InstallModKit();
+            v.ToggleMod(VehicleToggleMod.Turbo, true);
+            v.ToggleMod(VehicleToggleMod.XenonHeadlights, dice.Next(2) == 1);
+
+            v.CanTiresBurst = dice.Next(2) == 1;
+            v.WindowTint = (VehicleWindowTint)tints.GetValue(dice.Next(tints.Length));
+
+            foreach (VehicleMod m in mods)
             {
-                v.InstallModKit();
-                v.ToggleMod(VehicleToggleMod.Turbo, true);
-                v.ToggleMod(VehicleToggleMod.XenonHeadlights, dice.Next(2) == 1);
+                if (m != VehicleMod.Horns && m != VehicleMod.FrontWheels && m != VehicleMod.BackWheels && v.GetModCount(m) > 0) v.SetMod(m, dice.Next(-1, v.GetModCount(m)), false);
+            }
 
-                v.CanTiresBurst = dice.Next(2) == 1;
-                v.WindowTint = (VehicleWindowTint)tints.GetValue(dice.Next(tints.Length));
+            if (withNeons)
+            {
+                v.NeonLightsColor = Color.FromKnownColor((KnownColor)neonColors.GetValue(dice.Next(neonColors.Length)));
 
-                foreach (VehicleMod m in mods)
+                foreach (VehicleNeonLight n in neonLights) v.SetNeonLightsOn(n, true);
+            }
+
+            if (withWheels)
+            {
+                if (v.Model.IsCar)
                 {
-                    if (m != VehicleMod.Horns && m != VehicleMod.FrontWheels && m != VehicleMod.BackWheels && v.GetModCount(m) > 0) v.SetMod(m, dice.Next(-1, v.GetModCount(m)), false);
+                    v.WheelType = (VehicleWheelType)wheelTypes[dice.Next(wheelTypes.Length)];
+                    v.SetMod(VehicleMod.FrontWheels, dice.Next(-1, v.GetModCount(VehicleMod.FrontWheels)), false);
+                }
+                else if (v.Model.IsBike || v.Model.IsQuadbike)
+                {
+                    v.WheelType = VehicleWheelType.BikeWheels;
+                    int modIndex = dice.Next(-1, v.GetModCount(VehicleMod.FrontWheels));
+
+                    v.SetMod(VehicleMod.FrontWheels, modIndex, false);
+                    v.SetMod(VehicleMod.BackWheels, modIndex, false);
                 }
 
-                if (withNeons)
-                {
-                    v.NeonLightsColor = Color.FromKnownColor((KnownColor)neonColors.GetValue(dice.Next(neonColors.Length)));
+                v.RimColor = (VehicleColor)wheelColors[dice.Next(wheelColors.Length)];
+            }
 
-                    foreach (VehicleNeonLight n in neonLights) v.SetNeonLightsOn(n, true);
-                }
-
-                if (withWheels)
-                {
-                    if (v.Model.IsCar)
-                    {
-                        v.WheelType = (VehicleWheelType)wheelTypes[dice.Next(wheelTypes.Length)];
-                        v.SetMod(VehicleMod.FrontWheels, dice.Next(-1, v.GetModCount(VehicleMod.FrontWheels)), false);
-                    }
-                    else if (v.Model.IsBike || v.Model.IsQuadbike)
-                    {
-                        v.WheelType = VehicleWheelType.BikeWheels;
-                        int modIndex = dice.Next(-1, v.GetModCount(VehicleMod.FrontWheels));
-
-                        v.SetMod(VehicleMod.FrontWheels, modIndex, false);
-                        v.SetMod(VehicleMod.BackWheels, modIndex, false);
-                    }
-
-                    v.RimColor = (VehicleColor)wheelColors[dice.Next(wheelColors.Length)];
-                }
-
-                if (withTireSmoke)
-                {
-                    v.ToggleMod(VehicleToggleMod.TireSmoke, true);
-                    v.TireSmokeColor = Color.FromKnownColor((KnownColor)neonColors.GetValue(dice.Next(neonColors.Length)));
-                }
+            if (withTireSmoke)
+            {
+                v.ToggleMod(VehicleToggleMod.TireSmoke, true);
+                v.TireSmokeColor = Color.FromKnownColor((KnownColor)neonColors.GetValue(dice.Next(neonColors.Length)));
             }
         }
 
@@ -406,6 +404,8 @@ namespace YouAreNotAlone
 
         public static bool AnyEmergencyIsNear(Vector3 position, DispatchManager.DispatchType dispatchType, EventManager.EventType eventType)
         {
+            if (position.Equals(Vector3.Zero)) return false;
+
             List<Ped> nearbyPeds = new List<Ped>(World.GetNearbyPeds(position, 100.0f));
 
             if (nearbyPeds.Count < 1) return false;
@@ -443,56 +443,63 @@ namespace YouAreNotAlone
 
         public static Road GetNextPositionOnStreetWithHeading(Vector3 position)
         {
-            OutputArgument outPos = new OutputArgument();
-            OutputArgument roadHeading = new OutputArgument();
-
-            for (int i = 1; i < 20; i++)
+            if (!position.Equals(Vector3.Zero))
             {
-                if (Function.Call<bool>(Hash.GET_NTH_CLOSEST_VEHICLE_NODE_WITH_HEADING, position.X, position.Y, position.Z, i, outPos, roadHeading, new OutputArgument(), 9, 3.0f, 2.5f))
-                {
-                    Vector3 roadPos = outPos.GetResult<Vector3>();
+                OutputArgument outPos = new OutputArgument();
+                OutputArgument roadHeading = new OutputArgument();
 
-                    if (SomethingIsBetweenPlayerPositionAnd(roadPos) && !Function.Call<bool>(Hash.IS_POINT_OBSCURED_BY_A_MISSION_ENTITY, roadPos.X, roadPos.Y, roadPos.Z, 5.0f, 5.0f, 5.0f, 0))
-                        return new Road(roadPos, roadHeading.GetResult<float>());
+                for (int i = 1; i < 20; i++)
+                {
+                    if (Function.Call<bool>(Hash.GET_NTH_CLOSEST_VEHICLE_NODE_WITH_HEADING, position.X, position.Y, position.Z, i, outPos, roadHeading, new OutputArgument(), 9, 3.0f, 2.5f))
+                    {
+                        Vector3 roadPos = outPos.GetResult<Vector3>();
+
+                        if (SomethingIsBetweenPlayerPositionAnd(roadPos) && !Function.Call<bool>(Hash.IS_POINT_OBSCURED_BY_A_MISSION_ENTITY, roadPos.X, roadPos.Y, roadPos.Z, 5.0f, 5.0f, 5.0f, 0))
+                            return new Road(roadPos, roadHeading.GetResult<float>());
+                    }
                 }
             }
 
-            return new Road(Vector3.Zero, 0.0f);
+            return null;
         }
 
         public static Road GetNextPositionOnStreetWithHeadingToChase(Vector3 position, Vector3 targetPosition)
         {
-            OutputArgument outPos = new OutputArgument();
-            OutputArgument outHeading = new OutputArgument();
-
-            for (int i = 1; i < 20; i++)
+            if (!position.Equals(Vector3.Zero) && !targetPosition.Equals(Vector3.Zero))
             {
-                if (Function.Call<bool>(Hash.GET_NTH_CLOSEST_VEHICLE_NODE_WITH_HEADING, position.X, position.Y, position.Z, i, outPos, outHeading, new OutputArgument(), 9, 3.0f, 2.5f))
-                {
-                    Vector3 roadPos = outPos.GetResult<Vector3>();
-                    float roadHeading = outHeading.GetResult<float>();
+                OutputArgument outPos = new OutputArgument();
+                OutputArgument outHeading = new OutputArgument();
 
-                    if (SomethingIsBetweenPlayerPositionAnd(roadPos) && Math.Abs(roadHeading - (targetPosition - roadPos).ToHeading()) < 60 && !Function.Call<bool>(Hash.IS_POINT_OBSCURED_BY_A_MISSION_ENTITY, roadPos.X, roadPos.Y, roadPos.Z, 5.0f, 5.0f, 5.0f, 0))
-                        return new Road(roadPos, roadHeading);
+                for (int i = 1; i < 20; i++)
+                {
+                    if (Function.Call<bool>(Hash.GET_NTH_CLOSEST_VEHICLE_NODE_WITH_HEADING, position.X, position.Y, position.Z, i, outPos, outHeading, new OutputArgument(), 9, 3.0f, 2.5f))
+                    {
+                        Vector3 roadPos = outPos.GetResult<Vector3>();
+                        float roadHeading = outHeading.GetResult<float>();
+
+                        if (SomethingIsBetweenPlayerPositionAnd(roadPos) && Math.Abs(roadHeading - (targetPosition - roadPos).ToHeading()) < 60 && !Function.Call<bool>(Hash.IS_POINT_OBSCURED_BY_A_MISSION_ENTITY, roadPos.X, roadPos.Y, roadPos.Z, 5.0f, 5.0f, 5.0f, 0))
+                            return new Road(roadPos, roadHeading);
+                    }
                 }
             }
 
-            return new Road(Vector3.Zero, 0.0f);
+            return null;
         }
 
         public static void NaturallyRemove(Entity en)
         {
-            if (ThereIs(en))
-            {
-                if (en.IsPersistent) Function.Call(Hash.SET_ENTITY_AS_MISSION_ENTITY, en, false, true);
-                if (BlipIsOn(en)) en.CurrentBlip.Remove();
+            if (!ThereIs(en)) return;
 
-                en.MarkAsNoLongerNeeded();
-            }
+            if (en.IsPersistent) Function.Call(Hash.SET_ENTITY_AS_MISSION_ENTITY, en, false, true);
+            if (BlipIsOn(en)) en.CurrentBlip.Remove();
+
+            en.MarkAsNoLongerNeeded();
         }
 
         public static void SetAsCriminalWhoIs(Ped p, string type)
         {
+            if (!ThereIs(p)) return;
+
             int relationship = p.Equals(Game.Player.Character) ? playerID : type == "ARMY" ? pedTerrorist : pedCriminal;
             List<int> relationshipGroup = type == "ARMY" ? armyRelationships : copRelationships;
 
@@ -504,6 +511,8 @@ namespace YouAreNotAlone
 
         public static void SetCombatAttributesOf(Ped p)
         {
+            if (!ThereIs(p)) return;
+
             Function.Call(Hash.SET_PED_FLEE_ATTRIBUTES, p, 0, false);
             Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, p, 0, true);
             Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, p, 1, true);

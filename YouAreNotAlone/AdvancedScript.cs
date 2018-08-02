@@ -9,7 +9,7 @@ namespace YouAreNotAlone
     {
         protected static bool SafelyAddTo(List<AdvancedEntity> list, AdvancedEntity item, string name, Enum type)
         {
-            if (list == null || item == null) return false;
+            if (list == null || item == null || name == null) return false;
 
             bool lockTaken = false;
 

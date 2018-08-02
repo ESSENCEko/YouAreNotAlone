@@ -20,7 +20,7 @@ namespace YouAreNotAlone
 
         public bool IsCreatedIn(float radius, Road road)
         {
-            if (relationship == 0) return false;
+            if (relationship == 0 || road == null) return false;
 
             spawnedVehicle = Util.Create(name, road.Position, road.Heading, true);
 
