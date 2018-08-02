@@ -13,12 +13,12 @@ namespace YouAreNotAlone
 
         protected bool SpawnedPedExistsIn(List<Ped> members)
         {
-            if (Util.ThereIs(spawnedPed) && Util.WeCanGiveTaskTo(spawnedPed)) return true;
+            if (Util.WeCanGiveTaskTo(spawnedPed)) return true;
             else
             {
                 spawnedPed = null;
 
-                if (Util.ThereIs(spawnedPed = members.Find(m => Util.ThereIs(m) && Util.WeCanGiveTaskTo(m))))
+                if (Util.ThereIs(spawnedPed = members.Find(m => Util.WeCanGiveTaskTo(m))))
                 {
                     Logger.Write(false, "EntitySet: Found driver.", "");
 
@@ -33,10 +33,7 @@ namespace YouAreNotAlone
             }
         }
 
-        protected bool ReadyToGoWith(List<Ped> members)
-        {
-            return !Util.ThereIs(members.Find(p => Util.ThereIs(p) && Util.WeCanGiveTaskTo(p) && !p.IsSittingInVehicle(spawnedVehicle)));
-        }
+        protected bool ReadyToGoWith(List<Ped> members) => !Util.ThereIs(members.Find(p => Util.WeCanGiveTaskTo(p) && !p.IsSittingInVehicle(spawnedVehicle)));
 
         protected bool VehicleSeatsCanBeSeatedBy(List<Ped> members)
         {
@@ -49,7 +46,7 @@ namespace YouAreNotAlone
 
             int startingSeat = 0;
 
-            if (Util.ThereIs(spawnedVehicle.Driver) && Util.WeCanGiveTaskTo(spawnedVehicle.Driver))
+            if (Util.WeCanGiveTaskTo(spawnedVehicle.Driver))
             {
                 Logger.Write(false, "EntitySet: There is driver. Let it brake.", "");
                 Function.Call(Hash.TASK_VEHICLE_TEMP_ACTION, spawnedVehicle.Driver, spawnedVehicle, 1, 1000);
@@ -62,7 +59,7 @@ namespace YouAreNotAlone
 
             for (int i = startingSeat, j = 0; j < members.Count; j++)
             {
-                if (Util.ThereIs(members[j]) && members[j].IsOnFoot && Util.WeCanGiveTaskTo(members[j]) && !Function.Call<bool>(Hash.GET_IS_TASK_ACTIVE, members[j], 195))
+                if (Util.WeCanGiveTaskTo(members[j]) && members[j].IsOnFoot && !Function.Call<bool>(Hash.GET_IS_TASK_ACTIVE, members[j], 195))
                 {
                     while (!spawnedVehicle.IsSeatFree((VehicleSeat)i) && !spawnedVehicle.GetPedOnSeat((VehicleSeat)i).IsDead)
                     {

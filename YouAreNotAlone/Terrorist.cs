@@ -150,13 +150,6 @@ namespace YouAreNotAlone
 
             for (int i = members.Count - 1; i >= 0; i--)
             {
-                if (!Util.ThereIs(members[i]))
-                {
-                    members.RemoveAt(i);
-
-                    continue;
-                }
-
                 if (Util.WeCanGiveTaskTo(members[i])) alive++;
                 else
                 {
@@ -181,19 +174,19 @@ namespace YouAreNotAlone
             {
                 if (!Util.BlipIsOn(spawnedVehicle)) Util.AddBlipOn(spawnedVehicle, 0.7f, BlipSprite.Tank, BlipColor.Red, "Terrorist " + blipName);
 
-                foreach (Ped p in members.FindAll(m => Util.ThereIs(m) && Util.BlipIsOn(m))) p.CurrentBlip.Remove();
+                foreach (Ped p in members.FindAll(m => Util.BlipIsOn(m))) p.CurrentBlip.Remove();
 
                 if (Util.ThereIs(spawnedVehicle.Driver))
                 {
                     Logger.Write(false, "Terrorist: Time to driveby.", name);
 
-                    foreach (Ped p in members.FindAll(m => Util.ThereIs(m) && Util.WeCanGiveTaskTo(m) && !m.IsInCombat)) p.Task.FightAgainstHatedTargets(400.0f);
+                    foreach (Ped p in members.FindAll(m => Util.WeCanGiveTaskTo(m) && !m.IsInCombat)) p.Task.FightAgainstHatedTargets(400.0f);
                 }
                 else
                 {
                     Logger.Write(false, "Terrorist: There is no driver. Re-enter everyone.", name);
 
-                    foreach (Ped p in members.FindAll(m => Util.ThereIs(m) && Util.WeCanGiveTaskTo(m) && m.IsSittingInVehicle(spawnedVehicle)))
+                    foreach (Ped p in members.FindAll(m => Util.WeCanGiveTaskTo(m) && m.IsSittingInVehicle(spawnedVehicle)))
                         p.Task.LeaveVehicle(spawnedVehicle, false);
                 }
             }
@@ -204,11 +197,11 @@ namespace YouAreNotAlone
                 {
                     Logger.Write(false, "Terrorist: Something wrong with assigning seats. Re-enter everyone.", name);
 
-                    foreach (Ped p in members.FindAll(m => Util.ThereIs(m) && Util.WeCanGiveTaskTo(m) && m.IsSittingInVehicle(spawnedVehicle)))
+                    foreach (Ped p in members.FindAll(m => Util.WeCanGiveTaskTo(m) && m.IsSittingInVehicle(spawnedVehicle)))
                         p.Task.LeaveVehicle(spawnedVehicle, false);
                 }
 
-                if (Util.ThereIs(spawnedVehicle) && Util.BlipIsOn(spawnedVehicle)) spawnedVehicle.CurrentBlip.Remove();
+                if (Util.BlipIsOn(spawnedVehicle)) spawnedVehicle.CurrentBlip.Remove();
 
                 foreach (Ped p in members.FindAll(m => Util.ThereIs(m)))
                 {

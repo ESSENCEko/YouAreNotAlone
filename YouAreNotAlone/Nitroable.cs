@@ -18,9 +18,7 @@ namespace YouAreNotAlone
             this.nitroCooldown = false;
         }
 
-        protected void SetExhausts()
-        {
-            exhausts = new List<string>
+        protected void SetExhausts() => exhausts = new List<string>
             {
                 "exhaust",
                 "exhaust_2",
@@ -39,12 +37,8 @@ namespace YouAreNotAlone
                 "exhaust_15",
                 "exhaust_16"
             }.FindAll(s => spawnedVehicle.HasBone(s));
-        }
 
-        private bool PedCanSafelyUseNitroBetween(Vector3 v1, Vector3 v2)
-        {
-            return !World.Raycast(v1, v1 + v2, IntersectOptions.Everything, spawnedVehicle).DitHitAnything;
-        }
+        private bool PedCanSafelyUseNitroBetween(Vector3 v1, Vector3 v2) => !World.Raycast(v1, v1 + v2, IntersectOptions.Everything, spawnedVehicle).DitHitAnything;
 
         public void CheckNitroable()
         {

@@ -7,10 +7,7 @@ namespace YouAreNotAlone
     {
         private readonly static string filePath = @"YouAreNotAlone.log";
 
-        public static void Init()
-        {
-            File.WriteAllText(filePath, "[" + DateTime.Now.ToString("HH:mm:ss") + "] " + "Initializing. (" + GTA.Game.Version.ToString() + ")\n");
-        }
+        public static void Init() => File.WriteAllText(filePath, "[" + DateTime.Now.ToString("HH:mm:ss") + "] " + "Initializing. (" + GTA.Game.Version.ToString() + ")\n");
 
         public static void Write(bool force, string s, string name)
         {

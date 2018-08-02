@@ -10,10 +10,7 @@ namespace YouAreNotAlone
         private static IntPtr address;
         private static GetModelInfoDelegate GetModelInfo { get { return Marshal.GetDelegateForFunctionPointer<GetModelInfoDelegate>(address); } }
 
-        public static void Init()
-        {
-            address = FindPattern("0F B7 05 ?? ?? ?? ?? 45 33 C9 4C 8B DA 66 85 C0 0F 84 ?? ?? ?? ?? 44 0F B7 C0 33 D2 8B C1 41 F7 F0 48 8B 05 ?? ?? ?? ?? 4C 8B 14 D0 EB 09 41 3B 0A 74 54");
-        }
+        public static void Init() => address = FindPattern("0F B7 05 ?? ?? ?? ?? 45 33 C9 4C 8B DA 66 85 C0 0F 84 ?? ?? ?? ?? 44 0F B7 C0 33 D2 8B C1 41 F7 F0 48 8B 05 ?? ?? ?? ?? 4C 8B 14 D0 EB 09 41 3B 0A 74 54");
 
         public static string GetNameOf(int hash)
         {
@@ -34,7 +31,7 @@ namespace YouAreNotAlone
             return vehicleName;
         }
 
-        private unsafe static bool Compare(IntPtr data, byte[] bytesArray)
+        private unsafe static bool PatternIsFoundBy(IntPtr data, byte[] bytesArray)
         {
             for (int i = 0; i < bytesArray.Length; i++)
             {
@@ -59,7 +56,7 @@ namespace YouAreNotAlone
             {
                 IntPtr data = new IntPtr(addr);
 
-                if (Compare(data, bytesArray)) return data;
+                if (PatternIsFoundBy(data, bytesArray)) return data;
             }
 
             return IntPtr.Zero;

@@ -116,20 +116,13 @@ namespace YouAreNotAlone
         {
             Logger.Write(false, "GangTeam: Let's fight with hated targets.", "");
 
-            foreach (Ped p in members.FindAll(m => Util.ThereIs(m) && Util.WeCanGiveTaskTo(m))) p.Task.PerformSequence(ts);
+            foreach (Ped p in members.FindAll(m => Util.WeCanGiveTaskTo(m))) p.Task.PerformSequence(ts);
         }
 
         public override bool ShouldBeRemoved()
         {
             for (int i = members.Count - 1; i >= 0; i--)
             {
-                if (!Util.ThereIs(members[i]))
-                {
-                    members.RemoveAt(i);
-
-                    continue;
-                }
-
                 if (!Util.WeCanGiveTaskTo(members[i]) || !members[i].IsInRangeOf(Game.Player.Character.Position, 500.0f))
                 {
                     Logger.Write(false, "GangTeam: Found a member who died or out of range. Need to be removed.", "");
@@ -139,7 +132,7 @@ namespace YouAreNotAlone
                     continue;
                 }
 
-                if (!members[i].IsInCombat && Util.ThereIs(new List<Ped>(World.GetNearbyPeds(members[i], 100.0f)).Find(p => Util.ThereIs(p) && Util.WeCanGiveTaskTo(p) && World.GetRelationshipBetweenGroups(relationship, p.RelationshipGroup).Equals(Relationship.Hate))))
+                if (!members[i].IsInCombat && Util.ThereIs(new List<Ped>(World.GetNearbyPeds(members[i], 100.0f)).Find(p => Util.WeCanGiveTaskTo(p) && World.GetRelationshipBetweenGroups(relationship, p.RelationshipGroup).Equals(Relationship.Hate))))
                     members[i].Task.PerformSequence(ts);
             }
 

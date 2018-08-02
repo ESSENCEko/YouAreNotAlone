@@ -135,13 +135,6 @@ namespace YouAreNotAlone
 
             for (int i = members.Count - 1; i >= 0; i--)
             {
-                if (!Util.ThereIs(members[i]))
-                {
-                    members.RemoveAt(i);
-
-                    continue;
-                }
-
                 if (Util.WeCanGiveTaskTo(members[i]))
                 {
                     if (!members[i].Equals(spawnedVehicle.Driver)) alive++;
@@ -197,6 +190,6 @@ namespace YouAreNotAlone
             return false;
         }
 
-        protected override BlipSprite CurrentBlipSprite { get { return (Util.WeCanEnter(spawnedVehicle) || spawnedVehicle.IsInAir) ? BlipSprite.PoliceHelicopterAnimated : BlipSprite.PoliceOfficer; } }
+        protected override BlipSprite CurrentBlipSprite => ReadyToGoWith(members) ? BlipSprite.PoliceHelicopterAnimated : BlipSprite.PoliceOfficer;
     }
 }

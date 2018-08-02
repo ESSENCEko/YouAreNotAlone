@@ -186,13 +186,6 @@ namespace YouAreNotAlone
         {
             for (int i = members.Count - 1; i >= 0; i--)
             {
-                if (!Util.ThereIs(members[i]))
-                {
-                    members.RemoveAt(i);
-
-                    continue;
-                }
-
                 if (!Util.WeCanGiveTaskTo(members[i]) || !members[i].IsInRangeOf(Game.Player.Character.Position, 500.0f))
                 {
                     Logger.Write(false, "Massacre: Found a member who died or out of range. Need to be removed.", "");

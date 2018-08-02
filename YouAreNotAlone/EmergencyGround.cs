@@ -170,6 +170,6 @@ namespace YouAreNotAlone
             return true;
         }
 
-        protected override BlipSprite CurrentBlipSprite { get { return BlipSprite.PoliceOfficer; } }
+        protected override BlipSprite CurrentBlipSprite => BlipSprite.PoliceOfficer;
     }
 }

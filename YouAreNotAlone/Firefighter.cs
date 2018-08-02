@@ -16,7 +16,7 @@ namespace YouAreNotAlone
             {
                 if (ReadyToGoWith(members))
                 {
-                    if (Util.ThereIs(spawnedVehicle.Driver) && Util.WeCanGiveTaskTo(spawnedVehicle.Driver))
+                    if (Util.WeCanGiveTaskTo(spawnedVehicle.Driver))
                     {
                         Logger.Write(false, blipName + ": Time to go with vehicle.", name);
 
@@ -28,7 +28,7 @@ namespace YouAreNotAlone
                     {
                         Logger.Write(false, blipName + ": There is no driver when on duty. Re-enter everyone.", name);
 
-                        foreach (Ped p in members.FindAll(m => Util.ThereIs(m) && Util.WeCanGiveTaskTo(m) && m.IsSittingInVehicle(spawnedVehicle)))
+                        foreach (Ped p in members.FindAll(m => Util.WeCanGiveTaskTo(m) && m.IsSittingInVehicle(spawnedVehicle)))
                             p.Task.LeaveVehicle(spawnedVehicle, false);
                     }
                 }
@@ -39,7 +39,7 @@ namespace YouAreNotAlone
                     {
                         Logger.Write(false, blipName + ": Something wrong with assigning seats when on duty. Re-enter everyone.", name);
 
-                        foreach (Ped p in members.FindAll(m => Util.ThereIs(m) && Util.WeCanGiveTaskTo(m) && m.IsSittingInVehicle(spawnedVehicle)))
+                        foreach (Ped p in members.FindAll(m => Util.WeCanGiveTaskTo(m) && m.IsSittingInVehicle(spawnedVehicle)))
                             p.Task.LeaveVehicle(spawnedVehicle, false);
                     }
                 }
@@ -48,16 +48,16 @@ namespace YouAreNotAlone
             {
                 if (spawnedVehicle.Speed < 1)
                 {
-                    if (Util.ThereIs(members.Find(p => Util.ThereIs(p) && Util.WeCanGiveTaskTo(p) && p.IsOnFoot && !p.Weapons.Current.Hash.Equals(WeaponHash.FireExtinguisher))))
+                    if (Util.ThereIs(members.Find(p => Util.WeCanGiveTaskTo(p) && p.IsOnFoot && !p.Weapons.Current.Hash.Equals(WeaponHash.FireExtinguisher))))
                     {
-                        foreach (Ped p in members.FindAll(p => Util.ThereIs(p) && Util.WeCanGiveTaskTo(p) && p.IsOnFoot && !p.Weapons.Current.Hash.Equals(WeaponHash.FireExtinguisher)))
+                        foreach (Ped p in members.FindAll(p => Util.WeCanGiveTaskTo(p) && p.IsOnFoot && !p.Weapons.Current.Hash.Equals(WeaponHash.FireExtinguisher)))
                             p.Weapons.Select(WeaponHash.FireExtinguisher, true);
                     }
                     else
                     {
                         Logger.Write(false, blipName + ": Time to put off fires.", name);
 
-                        foreach (Ped p in members.FindAll(m => Util.ThereIs(m) && Util.WeCanGiveTaskTo(m)))
+                        foreach (Ped p in members.FindAll(m => Util.WeCanGiveTaskTo(m)))
                         {
                             if (p.IsSittingInVehicle(spawnedVehicle)) p.Task.LeaveVehicle(spawnedVehicle, false);
                             if (p.TaskSequenceProgress < 0)
@@ -82,7 +82,7 @@ namespace YouAreNotAlone
                 {
                     Logger.Write(false, blipName + ": Near fires. Time to brake.", name);
 
-                    if (Util.ThereIs(spawnedVehicle.Driver) && Util.WeCanGiveTaskTo(spawnedVehicle.Driver)) Function.Call(Hash.TASK_VEHICLE_TEMP_ACTION, spawnedVehicle.Driver, spawnedVehicle, 1, 1000);
+                    if (Util.WeCanGiveTaskTo(spawnedVehicle.Driver)) Function.Call(Hash.TASK_VEHICLE_TEMP_ACTION, spawnedVehicle.Driver, spawnedVehicle, 1, 1000);
                 }
             }
         }

@@ -262,6 +262,7 @@ namespace YouAreNotAlone
                 racerCarNames.Add("taipan");
                 racerCarNames.Add("tezeract");
                 racerCarNames.Add("tyrant");
+                drivebyCarNames.Add("caracara");
             }
 
             if (Function.Call<bool>(Hash.IS_DLC_PRESENT, Function.Call<int>(Hash.GET_HASH_KEY, "mpbattle")))

@@ -134,12 +134,10 @@ namespace YouAreNotAlone
             return false;
         }
 
-        public bool Exists()
-        {
-            return Util.ThereIs(spawnedPed) && Util.ThereIs(spawnedVehicle);
-        }
+        public bool Exists() => Util.ThereIs(spawnedPed) && Util.ThereIs(spawnedVehicle);
 
-        public float RemainingDistance { get { return spawnedPed.Position.DistanceTo(goal); } }
-        public Ped Driver { get { return spawnedPed; } }
+        public float RemainingDistance => spawnedPed.Position.DistanceTo(goal);
+
+        public Ped Driver => spawnedPed;
     }
 }

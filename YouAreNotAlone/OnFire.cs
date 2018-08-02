@@ -109,7 +109,9 @@ namespace YouAreNotAlone
         public override void Restore(bool instantly)
         {
             Logger.Write(false, "OnFire: Restore naturally.", "");
-            blip.Remove();
+
+            if (blip != null && blip.Exists()) blip.Remove();
+
             Util.NaturallyRemove(OnFireVehicle);
         }
 

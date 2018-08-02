@@ -75,20 +75,11 @@ namespace YouAreNotAlone
             count = 0;
         }
 
-        public static int GetRandomIntBelow(int maxValue)
-        {
-            return dice.Next(maxValue);
-        }
+        public static int GetRandomIntBelow(int maxValue) => dice.Next(maxValue);
 
-        public static bool ThereIs(Entity en)
-        {
-            return (en != null && en.Exists());
-        }
+        public static bool ThereIs(Entity en) => (en != null && en.Exists());
 
-        public static bool BlipIsOn(Entity en)
-        {
-            return (en.CurrentBlip != null && en.CurrentBlip.Exists());
-        }
+        public static bool BlipIsOn(Entity en) => (ThereIs(en) && en.CurrentBlip != null && en.CurrentBlip.Exists());
 
         public static bool SomethingIsBetweenPlayerAnd(Entity en)
         {
@@ -143,15 +134,9 @@ namespace YouAreNotAlone
             return false;
         }
 
-        public static bool WeCanEnter(Vehicle v)
-        {
-            return v.IsDriveable && !v.IsOnFire && (v.Model.IsBicycle || v.Model.IsBike || v.Model.IsQuadbike || !v.IsUpsideDown || !v.IsStopped);
-        }
+        public static bool WeCanEnter(Vehicle v) => ThereIs(v) && v.IsDriveable && !v.IsOnFire && (v.Model.IsBicycle || v.Model.IsBike || v.Model.IsQuadbike || !v.IsUpsideDown || !v.IsStopped);
 
-        public static bool WeCanGiveTaskTo(Ped p)
-        {
-            return !p.IsDead && !p.IsInjured;
-        }
+        public static bool WeCanGiveTaskTo(Entity en) => ThereIs(en) && en.Model.IsPed && !((Ped)en).IsDead && !((Ped)en).IsInjured;
 
         public static void AddBlipOn(Entity en, float scale, BlipSprite bs, BlipColor bc, string bn)
         {
@@ -453,7 +438,7 @@ namespace YouAreNotAlone
                     break;
             }
 
-            return (nearbyPeds.FindAll(p => ThereIs(p) && WeCanGiveTaskTo(p) && dispatchType.Equals(DispatchManager.DispatchType.ArmyGround) ? armyRelationships.Contains(p.RelationshipGroup) : copRelationships.Contains(p.RelationshipGroup))).Count > max;
+            return (nearbyPeds.FindAll(p => WeCanGiveTaskTo(p) && dispatchType.Equals(DispatchManager.DispatchType.ArmyGround) ? armyRelationships.Contains(p.RelationshipGroup) : copRelationships.Contains(p.RelationshipGroup))).Count > max;
         }
 
         public static Road GetNextPositionOnStreetWithHeading(Vector3 position)
@@ -508,20 +493,13 @@ namespace YouAreNotAlone
 
         public static void SetAsCriminalWhoIs(Ped p, string type)
         {
-            if (type == "ARMY")
-            {
-                foreach (int i in armyRelationships.FindAll(r => !World.GetRelationshipBetweenGroups(pedTerrorist, r).Equals(Relationship.Hate)))
-                    World.SetRelationshipBetweenGroups(Relationship.Hate, pedTerrorist, i);
+            int relationship = p.Equals(Game.Player.Character) ? playerID : type == "ARMY" ? pedTerrorist : pedCriminal;
+            List<int> relationshipGroup = type == "ARMY" ? armyRelationships : copRelationships;
 
-                p.RelationshipGroup = pedTerrorist;
-            }
-            else
-            {
-                foreach (int i in copRelationships.FindAll(r => !World.GetRelationshipBetweenGroups(pedCriminal, r).Equals(Relationship.Hate)))
-                    World.SetRelationshipBetweenGroups(Relationship.Hate, pedCriminal, i);
+            foreach (int i in relationshipGroup.FindAll(r => !World.GetRelationshipBetweenGroups(relationship, r).Equals(Relationship.Hate)))
+                World.SetRelationshipBetweenGroups(Relationship.Hate, relationship, i);
 
-                p.RelationshipGroup = pedCriminal;
-            }
+            if (relationship != playerID) p.RelationshipGroup = relationship;
         }
 
         public static void SetCombatAttributesOf(Ped p)

@@ -125,9 +125,12 @@ namespace YouAreNotAlone
             members.Clear();
         }
 
-        protected override BlipSprite CurrentBlipSprite { get { return BlipSprite.Hospital; } }
-        protected new abstract void SetPedsOnDuty(bool onVehicleDuty);
+        protected override BlipSprite CurrentBlipSprite => BlipSprite.Hospital;
+
+        protected abstract new void SetPedsOnDuty(bool onVehicleDuty);
+
         protected abstract new bool TargetIsFound();
+
         private new void AddVarietyTo(Ped p)
         {
             if (emergencyType == "FIREMAN")
@@ -169,13 +172,6 @@ namespace YouAreNotAlone
 
             for (int i = members.Count - 1; i >= 0; i--)
             {
-                if (!Util.ThereIs(members[i]))
-                {
-                    members.RemoveAt(i);
-
-                    continue;
-                }
-
                 if (Util.WeCanGiveTaskTo(members[i])) alive++;
                 else
                 {

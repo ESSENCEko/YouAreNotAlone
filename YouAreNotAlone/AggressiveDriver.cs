@@ -147,9 +147,6 @@ namespace YouAreNotAlone
             return false;
         }
 
-        public void CheckAbilityUsable()
-        {
-            CheckNitroable();
-        }
+        public void CheckAbilityUsable() => CheckNitroable();
     }
 }
